@@ -23,26 +23,17 @@ bl_info = {
     'name': 'Screencast Keys',
     'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo, '
               'Gaia Clary, Pablo Vazquez, chromoly, Nutti',
-    'version': (2, 1, 0),
-    'blender': (2, 79, 0),
+    'version': (3, 0, 0),
+    'blender': (2, 80, 0),
     'location': '3D View > Properties Panel > Screencast Keys',
     'warning': '',
-    'description': 'Display keys pressed in the 3D View, '
-                   'useful for screencasts.',
+    'description': 'Display keys pressed in Blender',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/'
                 'Py/Scripts/3D_interaction/Screencast_Key_Status_Tool',
-    'tracker_url': 'http://projects.blender.org/tracker/index.php?'
-                   'func=detail&aid=21612',
-    'category': '3D View',
+    'tracker_url': '',
+    'category': 'System',
 }
 
-
-"""
-既知の問題点:
-    レンダリング中は全てのイベントを取得出来ない。
-    scene_callback_pre で wmWindow.modalhandlersを並び替えるので
-    落ちる可能性がある。
-"""
 
 
 import collections
@@ -52,27 +43,32 @@ import re
 import string
 import time
 
-import bpy
-import bgl
 import blf
+import bpy
 import bpy.props
 
 try:
+    utils.bl_class_registry.BlClassRegistry.cleanup()
     importlib.reload(utils)
-    importlib.reload(vagl)
-    importlib.reload(modalmanager)
 except NameError:
-    from .utils import utils
-    from .utils import vagl
-from .modalmanager import ModalHandlerManager
+    from . import utils
+from .utils.bl_class_registry import BlClassRegistry
+from .utils import compatibility as compat
+
+if compat.check_version(2, 80, 0) >= 0:
+    from .compat import bglx as bgl
+else:
+    import bgl
+
+
 
 
 ###############################################################################
 # Addon Preferences
 ###############################################################################
-class ScreenCastKeysPreferences(
-    bpy.types.PropertyGroup if '.' in __name__ else
-    bpy.types.AddonPreferences):
+@BlClassRegistry()
+@compat.make_annotations
+class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
     color = bpy.props.FloatVectorProperty(
@@ -93,7 +89,7 @@ class ScreenCastKeysPreferences(
     )
     font_size = bpy.props.IntProperty(
         name='Font Size',
-        default=bpy.context.user_preferences.ui_styles[0].widget.points,
+        default=compat.get_user_preferences(bpy.context).ui_styles[0].widget.points,
         min=6,
         max=48
     )
@@ -117,30 +113,13 @@ class ScreenCastKeysPreferences(
         step=10,
         subtype='TIME'
     )
-    # fade_time = bpy.props.FloatProperty(
-    #     name='Fade Out Time',
-    #     description='Time in seconds for keys to last on screen',
-    #     default=1.0,
-    #     min=0.0,
-    #     max=10.0,
-    #     step=10,
-    #     subtype='TIME'
-    # )
     show_last_operator = bpy.props.BoolProperty(
         name='Show Last Operator',
         default=False,
     )
 
-    # TODO: continuous grab が有効な場合に正確なカーソル座標を取得できない
-    # use_avoid = bpy.props.BoolProperty(
-    #     name='Avoid',
-    #     description='Avoid mouse cursor',
-    #     default=False,
-    # )
-
     def draw(self, context):
         layout = self.layout
-        """:type: bpy.types.UILayout"""
 
         column = layout.column()
         split = column.split()
@@ -151,7 +130,6 @@ class ScreenCastKeysPreferences(
 
         col = split.column()
         col.prop(self, 'display_time')
-        # col.prop(self, 'fade_time')
 
         col = split.column()
         col.prop(self, 'origin')
@@ -159,7 +137,39 @@ class ScreenCastKeysPreferences(
         col.prop(self, 'show_last_operator')
 
         self.layout.separator()
-        super().draw(context)
+
+
+import math
+
+def draw_rounded_box(x, y, w, h, round_radius):
+    def circle_verts_num(r):
+        """描画に最適な？円の頂点数を求める"""
+        n = 32
+        threshold = 2.0  # pixcel
+        while True:
+            if r * 2 * math.pi / n > threshold:
+                return n
+            n -= 4
+            if n < 1:
+                return 1
+
+    num = circle_verts_num(round_radius)
+    n = int(num / 4) + 1
+    pi = math.pi
+    angle = pi * 2 / num
+    bgl.glBegin(bgl.GL_LINE_LOOP)
+    for x0, y0, a in ((x + round_radius, y + round_radius, pi),
+                      (x + w - round_radius, y + round_radius,
+                       pi * 1.5),
+                      (x + w - round_radius, y + h - round_radius, 0.0),
+                      (x + round_radius, y + h - round_radius,
+                       pi * 0.5)):
+        for i in range(n):
+            xco = x0 + round_radius * math.cos(a)
+            yco = y0 + round_radius * math.sin(a)
+            bgl.glVertex2f(xco, yco)
+            a += angle
+    bgl.glEnd()
 
 
 ###############################################################################
@@ -248,10 +258,8 @@ def region_rectangle_v3d(context, area=None, region=None):
             elif ar.type == 'UI':
                 ui = ar
 
-    # xmin = region.x
-    # xmax = xmin + region.width - 1
     xmin, _, xmax, _ = region_window_rectangle(area)
-    sys_pref = context.user_preferences.system
+    sys_pref = compat.get_user_preferences(context).system
     if sys_pref.use_region_overlap:
         left_widht = right_widht = 0
         if tools and ui:
@@ -283,30 +291,24 @@ def region_rectangle_v3d(context, area=None, region=None):
         xmin = max(xmin, area.x + left_widht)
         xmax = min(xmax, area.x + area.width - right_widht - 1)
 
-    # xmin = max(0, xmin - region.x)
-    # xmax = min(xmax - region.x, region.width - 1)
-    ymin = region.y  #0
-    ymax = region.y + region.height - 1  #window.height - 1
+
+    ymin = region.y
+    ymax = region.y + region.height - 1
     return xmin, ymin, xmax, ymax
 
 
 def invoke_callback(context, event, dst, src):
     win = context.window
     dst.event_timer_add(context)
-    # if src:
-    #     dst.hold_keys.update(src.hold_keys)
-mhm = ModalHandlerManager('wm.screencast_keys', callback=invoke_callback)
-# mhm = ModalHandlerManager('wm.screencast_keys')
 
 
+@BlClassRegistry()
 class ScreencastKeysStatus(bpy.types.Operator):
     bl_idname = 'wm.screencast_keys'
     bl_label = 'Screencast Keys'
     bl_description = 'Display keys pressed'
     bl_options = {'REGISTER'}
 
-    # modifier確認要。不要か？
-    # window_event = {}  # {Window.as_pointer(): Event, ...}
 
     hold_keys = []
     event_log = []  # [[time, event_type, mod, repeat], ...]
@@ -322,25 +324,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
         EventType.OSKEY
     ]
 
-    space_types = {
-        'VIEW_3D': bpy.types.SpaceView3D,
-        'TIMELINE': bpy.types.SpaceTimeline,
-        'GRAPH_EDITOR': bpy.types.SpaceGraphEditor,
-        'DOPESHEET_EDITOR': bpy.types.SpaceDopeSheetEditor,
-        'NLA_EDITOR': bpy.types.SpaceNLA,
-        'IMAGE_EDITOR': bpy.types.SpaceImageEditor,
-        'SEQUENCE_EDITOR': bpy.types.SpaceSequenceEditor,
-        'CLIP_EDITOR': bpy.types.SpaceClipEditor,
-        'TEXT_EDITOR': bpy.types.SpaceTextEditor,
-        'NODE_EDITOR': bpy.types.SpaceNodeEditor,
-        'LOGIC_EDITOR': bpy.types.SpaceLogicEditor,
-        'PROPERTIES': bpy.types.SpaceProperties,
-        'OUTLINER': bpy.types.SpaceOutliner,
-        'USER_PREFERENCES': bpy.types.SpaceUserPreferences,
-        'INFO': bpy.types.SpaceInfo,
-        'FILE_BROWSER': bpy.types.SpaceFileBrowser,
-        'CONSOLE': bpy.types.SpaceConsole,
-    }
+    space_types = compat.get_all_space_types()
 
     SEPARATOR_HEIGHT = 0.6  # フォント高の倍率
 
@@ -354,6 +338,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
     origin = {'window': '', 'area': '', 'space': '', 'region_type': ''}
     # {area_addr: [space_addr, ...], ...}
     area_spaces = collections.defaultdict(set)
+
+    running = False
 
     @classmethod
     def sorted_modifiers(cls, modifiers):
@@ -377,7 +363,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
     @classmethod
     def removed_old_event_log(cls):
-        prefs = bpy.context.user_preferences.addons[ScreenCastKeysPreferences.bl_idname].preferences
+        prefs = compat.get_user_preferences(bpy.context).addons[ScreenCastKeysPreferences.bl_idname].preferences
         """:type: ScreenCastKeysPreferences"""
         current_time = time.time()
         event_log = []
@@ -390,24 +376,11 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
     @classmethod
     def removed_old_operator_log(cls):
-        prefs = bpy.context.user_preferences.addons[ScreenCastKeysPreferences.bl_idname].preferences
-        """:type: ScreenCastKeysPreferences"""
-        # 時間経過ではなく数で制限する
-        if 0:
-            current_time = time.time()
-            operator_log = []
-            for item in cls.operator_log:
-                event_time = item[0]
-                t = current_time - event_time
-                if t <= prefs.display_time:
-                    operator_log.append(item)
-            return operator_log
-        else:
-            return cls.operator_log[-32:]
+        return cls.operator_log[-32:]
 
     @classmethod
     def get_origin(cls, context):
-        prefs = bpy.context.user_preferences.addons[ScreenCastKeysPreferences.bl_idname].preferences
+        prefs = compat.get_user_preferences(bpy.context).addons[ScreenCastKeysPreferences.bl_idname].preferences
         """:type: ScreenCastKeysPreferences"""
 
         def match(area):
@@ -459,12 +432,12 @@ class ScreencastKeysStatus(bpy.types.Operator):
         該当する描画範囲がないならNoneを返す。
         """
 
-        prefs = bpy.context.user_preferences.addons[ScreenCastKeysPreferences.bl_idname].preferences
+        prefs = compat.get_user_preferences(bpy.context).addons[ScreenCastKeysPreferences.bl_idname].preferences
         """:type: ScreenCastKeysPreferences"""
 
         font_size = prefs.font_size
         font_id = 0
-        dpi = context.user_preferences.system.dpi
+        dpi = compat.get_user_preferences(context).system.dpi
         blf.size(font_id, font_size, dpi)
 
         th = blf.dimensions(0, string.printable)[1]
@@ -550,19 +523,19 @@ class ScreencastKeysStatus(bpy.types.Operator):
         regions = []
         for area in context.screen.areas:
             for region in area.regions:
-                if region.id != 0:
-                    min1 = (region.x, region.y)
-                    max1 = (region.x + region.width - 1,
-                            region.y + region.height - 1)
-                    if intersect_aabb(min1, max1, (x, y),
-                                      (x + w - 1, y + h - 1)):
-                        regions.append((area, region))
+                # TODO: region.id is not available in Blender 2.8
+                min1 = (region.x, region.y)
+                max1 = (region.x + region.width - 1,
+                        region.y + region.height - 1)
+                if intersect_aabb(min1, max1, (x, y),
+                                  (x + w - 1, y + h - 1)):
+                    regions.append((area, region))
         return regions
 
     @classmethod
     def draw_callback(cls, context):
         # FIXME: 起動中にaddonを無効にした場合,get_instance()が例外を吐く
-        prefs = bpy.context.user_preferences.addons[ScreenCastKeysPreferences.bl_idname].preferences
+        prefs = compat.get_user_preferences(context).addons[ScreenCastKeysPreferences.bl_idname].preferences
         """:type: ScreenCastKeysPreferences"""
 
         if context.window.as_pointer() != cls.origin['window']:
@@ -596,17 +569,17 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
         font_size = prefs.font_size
         font_id = 0
-        dpi = context.user_preferences.system.dpi
+        dpi = compat.get_user_preferences(context).system.dpi
         blf.size(font_id, font_size, dpi)
 
         def draw_text(text):
             col = prefs.color_shadow
-            bgl.glColor4f(*col[:3], col[3] * 20)
-            blf.blur(font_id, 5)
+            compat.set_blf_font_color(font_id, *col[:3], col[3] * 20)
+            compat.set_blf_blur(font_id, 5)
             blf.draw(font_id, text)
-            blf.blur(font_id, 0)
+            compat.set_blf_blur(font_id, 0)
 
-            bgl.glColor3f(*prefs.color)
+            compat.set_blf_font_color(font_id, *prefs.color, 1.0)
             blf.draw(font_id, text)
 
         def draw_line(p1, p2):
@@ -647,7 +620,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
             t, name, idname_py, addr = operator_log[-1]
             if current_time - t <= prefs.display_time:
                 color = prefs.color
-                bgl.glColor3f(*color)
+                compat.set_blf_font_color(font_id, *color, 1.0)
 
                 text = bpy.app.translations.pgettext_iface(name, 'Operator')
                 text += " ('{}')".format(idname_py)
@@ -664,12 +637,12 @@ class ScreencastKeysStatus(bpy.types.Operator):
             else:
                 py += th + th * cls.SEPARATOR_HEIGHT
 
-        bgl.glColor3f(*prefs.color)
+        compat.set_blf_font_color(font_id, *prefs.color, 1.0)
         margin = th * 0.2
-        if cls.hold_keys or mhm.is_rendering():
+        if cls.hold_keys or False:   # is_rendering
             col = prefs.color_shadow[:3] + (prefs.color_shadow[3] * 2,)
             mod_names = cls.sorted_modifiers(cls.hold_keys)
-            if mhm.is_rendering():
+            if False:    # is_rendering
                 if 0:
                     text = '- - -'
                 else:
@@ -682,8 +655,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
             blf.position(font_id, px, py + margin, 0)
             draw_text(text)
             w, h = blf.dimensions(font_id, text)
-            vagl.draw_rounded_box(px - margin, py - margin + ofsy,
-                                  w + margin * 2, box_h, box_h * 0.2)
+            draw_rounded_box(px - margin, py - margin + ofsy,
+                             w + margin * 2, box_h, box_h * 0.2)
             draw_any = True
         py += th + margin * 2
 
@@ -693,7 +666,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
         for event_time, event_type, modifiers, count in event_log[::-1]:
             color = prefs.color
-            bgl.glColor3f(*color)
+            compat.set_blf_font_color(font_id, *color, 1.0)
 
             text = event_type.names[event_type.name]
             if modifiers:
@@ -711,14 +684,13 @@ class ScreencastKeysStatus(bpy.types.Operator):
         bgl.glDisable(bgl.GL_BLEND)
         bgl.glScissor(*glscissorbox)
         bgl.glLineWidth(1.0)
-        # blf.disable(font_id, blf.SHADOW)
 
         if draw_any:
             cls.draw_regions_prev.add(region.as_pointer())
 
     def update_holed_keys(self, event):
         """self.hold_keysを更新"""
-        if mhm.is_rendering():
+        if False:    # is_rendering
             self.hold_keys.clear()
 
         event_type = EventType[event.type]
@@ -738,10 +710,6 @@ class ScreencastKeysStatus(bpy.types.Operator):
             elif event.value == 'RELEASE':
                 if event_type in self.hold_keys:
                     self.hold_keys.remove(event_type)
-        # TODO: evenetを取得出来ずにmodifierが更新されていた場合
-        # モディファイアキーを押しっぱなしでwindowを非アクティブから
-        # アクティブにしてもPRESSイベントが無いとそのモディファイアは有効に
-        # ならない
 
     def is_ignore_event(self, event):
         """表示しないeventなら真を返す"""
@@ -759,11 +727,11 @@ class ScreencastKeysStatus(bpy.types.Operator):
         event_type = EventType[event.type]
         return event_type in self.modifier_event_types
 
-    @mhm.modal
     def modal(self, context, event):
-        prefs = bpy.context.user_preferences.addons[ScreenCastKeysPreferences.bl_idname].preferences
-        """:type: ScreenCastKeysPreferences"""
-        # print(context.screen, context.window.as_pointer())
+        prefs = compat.get_user_preferences(bpy.context).addons[ScreenCastKeysPreferences.bl_idname].preferences
+
+        if not self.__class__.running:
+            return {'FINISHED'}
 
         event_type = EventType[event.type]
         current_time = time.time()
@@ -773,11 +741,13 @@ class ScreencastKeysStatus(bpy.types.Operator):
             for space in area.spaces:
                 self.area_spaces[area.as_pointer()].add(space.as_pointer())
 
+
         # modifiers
         self.update_holed_keys(event)
         current_mod = self.hold_keys.copy()
         if event_type in current_mod:
             current_mod.remove(event_type)
+
 
         # event_log
         if (not self.is_ignore_event(event) and
@@ -813,21 +783,20 @@ class ScreencastKeysStatus(bpy.types.Operator):
                     [current_time, op.bl_label, idname_py, op.as_pointer()])
         self.operator_log[:] = self.removed_old_operator_log()
 
+
         # redraw
         prev_time = self.prev_time
         if (not self.is_ignore_event(event) or
                 prev_time and current_time - prev_time >= self.TIMER_STEP):
-            # print(self.draw_regions_prev, current_time)
             regions = self.find_redraw_regions(context)
 
             # 前回描画した箇所でregionsに含まれないものは再描画
             for area in context.screen.areas:
                 for region in area.regions:
                     if region.as_pointer() in self.draw_regions_prev:
-                        if region.id != 0:
-                            region.tag_redraw()
+                        # TODO: region.id is not available in Blender 2.8
+                        region.tag_redraw()
                         self.draw_regions_prev.remove(region.as_pointer())
-            # self.draw_regions_prev.clear()
 
             # 再描画
             for area, region in regions:
@@ -841,8 +810,6 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 self.draw_regions_prev.add(region.as_pointer())
 
             self.__class__.prev_time = current_time
-
-        auto_save_manager.save(context)
 
         return {'PASS_THROUGH'}
 
@@ -858,7 +825,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
         for win in wm.windows:
             key = win.as_pointer()
             if key not in cls.timers:
-                cls.timers[key] = wm.event_timer_add(cls.TIMER_STEP, win)
+                cls.timers[key] = wm.event_timer_add(cls.TIMER_STEP, window=win)
 
     @classmethod
     def event_timer_remove(cls, context):
@@ -869,10 +836,9 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 wm.event_timer_remove(cls.timers[key])
         cls.timers.clear()
 
-    @mhm.invoke
     def invoke(self, context, event):
-        # cls = self.__class__
-        if mhm.is_running(context):
+        cls = self.__class__
+        if cls.running:
             self.event_timer_remove(context)
             self.draw_handler_remove()
             self.hold_keys.clear()
@@ -880,10 +846,11 @@ class ScreencastKeysStatus(bpy.types.Operator):
             self.operator_log.clear()
             self.draw_regions_prev.clear()
             context.area.tag_redraw()
+            cls.running = False
             return {'CANCELLED'}
         else:
             self.update_holed_keys(event)
-            # self.draw_handler_add(context)
+            #self.draw_handler_add(context)
             self.event_timer_add(context)
             context.window_manager.modal_handler_add(self)
             self.origin['window'] = context.window.as_pointer()
@@ -891,9 +858,11 @@ class ScreencastKeysStatus(bpy.types.Operator):
             self.origin['space'] = context.space_data.as_pointer()
             self.origin['region_type'] = context.region.type
             context.area.tag_redraw()
+            cls.running = True
             return {'RUNNING_MODAL'}
 
 
+@BlClassRegistry()
 class ScreencastKeysStatusSetOrigin(bpy.types.Operator):
     bl_idname = 'wm.screencast_keys_set_origin'
     bl_label = 'Screencast Keys Set Origin'
@@ -916,7 +885,8 @@ class ScreencastKeysStatusSetOrigin(bpy.types.Operator):
         for area in context.screen.areas:
             space_type = ScreencastKeysStatus.space_types[area.type]
             for region in area.regions:
-                if region.id != 0:
+                # TODO: region.id is not available in Blender 2.8
+                if region.type != "":
                     key = (space_type, region.type)
                     if key not in self.handles:
                         handle = space_type.draw_handler_add(
@@ -933,10 +903,10 @@ class ScreencastKeysStatusSetOrigin(bpy.types.Operator):
         x, y = event.mouse_x, event.mouse_y
         for area in context.screen.areas:
             for region in area.regions:
-                if region.id != 0:
-                    if region.x <= x < region.x + region.width:
-                        if region.y <= y < region.y + region.height:
-                            return area, region
+                # TODO: region.id is not available in Blender 2.8
+                if region.x <= x < region.x + region.width:
+                    if region.y <= y < region.y + region.height:
+                        return area, region
         return None, None
 
     def modal(self, context, event):
@@ -969,6 +939,7 @@ class ScreencastKeysStatusSetOrigin(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
+@BlClassRegistry()
 class ScreencastKeysPanel(bpy.types.Panel):
     bl_idname = 'WM_PT_screencast_keys'
     bl_label = 'Screencast Keys'
@@ -977,16 +948,12 @@ class ScreencastKeysPanel(bpy.types.Panel):
 
     def draw_header(self, context):
         layout = self.layout
-        """:type: bpy.types.UILayout"""
         layout.prop(context.window_manager, 'enable_screencast_keys',
                     text='')
 
     def draw(self, context):
         layout = self.layout
-        """:type: bpy.types.UILayout"""
-
-        prefs = bpy.context.user_preferences.addons[ScreenCastKeysPreferences.bl_idname].preferences
-        """:type: ScreenCastKeysPreferences"""
+        prefs = compat.get_user_preferences(bpy.context).addons[ScreenCastKeysPreferences.bl_idname].preferences
 
         column = layout.column()
 
@@ -994,7 +961,6 @@ class ScreencastKeysPanel(bpy.types.Panel):
         column.prop(prefs, 'color_shadow')
         column.prop(prefs, 'font_size')
         column.prop(prefs, 'display_time')
-        # column.prop(prefs, 'fade_time')
 
         column.separator()
 
@@ -1008,7 +974,7 @@ class ScreencastKeysPanel(bpy.types.Panel):
     @classmethod
     def register(cls):
         def get_func(self):
-            return mhm.is_running(bpy.context)
+            return ScreencastKeysStatus.running
 
         def set_func(self, value):
             pass
@@ -1029,23 +995,8 @@ class ScreencastKeysPanel(bpy.types.Panel):
         del bpy.types.WindowManager.enable_screencast_keys
 
 
-###############################################################################
-# Register
-###############################################################################
-classes = (
-    ScreenCastKeysPreferences,
-    ScreencastKeysStatus,
-    ScreencastKeysStatusSetOrigin,
-    ScreencastKeysPanel,
-)
-
-auto_save_manager = utils.AutoSaveManager()
-
-
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
-    auto_save_manager.register()
+    BlClassRegistry.register()
 
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
@@ -1056,9 +1007,7 @@ def register():
 
 
 def unregister():
-    for c in classes:
-        bpy.utils.unregister_class(c)
-    auto_save_manager.unregister()
+    BlClassRegistry.unregister()
 
 
 if __name__ == '__main__':

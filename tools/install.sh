@@ -2,6 +2,7 @@
 
 if [ $# -ne 2 ]; then
     echo "Usage: tools/install.sh <os> <version>"
+    exit 1
 fi
 
 os=${1}
