@@ -21,10 +21,10 @@
 
 if "bpy" in locals():
     import importlib
-    importlib.reload(bglx)
     importlib.reload(bl_class_registry)
     importlib.reload(compatibility)
 else:
     from . import bl_class_registry
     from . import compatibility
 
+import bpy

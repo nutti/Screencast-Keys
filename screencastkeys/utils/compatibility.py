@@ -89,7 +89,7 @@ def layout_split(layout, factor=0.0, align=False):
 
 def get_user_preferences(context):
     if hasattr(context, "user_preferences"):
-        return context.user_prefereneces
+        return context.user_preferences
 
     return context.preferences
 
