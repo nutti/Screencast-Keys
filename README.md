@@ -5,8 +5,8 @@ This is a blender add-on **Screencast-Keys** to display the Keyboard/Mouse and O
 
 ## Download
 
-You can all released version from [Release Page](https://github.com/nutti/Magic-UV/releases).
-If you want to try newest but unstable version, you can download it from [unstable version](https://github.com/nutti/Magic-UV/archive/develop.zip).
+You can all released version from [Release Page](https://github.com/nutti/Screencast-Keys/releases).
+If you want to try newest but unstable version, you can download it from [unstable version](https://github.com/nutti/Screencast-Keys/archive/develop.zip).
 
 
 ## Features / Tutorials
