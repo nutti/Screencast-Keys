@@ -842,6 +842,7 @@ class ScreencastKeysPanel(bpy.types.Panel):
     bl_label = 'Screencast Keys'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+    bl_category = "Screencast Keys"
 
     def draw_header(self, context):
         layout = self.layout
