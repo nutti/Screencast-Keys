@@ -19,4 +19,4 @@ else
 fi
 
 rm -rf "${target}"
-cp -r screencastkeys "${target}"
+cp -r src/screencastkeys "${target}"
