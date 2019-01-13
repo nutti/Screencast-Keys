@@ -1,6 +1,8 @@
-# Blender Add-on: Screencast-Keys
+# Blender Add-on: Screencast Keys
 
-This is a blender add-on **Screencast-Keys** to display the Keyboard/Mouse and Operation status.
+This is a blender add-on **Screencast Keys** to display the Keyboard/Mouse and Operation status.
+
+![Screencast Keys Thumbnail](docs/images/screencast-keys_thumbnail.png)
 
 
 ## Download
@@ -11,7 +13,7 @@ If you want to try newest but unstable version, you can download it from [unstab
 
 ## Features
 
-Screencast-Keys supports **English** only.  
+Screencast Keys supports **English** only.  
 The features of this add-on are as follows.
 
 * Display Keyboard/Mouse status
