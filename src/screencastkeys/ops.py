@@ -70,45 +70,15 @@ def draw_rounded_box(x, y, w, h, round_radius):
     bgl.glEnd()
 
 
-###############################################################################
-# enum.IntEnum: EventType
-###############################################################################
-# タイポを防ぐために使う
-def has_release_event(self):
-    # 自分用にパッチでRIGHTBRACKETKEY直後にCOLONKEY,ATKEY,ASCIICIRCUMKEYを
-    # 追加している
-    if 'ASCIICIRCUM' in EventType.__members__:
-        key = 'ASCIICIRCUM'
-    else:
-        key = 'RIGHT_BRACKET'
-
-    if self in {EventType.LEFTMOUSE, EventType.MIDDLEMOUSE,
-                EventType.RIGHTMOUSE}:
-        return True
-    elif re.match('BUTTON\d+MOUSE', self.name):
-        return True
-    elif self in {EventType.PEN, EventType.ERASER}:
-        return True
-    elif (EventType['ZERO'].value <= self.value <=
-          EventType[key]):
-        return True
-    elif EventType['F1'].value <= self.value <= EventType['F19']:
-        return True
-    return False
-
 event_type_enum_items = bpy.types.Event.bl_rna.properties['type'].enum_items
 
 EventType = enum.IntEnum(
     'EventType',
     [(e.identifier, e.value) for e in event_type_enum_items])
 
-EventType.has_release_event = has_release_event
 EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
-###############################################################################
-# Operator
-###############################################################################
 def intersect_aabb(min1, max1, min2, max2):
     """from isect_aabb_aabb_v3()
     """
@@ -194,11 +164,6 @@ def region_rectangle_v3d(context, area=None, region=None):
     return xmin, ymin, xmax, ymax
 
 
-def invoke_callback(context, event, dst, src):
-    win = context.window
-    dst.event_timer_add(context)
-
-
 @BlClassRegistry()
 class ScreencastKeysStatus(bpy.types.Operator):
     bl_idname = 'wm.screencast_keys'
@@ -207,7 +172,9 @@ class ScreencastKeysStatus(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
 
-    hold_keys = []
+    # hold modifier keys
+    hold_modifier_keys = []
+
     event_log = []  # [[time, event_type, mod, repeat], ...]
     operator_log = []  # [[time, bl_label, idname_py, addr], ...]
 
@@ -300,13 +267,13 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 break
         else:
             return None, None, None, 0, 0
+
         if prefs.origin == 'WINDOW':
             return win, None, None, x, y
         elif prefs.origin == 'AREA':
             for area in win.screen.areas:
                 if match(area):
                     return win, area, None, x + area.x, y + area.y
-
         elif prefs.origin == 'REGION':
             for area in win.screen.areas:
                 if match(area):
@@ -355,8 +322,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 w = max(w, tw)
             h += th + th * cls.SEPARATOR_HEIGHT
 
-        if cls.hold_keys:
-            mod_names = cls.sorted_modifiers(cls.hold_keys)
+        if cls.hold_modifier_keys:
+            mod_names = cls.sorted_modifiers(cls.hold_modifier_keys)
             text = ' + '.join(mod_names)
             tw = blf.dimensions(font_id, text)[0]
             w = max(w, tw)
@@ -364,16 +331,12 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
         event_log = cls.removed_old_event_log()
 
-        if cls.hold_keys or event_log:
+        if cls.hold_modifier_keys or event_log:
             tw = blf.dimensions(font_id, 'Left Mouse')[0]
             w = max(w, tw)
             h += th * cls.SEPARATOR_HEIGHT
 
         for event_time, event_type, modifiers, count in event_log[::-1]:
-            # t = current_time - event_time
-            # if t > prefs.display_time:
-            #     continue
-
             text = event_type.names[event_type.name]
             if modifiers:
                 mod_names = cls.sorted_modifiers(modifiers)
@@ -386,28 +349,26 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
         h += th
 
-        if 0:
+        if prefs.origin == 'WINDOW':
             return x, y, x + w, y + h
         else:
-            if prefs.origin == 'WINDOW':
-                return x, y, x + w, y + h
+            if prefs.origin == 'AREA':
+                xmin = area.x
+                ymin = area.y
+                xmax = area.x + area.width - 1
+                ymax = area.y + area.height - 1
             else:
-                if prefs.origin == 'AREA':
-                    xmin = area.x
-                    ymin = area.y
-                    xmax = area.x + area.width - 1
-                    ymax = area.y + area.height - 1
-                else:
-                    xmin = region.x
-                    ymin = region.y
-                    xmax = region.x + region.width - 1
-                    ymax = region.y + region.height - 1
-                return (max(x, xmin), max(y, ymin),
-                        min(x + w, xmax), min(y + h, ymax))
+                xmin = region.x
+                ymin = region.y
+                xmax = region.x + region.width - 1
+                ymax = region.y + region.height - 1
+            return (max(x, xmin), max(y, ymin),
+                    min(x + w, xmax), min(y + h, ymax))
 
     @classmethod
     def find_redraw_regions(cls, context):
         """[(area, region), ...]"""
+
         rect = cls.calc_draw_rectangle(context)
         if not rect:
             return []
@@ -433,7 +394,6 @@ class ScreencastKeysStatus(bpy.types.Operator):
     def draw_callback(cls, context):
         # FIXME: 起動中にaddonを無効にした場合,get_instance()が例外を吐く
         prefs = compat.get_user_preferences(context).addons["screencastkeys"].preferences
-        """:type: ScreenCastKeysPreferences"""
 
         if context.window.as_pointer() != cls.origin['window']:
             return
@@ -536,9 +496,9 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
         compat.set_blf_font_color(font_id, *prefs.color, 1.0)
         margin = th * 0.2
-        if cls.hold_keys or False:   # is_rendering
+        if cls.hold_modifier_keys or False:   # is_rendering
             col = prefs.color_shadow[:3] + (prefs.color_shadow[3] * 2,)
-            mod_names = cls.sorted_modifiers(cls.hold_keys)
+            mod_names = cls.sorted_modifiers(cls.hold_modifier_keys)
             if False:    # is_rendering
                 if 0:
                     text = '- - -'
@@ -572,7 +532,6 @@ class ScreencastKeysStatus(bpy.types.Operator):
             if count > 1:
                 text += ' x' + str(count)
             blf.position(font_id, px, py, 0)
-            # blf.draw(font_id, text)
             draw_text(text)
 
             py += th
@@ -585,31 +544,26 @@ class ScreencastKeysStatus(bpy.types.Operator):
         if draw_any:
             cls.draw_regions_prev.add(region.as_pointer())
 
-    def update_holed_keys(self, event):
-        """self.hold_keysを更新"""
-        if False:    # is_rendering
-            self.hold_keys.clear()
+    def update_hold_modifier_keys(self, event):
 
-        event_type = EventType[event.type]
-        if event_type == EventType.WINDOW_DEACTIVATE:
-            self.hold_keys.clear()
-        elif event_type in self.modifier_event_types:
-            if event.value == 'PRESS':
-                if event_type not in self.hold_keys:
-                    self.hold_keys.append(event_type)
-            elif event.value == 'RELEASE':
-                if event_type in self.hold_keys:
-                    self.hold_keys.remove(event_type)
-        elif event_type.has_release_event():
-            if event.value == 'PRESS':
-                if event_type not in self.hold_keys:
-                    self.hold_keys.append(event_type)
-            elif event.value == 'RELEASE':
-                if event_type in self.hold_keys:
-                    self.hold_keys.remove(event_type)
+        self.hold_modifier_keys.clear()
+
+        mod_keys = []
+        if event.shift:
+            mod_keys.append(EventType.LEFT_SHIFT)
+        if event.oskey:
+            mod_keys.append(EventType.OSKEY)
+        if event.alt:
+            mod_keys.append(EventType.LEFT_ALT)
+        if event.ctrl:
+            mod_keys.append(EventType.LEFT_CTRL)
+
+        if EventType[event.type] == EventType.WINDOW_DEACTIVATE:
+            mod_keys = []
+
+        self.hold_modifier_keys.extend(mod_keys)
 
     def is_ignore_event(self, event):
-        """表示しないeventなら真を返す"""
         event_type = EventType[event.type]
         if event_type in {EventType.NONE, EventType.MOUSEMOVE,
                           EventType.INBETWEEN_MOUSEMOVE,
@@ -638,13 +592,11 @@ class ScreencastKeysStatus(bpy.types.Operator):
             for space in area.spaces:
                 self.area_spaces[area.as_pointer()].add(space.as_pointer())
 
-
-        # modifiers
-        self.update_holed_keys(event)
-        current_mod = self.hold_keys.copy()
+        # update hold modifiers keys
+        self.update_hold_modifier_keys(event)
+        current_mod = self.hold_modifier_keys.copy()
         if event_type in current_mod:
             current_mod.remove(event_type)
-
 
         # event_log
         if (not self.is_ignore_event(event) and
@@ -680,7 +632,6 @@ class ScreencastKeysStatus(bpy.types.Operator):
                     [current_time, op.bl_label, idname_py, op.as_pointer()])
         self.operator_log[:] = self.removed_old_operator_log()
 
-
         # redraw
         prev_time = self.prev_time
         if (not self.is_ignore_event(event) or
@@ -694,6 +645,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
                         # TODO: region.id is not available in Blender 2.8
                         region.tag_redraw()
                         self.draw_regions_prev.remove(region.as_pointer())
+
 
             # 再描画
             for area, region in regions:
@@ -738,7 +690,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
         if cls.running:
             self.event_timer_remove(context)
             self.draw_handler_remove()
-            self.hold_keys.clear()
+            self.hold_modifier_keys.clear()
             self.event_log.clear()
             self.operator_log.clear()
             self.draw_regions_prev.clear()
@@ -746,8 +698,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
             cls.running = False
             return {'CANCELLED'}
         else:
-            self.update_holed_keys(event)
-            #self.draw_handler_add(context)
+            self.update_hold_modifier_keys(event)
             self.event_timer_add(context)
             context.window_manager.modal_handler_add(self)
             self.origin['window'] = context.window.as_pointer()
