@@ -11,7 +11,7 @@ If you want to try newest but unstable version, you can download it from [unstab
 
 ## Features / Tutorials
 
-Magic UV supports **English** only.
+Screencast-Keys supports **English** only.
 The features of this add-on are as follows.
 
 * Display Keyboard/Mouse status
