@@ -381,6 +381,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
         regions = []
         for area in context.screen.areas:
             for region in area.regions:
+                if region.type == '':
+                    continue    # skip region which has no type
                 # TODO: region.id is not available in Blender 2.8
                 min1 = (region.x, region.y)
                 max1 = (region.x + region.width - 1,
