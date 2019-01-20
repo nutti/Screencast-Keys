@@ -165,7 +165,7 @@ def get_all_space_types():
             'PROPERTIES': bpy.types.SpaceProperties,
             'SEQUENCE_EDITOR': bpy.types.SpaceSequenceEditor,
             'TEXT_EDITOR': bpy.types.SpaceTextEditor,
-            'USER_PREFERENCES': bpy.types.SpacePreferences,
+            'PREFERENCES': bpy.types.SpacePreferences,
             'VIEW_3D': bpy.types.SpaceView3D,
         }
     else:
@@ -183,7 +183,7 @@ def get_all_space_types():
             'LOGIC_EDITOR': bpy.types.SpaceLogicEditor,
             'PROPERTIES': bpy.types.SpaceProperties,
             'OUTLINER': bpy.types.SpaceOutliner,
-            'USER_PREFERENCES': bpy.types.SpaceUserPreferences,
+            'PREFERENCES': bpy.types.SpaceUserPreferences,
             'INFO': bpy.types.SpaceInfo,
             'FILE_BROWSER': bpy.types.SpaceFileBrowser,
             'CONSOLE': bpy.types.SpaceConsole,
