@@ -188,6 +188,27 @@ class ScreencastKeysStatus(bpy.types.Operator):
         EventType.OSKEY
     ]
 
+    mouse_event_types = {
+        EventType.LEFTMOUSE,  # Left Mouse
+        EventType.MIDDLEMOUSE,  # Middle Mouse
+        EventType.RIGHTMOUSE,  # Right Mouse
+        EventType.BUTTON4MOUSE,  # Button4 Mouse
+        EventType.BUTTON5MOUSE,  # Button5 Mouse
+        EventType.BUTTON6MOUSE,  # Button6 Mouse
+        EventType.BUTTON7MOUSE,  # Button7 Mouse
+        # EventType.PEN,  # Pen
+        # EventType.ERASER,  # Eraser
+        # EventType.MOUSEMOVE,  # Mouse Move
+        # EventType.INBETWEEN_MOUSEMOVE,  # In-between Move
+        EventType.TRACKPADPAN,  # Mouse/Trackpad Pan
+        EventType.TRACKPADZOOM,  # Mouse/Trackpad Zoom
+        EventType.MOUSEROTATE,  # Mouse/Trackpad Rotate
+        EventType.WHEELUPMOUSE,  # Wheel Up
+        EventType.WHEELDOWNMOUSE,  # Wheel Down
+        EventType.WHEELINMOUSE,  # Wheel In
+        EventType.WHEELOUTMOUSE,  # Wheel Out
+    }
+
     space_types = compat.get_all_space_types()
 
     SEPARATOR_HEIGHT = 0.6  # フォント高の倍率
@@ -565,11 +586,15 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
         self.hold_modifier_keys.extend(mod_keys)
 
-    def is_ignore_event(self, event):
+    def is_ignore_event(self, event, prefs=None):
         event_type = EventType[event.type]
         if event_type in {EventType.NONE, EventType.MOUSEMOVE,
                           EventType.INBETWEEN_MOUSEMOVE,
                           EventType.WINDOW_DEACTIVATE, EventType.TEXTINPUT}:
+            return True
+        elif (prefs is not None
+              and not prefs.show_mouse_events
+              and event_type in self.mouse_event_types):
             return True
         elif event_type.name.startswith('EVT_TWEAK'):
             return True
@@ -601,7 +626,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
             current_mod.remove(event_type)
 
         # event_log
-        if (not self.is_ignore_event(event) and
+        if (not self.is_ignore_event(event, prefs=prefs) and
                 not self.is_modifier_event(event) and event.value == 'PRESS'):
             last = self.event_log[-1] if self.event_log else None
             current = [current_time, event_type, current_mod, 1]
@@ -636,7 +661,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
         # redraw
         prev_time = self.prev_time
-        if (not self.is_ignore_event(event) or
+        if (not self.is_ignore_event(event, prefs=prefs) or
                 prev_time and current_time - prev_time >= self.TIMER_STEP):
             regions = self.find_redraw_regions(context)
 
@@ -820,7 +845,8 @@ class ScreencastKeysPanel(bpy.types.Panel):
         row.prop(prefs, 'offset')
         column.operator('wm.screencast_keys_set_origin',
                         text='Set Origin')
-        column.prop(prefs, 'show_last_operator', text='Last Operator')
+        column.prop(prefs, 'show_mouse_events')
+        column.prop(prefs, 'show_last_operator')
 
     @classmethod
     def register(cls):
