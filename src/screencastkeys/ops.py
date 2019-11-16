@@ -611,6 +611,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
         if not self.__class__.running:
             return {'FINISHED'}
 
+        if event.type == '':
+            return {'PASS_THROUGH'}
         event_type = EventType[event.type]
         current_time = time.time()
 
