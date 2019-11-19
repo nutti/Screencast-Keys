@@ -196,10 +196,6 @@ class ScreencastKeysStatus(bpy.types.Operator):
         EventType.BUTTON5MOUSE,  # Button5 Mouse
         EventType.BUTTON6MOUSE,  # Button6 Mouse
         EventType.BUTTON7MOUSE,  # Button7 Mouse
-        # EventType.PEN,  # Pen
-        # EventType.ERASER,  # Eraser
-        # EventType.MOUSEMOVE,  # Mouse Move
-        # EventType.INBETWEEN_MOUSEMOVE,  # In-between Move
         EventType.TRACKPADPAN,  # Mouse/Trackpad Pan
         EventType.TRACKPADZOOM,  # Mouse/Trackpad Zoom
         EventType.MOUSEROTATE,  # Mouse/Trackpad Rotate
@@ -612,6 +608,9 @@ class ScreencastKeysStatus(bpy.types.Operator):
             return {'FINISHED'}
 
         if event.type == '':
+            # Many events that should (?) be identified as 'NONE' instead are
+            # identified as '' and raise KeyErrors in EventType
+            # (i.e. caps lock and the spin tool in edit mode)
             return {'PASS_THROUGH'}
         event_type = EventType[event.type]
         current_time = time.time()
