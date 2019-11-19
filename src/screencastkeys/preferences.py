@@ -120,6 +120,10 @@ class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
         step=10,
         subtype='TIME'
     )
+    show_mouse_events = bpy.props.BoolProperty(
+        name='Show Mouse Events',
+        default=True,
+    )
     show_last_operator = bpy.props.BoolProperty(
         name='Show Last Operator',
         default=False,
@@ -164,6 +168,7 @@ class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
             col = split.column()
             col.prop(self, 'origin')
             col.prop(self, 'offset')
+            col.prop(self, 'show_mouse_events')
             col.prop(self, 'show_last_operator')
 
             self.layout.separator()

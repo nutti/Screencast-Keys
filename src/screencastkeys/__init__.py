@@ -22,7 +22,7 @@
 bl_info = {
     'name': 'Screencast Keys',
     'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo, '
-              'Gaia Clary, Pablo Vazquez, chromoly, Nutti',
+              'Gaia Clary, Pablo Vazquez, chromoly, Hawkpath, Nutti',
     'version': (3, 0, 0),
     'blender': (2, 80, 0),
     'location': '3D View > Properties Panel > Screencast Keys',
