@@ -20,18 +20,18 @@
 
 
 bl_info = {
-    'name': 'Screencast Keys',
-    'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo, '
-              'Gaia Clary, Pablo Vazquez, chromoly, Hawkpath, Nutti',
-    'version': (3, 0, 0),
-    'blender': (2, 80, 0),
-    'location': '3D View > Properties Panel > Screencast Keys',
-    'warning': '',
-    'description': 'Display keys pressed in Blender',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/'
-                'Py/Scripts/3D_interaction/Screencast_Key_Status_Tool',
-    'tracker_url': 'https://github.com/nutti/Screencast-Keys',
-    'category': 'System',
+    "name": "Screencast Keys",
+    "author": "Paulo Gomes, Bart Crouch, John E. Herrenyo, "
+              "Gaia Clary, Pablo Vazquez, chromoly, Nutti, Hawkpath",
+    "version": (3, 0, 0),
+    "blender": (2, 80, 0),
+    "location": "3D View > Sidebar > Screencast Keys",
+    "warning": "",
+    "description": "Display keys pressed in Blender",
+    "wiki_url": "https://github.com/nutti/Screencast-Keys",
+    "doc_url": "https://github.com/nutti/Screencast-Keys",
+    "tracker_url": "https://github.com/nutti/Screencast-Keys",
+    "category": "System",
 }
 
 
@@ -41,11 +41,13 @@ if "bpy" in locals():
     utils.bl_class_registry.BlClassRegistry.cleanup()
     importlib.reload(preferences)
     importlib.reload(ops)
+    importlib.reload(ui)
 else:
     import bpy
     from . import utils
     from . import preferences
     from . import ops
+    from . import ui
 
 import os
 
@@ -72,8 +74,8 @@ def register():
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
-        km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
-        kmi = km.keymap_items.new('wm.screencast_keys', 'C', 'PRESS',
+        km = kc.keymaps.new(name="3D View", space_type='VIEW_3D')
+        kmi = km.keymap_items.new("wm.screencast_keys", 'C', 'PRESS',
                                   shift=True, alt=True)
 
 
@@ -81,5 +83,5 @@ def unregister():
     utils.bl_class_registry.BlClassRegistry.unregister()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     register()

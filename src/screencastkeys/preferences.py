@@ -32,7 +32,7 @@ from .utils import compatibility as compat
 
 @BlClassRegistry()
 class ScreencastKeys_OT_CheckAddonUpdate(bpy.types.Operator):
-    bl_idname = "uv.muv_check_addon_update"
+    bl_idname = "wm.screencast_keys_check_addon_update"
     bl_label = "Check Update"
     bl_description = "Check Add-on Update"
     bl_options = {'REGISTER', 'UNDO'}
@@ -47,7 +47,7 @@ class ScreencastKeys_OT_CheckAddonUpdate(bpy.types.Operator):
 @BlClassRegistry()
 @compat.make_annotations
 class ScreencastKeys_OT_UpdateAddon(bpy.types.Operator):
-    bl_idname = "uv.muv_update_addon"
+    bl_idname = "wm.screencast_keys_update_addon"
     bl_label = "Update"
     bl_description = "Update Add-on"
     bl_options = {'REGISTER', 'UNDO'}
@@ -79,7 +79,7 @@ class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
     bl_idname = "screencastkeys"
 
     color = bpy.props.FloatVectorProperty(
-        name='Color',
+        name="Color",
         default=(1.0, 1.0, 1.0),
         min=0.0,
         max=1.0,
@@ -87,7 +87,7 @@ class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
         size=3
     )
     color_shadow = bpy.props.FloatVectorProperty(
-        name='Shadow Color',
+        name="Shadow Color",
         default=(0.0, 0.0, 0.0, 0.0),
         min=0.0,
         max=1.0,
@@ -95,25 +95,27 @@ class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
         size=4
     )
     font_size = bpy.props.IntProperty(
-        name='Font Size',
+        name="Font Size",
         default=compat.get_user_preferences(bpy.context).ui_styles[0].widget.points,
         min=6,
         max=48
     )
     origin = bpy.props.EnumProperty(
-        name='Origin',
-        items=[('REGION', 'Region', "Region.type is 'WINDOW'"),
-               ('AREA', 'Area', ''),
-               ('WINDOW', 'Window', '')],
+        name="Origin",
+        items=[
+            ('REGION', "Region", ""),
+            ('AREA', "Area", ""),
+            ('WINDOW', "Window", "")
+        ],
         default='REGION',
     )
     offset = bpy.props.IntVectorProperty(
-        name='Offset',
+        name="Offset",
         default=(20, 80),
         size=2,
     )
     display_time = bpy.props.FloatProperty(
-        name='Display Time',
+        name="Display Time",
         default=3.0,
         min=0.5,
         max=10.0,
@@ -121,11 +123,11 @@ class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
         subtype='TIME'
     )
     show_mouse_events = bpy.props.BoolProperty(
-        name='Show Mouse Events',
+        name="Show Mouse Events",
         default=True,
     )
     show_last_operator = bpy.props.BoolProperty(
-        name='Show Last Operator',
+        name="Show Last Operator",
         default=False,
     )
 
@@ -158,18 +160,18 @@ class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
             column = layout.column()
             split = column.split()
             col = split.column()
-            col.prop(self, 'color')
-            col.prop(self, 'color_shadow')
-            col.prop(self, 'font_size')
+            col.prop(self, "color")
+            col.prop(self, "color_shadow")
+            col.prop(self, "font_size")
 
             col = split.column()
-            col.prop(self, 'display_time')
+            col.prop(self, "display_time")
 
             col = split.column()
-            col.prop(self, 'origin')
-            col.prop(self, 'offset')
-            col.prop(self, 'show_mouse_events')
-            col.prop(self, 'show_last_operator')
+            col.prop(self, "origin")
+            col.prop(self, "offset")
+            col.prop(self, "show_mouse_events")
+            col.prop(self, "show_last_operator")
 
             self.layout.separator()
 
@@ -183,14 +185,14 @@ class ScreenCastKeysPreferences(bpy.types.AddonPreferences):
                 col.scale_y = 2
                 row = col.row()
                 row.operator(ScreencastKeys_OT_CheckAddonUpdate.bl_idname,
-                             text="Check 'Screencast-Keys' add-on update",
+                             text="Check 'Screencast Keys' add-on update",
                              icon='FILE_REFRESH')
             else:
                 row = layout.row(align=True)
                 row.scale_y = 2
                 col = row.column()
                 col.operator(ScreencastKeys_OT_CheckAddonUpdate.bl_idname,
-                             text="Check 'Screencast-Keys' add-on update",
+                             text="Check 'Screencast Keys' add-on update",
                              icon='FILE_REFRESH')
                 col = row.column()
                 if updater.latest_version() != "":
