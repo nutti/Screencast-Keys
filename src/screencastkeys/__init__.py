@@ -54,6 +54,19 @@ import os
 import bpy
 
 
+@bpy.app.handlers.persistent
+def load_pre_handler(scene):
+    """ScreencastKeysStatus operation will remain running status when new .blend file is loaded.
+       It seems that events from timer is not issued after loading .blend file, but we could not
+       find the essential cause.
+       Instead, we solve this issue by using handler called at load_pre (i.e. before loading
+       .blend file)."""
+
+    if ops.ScreencastKeysStatus.running:
+        # Call invoke method also cleanup event handlers and draw handlers, so on.
+        bpy.ops.wm.screencast_keys('INVOKE_REGION_WIN')
+
+
 def register_updater(bl_info):
     config = utils.addon_updator.AddonUpdatorConfig()
     config.owner = "nutti"
@@ -78,8 +91,12 @@ def register():
         kmi = km.keymap_items.new("wm.screencast_keys", 'C', 'PRESS',
                                   shift=True, alt=True)
 
+    bpy.app.handlers.load_pre.append(load_pre_handler)
+
 
 def unregister():
+    bpy.app.handlers.load_pre.remove(load_pre_handler)
+
     utils.bl_class_registry.BlClassRegistry.unregister()
 
 
