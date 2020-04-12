@@ -56,13 +56,13 @@ import bpy
 
 @bpy.app.handlers.persistent
 def load_pre_handler(scene):
-    """ScreencastKeysStatus operation will remain running status when new .blend file is loaded.
+    """ScreencastKeys_OT_Main operation will remain running status when new .blend file is loaded.
        It seems that events from timer is not issued after loading .blend file, but we could not
        find the essential cause.
        Instead, we solve this issue by using handler called at load_pre (i.e. before loading
        .blend file)."""
 
-    if ops.ScreencastKeysStatus.running:
+    if ops.ScreencastKeys_OT_Main.running:
         # Call invoke method also cleanup event handlers and draw handlers, so on.
         bpy.ops.wm.screencast_keys('INVOKE_REGION_WIN')
 

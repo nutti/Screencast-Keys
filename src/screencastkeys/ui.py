@@ -21,13 +21,13 @@
 
 import bpy
 
-from .ops import ScreencastKeysStatus
+from .ops import ScreencastKeys_OT_Main
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 
 
 @BlClassRegistry()
-class ScreencastKeysPanel(bpy.types.Panel):
+class ScreencastKeys_PT_Main(bpy.types.Panel):
     bl_idname = "WM_PT_screencast_keys"
     bl_label = "Screencast Keys"
     bl_space_type = 'VIEW_3D'
@@ -61,7 +61,7 @@ class ScreencastKeysPanel(bpy.types.Panel):
     @classmethod
     def register(cls):
         def get_func(self):
-            return ScreencastKeysStatus.running
+            return ScreencastKeys_OT_Main.running
 
         def set_func(self, value):
             pass

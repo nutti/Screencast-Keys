@@ -231,7 +231,7 @@ def get_region_rect_on_v3d(context, area=None, region=None):
 
 
 @BlClassRegistry()
-class ScreencastKeysStatus(bpy.types.Operator):
+class ScreencastKeys_OT_Main(bpy.types.Operator):
     bl_idname = "wm.screencast_keys"
     bl_label = "Screencast Keys"
     bl_description = "Display keys pressed"
@@ -891,7 +891,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
 
 @BlClassRegistry()
-class ScreencastKeysStatusSetOrigin(bpy.types.Operator):
+class ScreencastKeys_OT_SetOrigin(bpy.types.Operator):
     bl_idname = "wm.screencast_keys_set_origin"
     bl_label = "Screencast Keys Set Origin"
     bl_description = ""
@@ -918,7 +918,7 @@ class ScreencastKeysStatusSetOrigin(bpy.types.Operator):
 
     def draw_handler_add(self, context):
         for area in context.screen.areas:
-            space_type = ScreencastKeysStatus.SPACE_TYPES[area.type]
+            space_type = ScreencastKeys_OT_Main.SPACE_TYPES[area.type]
             for region in area.regions:
                 if region.type == "":
                     continue
@@ -964,7 +964,7 @@ class ScreencastKeysStatusSetOrigin(bpy.types.Operator):
         if event.type in {'LEFTMOUSE', 'SPACE', 'RET', 'NUMPAD_ENTER'}:
             if event.value == 'PRESS':
                 # Set origin.
-                origin = ScreencastKeysStatus.origin
+                origin = ScreencastKeys_OT_Main.origin
                 origin["window"] = context.window.as_pointer()
                 origin["area"] = area.as_pointer()
                 origin["space"] = area.spaces.active.as_pointer()
