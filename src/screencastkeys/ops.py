@@ -314,6 +314,10 @@ class ScreencastKeys_OT_Main(bpy.types.Operator):
     running = False
 
     @classmethod
+    def is_running(cls):
+        return cls.running
+
+    @classmethod
     def sorted_modifier_keys(cls, modifiers):
         """Sort and unique modifier keys."""
 
@@ -738,7 +742,7 @@ class ScreencastKeys_OT_Main(bpy.types.Operator):
     def modal(self, context, event):
         prefs = compat.get_user_preferences(context).addons["screencastkeys"].preferences
 
-        if not self.__class__.running:
+        if not self.__class__.is_running():
             return {'FINISHED'}
 
         if event.type == '':
@@ -867,7 +871,7 @@ class ScreencastKeys_OT_Main(bpy.types.Operator):
 
     def invoke(self, context, event):
         cls = self.__class__
-        if cls.running:
+        if cls.is_running():
             self.event_timer_remove(context)
             self.draw_handler_remove_all()
             self.hold_modifier_keys.clear()

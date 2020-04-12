@@ -62,7 +62,7 @@ def load_pre_handler(scene):
        Instead, we solve this issue by using handler called at load_pre (i.e. before loading
        .blend file)."""
 
-    if ops.ScreencastKeys_OT_Main.running:
+    if ops.ScreencastKeys_OT_Main.is_running():
         # Call invoke method also cleanup event handlers and draw handlers, so on.
         bpy.ops.wm.screencast_keys('INVOKE_REGION_WIN')
 

@@ -61,7 +61,7 @@ class ScreencastKeys_PT_Main(bpy.types.Panel):
     @classmethod
     def register(cls):
         def get_func(self):
-            return ScreencastKeys_OT_Main.running
+            return ScreencastKeys_OT_Main.is_running()
 
         def set_func(self, value):
             pass
