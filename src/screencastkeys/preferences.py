@@ -25,14 +25,15 @@ from bpy.props import (
     EnumProperty,
 )
 
+from .ui import SK_PT_ScreencastKeys
 from .utils.addon_updator import AddonUpdatorManager
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 
 
 @BlClassRegistry()
-class ScreencastKeys_OT_CheckAddonUpdate(bpy.types.Operator):
-    bl_idname = "wm.screencast_keys_check_addon_update"
+class SK_OT_CheckAddonUpdate(bpy.types.Operator):
+    bl_idname = "wm.sk_check_addon_update"
     bl_label = "Check Update"
     bl_description = "Check Add-on Update"
     bl_options = {'REGISTER', 'UNDO'}
@@ -46,8 +47,8 @@ class ScreencastKeys_OT_CheckAddonUpdate(bpy.types.Operator):
 
 @BlClassRegistry()
 @compat.make_annotations
-class ScreencastKeys_OT_UpdateAddon(bpy.types.Operator):
-    bl_idname = "wm.screencast_keys_update_addon"
+class SK_OT_UpdateAddon(bpy.types.Operator):
+    bl_idname = "wm.sk_update_addon"
     bl_label = "Update"
     bl_description = "Update Add-on"
     bl_options = {'REGISTER', 'UNDO'}
@@ -75,8 +76,64 @@ def get_update_candidate_branches(_, __):
 
 @BlClassRegistry()
 @compat.make_annotations
-class ScreencastKeys_Preferences(bpy.types.AddonPreferences):
+class SK_Preferences(bpy.types.AddonPreferences):
     bl_idname = "screencastkeys"
+
+    category = EnumProperty(
+        name="Category",
+        description="Preferences Category",
+        items=[
+            ('CONFIG', "Configuration", "Configuration about this add-on"),
+            ('UPDATE', "Update", "Update this add-on"),
+        ],
+        default='CONFIG'
+    )
+
+    # for UI
+    def panel_space_type_update_fn(self, context):
+        has_panel = hasattr(bpy.types, SK_PT_ScreencastKeys.bl_idname)
+        if has_panel:
+            try:
+                bpy.utils.unregister_class(SK_PT_ScreencastKeys)
+            except:
+                pass
+
+        SK_PT_ScreencastKeys.bl_space_type = self.panel_space_type
+        bpy.utils.register_class(SK_PT_ScreencastKeys)
+
+    def panel_space_type_items_fn(self, _):
+        space_types = compat.get_all_space_types()
+        items = []
+        for i, (identifier, space) in enumerate(space_types.items()):
+            space_name = space.bl_rna.name
+            space_name = space_name.replace(" Space", "")
+            space_name = space_name.replace("Space ", "")
+            items.append((identifier, space_name, space_name, i))
+        return items
+
+    panel_space_type = bpy.props.EnumProperty(
+        name="Space",
+        description="Space to show ScreencastKey panel",
+        items=panel_space_type_items_fn,
+        update=panel_space_type_update_fn,
+    )
+
+    def panel_category_update_fn(self, context):
+        has_panel = hasattr(bpy.types, SK_PT_ScreencastKeys.bl_idname)
+        if has_panel:
+            try:
+                bpy.utils.unregister_class(SK_PT_ScreencastKeys)
+            except:
+                pass
+        SK_PT_ScreencastKeys.bl_category = self.panel_category
+        bpy.utils.register_class(SK_PT_ScreencastKeys)
+
+    panel_category = bpy.props.StringProperty(
+        name="Category",
+        description="Category to show ScreencastKey panel",
+        default="Screencast Keys",
+        update=panel_category_update_fn,
+    )
 
     color = bpy.props.FloatVectorProperty(
         name="Color",
@@ -131,17 +188,6 @@ class ScreencastKeys_Preferences(bpy.types.AddonPreferences):
         default=False,
     )
 
-    # for UI
-    category = EnumProperty(
-        name="Category",
-        description="Preferences Category",
-        items=[
-            ('CONFIG', "Configuration", "Configuration about this add-on"),
-            ('UPDATE', "Update", "Update this add-on"),
-        ],
-        default='CONFIG'
-    )
-
     # for add-on updater
     updater_branch_to_update = EnumProperty(
         name="branch",
@@ -173,7 +219,12 @@ class ScreencastKeys_Preferences(bpy.types.AddonPreferences):
             col.prop(self, "show_mouse_events")
             col.prop(self, "show_last_operator")
 
-            self.layout.separator()
+            layout.separator()
+
+            layout.label(text="Panel Location:")
+            col = layout.column()
+            col.prop(self, "panel_space_type")
+            col.prop(self, "panel_category")
 
         elif self.category == 'UPDATE':
             updater = AddonUpdatorManager.get_instance()
@@ -184,28 +235,28 @@ class ScreencastKeys_Preferences(bpy.types.AddonPreferences):
                 col = layout.column()
                 col.scale_y = 2
                 row = col.row()
-                row.operator(ScreencastKeys_OT_CheckAddonUpdate.bl_idname,
+                row.operator(SK_OT_CheckAddonUpdate.bl_idname,
                              text="Check 'Screencast Keys' add-on update",
                              icon='FILE_REFRESH')
             else:
                 row = layout.row(align=True)
                 row.scale_y = 2
                 col = row.column()
-                col.operator(ScreencastKeys_OT_CheckAddonUpdate.bl_idname,
+                col.operator(SK_OT_CheckAddonUpdate.bl_idname,
                              text="Check 'Screencast Keys' add-on update",
                              icon='FILE_REFRESH')
                 col = row.column()
                 if updater.latest_version() != "":
                     col.enabled = True
                     ops = col.operator(
-                        ScreencastKeys_OT_UpdateAddon.bl_idname,
+                        SK_OT_UpdateAddon.bl_idname,
                         text="Update to the latest release version (version: {})"
                             .format(updater.latest_version()),
                         icon='TRIA_DOWN_BAR')
                     ops.branch_name = updater.latest_version()
                 else:
                     col.enabled = False
-                    col.operator(ScreencastKeys_OT_UpdateAddon.bl_idname,
+                    col.operator(SK_OT_UpdateAddon.bl_idname,
                                  text="No updates are available.")
 
                 layout.separator()
@@ -213,7 +264,7 @@ class ScreencastKeys_Preferences(bpy.types.AddonPreferences):
                 row = layout.row(align=True)
                 row.prop(self, "updater_branch_to_update", text="Target")
                 ops = row.operator(
-                    ScreencastKeys_OT_UpdateAddon.bl_idname, text="Update",
+                    SK_OT_UpdateAddon.bl_idname, text="Update",
                     icon='TRIA_DOWN_BAR')
                 ops.branch_name = self.updater_branch_to_update
 

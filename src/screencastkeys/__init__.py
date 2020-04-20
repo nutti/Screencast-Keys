@@ -54,6 +54,9 @@ import os
 import bpy
 
 
+addon_keymaps = []
+
+
 @bpy.app.handlers.persistent
 def load_pre_handler(scene):
     """ScreencastKeys_OT_Main operation will remain running status when new .blend file is loaded.
@@ -80,23 +83,38 @@ def register_updater(bl_info):
     updater.init(bl_info, config)
 
 
-def register():
-    register_updater(bl_info)
-    utils.bl_class_registry.BlClassRegistry.register()
-
+def register_shortcut_key():
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
         km = kc.keymaps.new(name="3D View", space_type='VIEW_3D')
         kmi = km.keymap_items.new("wm.screencast_keys", 'C', 'PRESS',
                                   shift=True, alt=True)
+        addon_keymaps.append((km, kmi))
 
+
+def unregister_shortcut_key():
+    for km, kmi in addon_keymaps:
+        km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
+
+
+def register():
+    register_updater(bl_info)
+    utils.bl_class_registry.BlClassRegistry.register()
+    register_shortcut_key()
     bpy.app.handlers.load_pre.append(load_pre_handler)
+
+    # Apply preferences of the panel location.
+    context = bpy.context
+    prefs = context.preferences.addons["screencastkeys"].preferences
+    preferences.SK_Preferences.panel_category_update_fn(prefs, context)
+    preferences.SK_Preferences.panel_space_type_update_fn(prefs, context)
 
 
 def unregister():
     bpy.app.handlers.load_pre.remove(load_pre_handler)
-
+    unregister_shortcut_key()
     utils.bl_class_registry.BlClassRegistry.unregister()
 
 

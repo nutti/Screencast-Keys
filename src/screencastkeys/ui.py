@@ -21,14 +21,14 @@
 
 import bpy
 
-from .ops import ScreencastKeys_OT_Main
+from .ops import SK_OT_ScreencastKeys
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 
 
 @BlClassRegistry()
-class ScreencastKeys_PT_Main(bpy.types.Panel):
-    bl_idname = "WM_PT_screencast_keys"
+class SK_PT_ScreencastKeys(bpy.types.Panel):
+    bl_idname = "SK_PT_ScreencastKeys"
     bl_label = "Screencast Keys"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -54,20 +54,20 @@ class ScreencastKeys_PT_Main(bpy.types.Panel):
         column.prop(prefs, "origin")
         row = column.row()
         row.prop(prefs, "offset")
-        column.operator("wm.screencast_keys_set_origin", text="Set Origin")
+        column.operator("wm.sk_set_origin", text="Set Origin")
         column.prop(prefs, "show_mouse_events")
         column.prop(prefs, "show_last_operator")
 
     @classmethod
     def register(cls):
         def get_func(self):
-            return ScreencastKeys_OT_Main.is_running()
+            return SK_OT_ScreencastKeys.is_running()
 
         def set_func(self, value):
             pass
 
         def update_func(self, context):
-            bpy.ops.wm.screencast_keys('INVOKE_REGION_WIN')
+            bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN')
 
         bpy.types.WindowManager.enable_screencast_keys = \
             bpy.props.BoolProperty(

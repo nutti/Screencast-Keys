@@ -152,6 +152,7 @@ def set_blf_blur(font_id, radius):
 def get_all_space_types():
     if check_version(2, 80, 0) >= 0:
         return {
+            'VIEW_3D': bpy.types.SpaceView3D,
             'CLIP_EDITOR': bpy.types.SpaceClipEditor,
             'CONSOLE': bpy.types.SpaceConsole,
             'DOPESHEET_EDITOR': bpy.types.SpaceDopeSheetEditor,
@@ -166,7 +167,6 @@ def get_all_space_types():
             'SEQUENCE_EDITOR': bpy.types.SpaceSequenceEditor,
             'TEXT_EDITOR': bpy.types.SpaceTextEditor,
             'PREFERENCES': bpy.types.SpacePreferences,
-            'VIEW_3D': bpy.types.SpaceView3D,
         }
     else:
         return {
