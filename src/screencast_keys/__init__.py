@@ -78,7 +78,7 @@ def register_updater(bl_info):
     config.branches = ["master", "develop"]
     config.addon_directory = config.current_addon_path[:config.current_addon_path.rfind("/")]
     config.min_release_version = bl_info["version"]
-    config.target_addon_path = "src/screencastkeys"
+    config.target_addon_path = "src/screencast_keys"
     updater = utils.addon_updator.AddonUpdatorManager.get_instance()
     updater.init(bl_info, config)
 
@@ -107,7 +107,7 @@ def register():
 
     # Apply preferences of the panel location.
     context = bpy.context
-    prefs = context.preferences.addons["screencastkeys"].preferences
+    prefs = context.preferences.addons["screencast_keys"].preferences
     preferences.SK_Preferences.panel_category_update_fn(prefs, context)
     preferences.SK_Preferences.panel_space_type_update_fn(prefs, context)
 

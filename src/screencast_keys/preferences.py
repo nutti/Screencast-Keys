@@ -77,7 +77,7 @@ def get_update_candidate_branches(_, __):
 @BlClassRegistry()
 @compat.make_annotations
 class SK_Preferences(bpy.types.AddonPreferences):
-    bl_idname = "screencastkeys"
+    bl_idname = "screencast_keys"
 
     category = EnumProperty(
         name="Category",

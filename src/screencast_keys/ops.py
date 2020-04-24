@@ -347,7 +347,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def removed_old_event_history(cls):
         """Return event history whose old events are removed."""
 
-        prefs = compat.get_user_preferences(bpy.context).addons["screencastkeys"].preferences
+        prefs = compat.get_user_preferences(bpy.context).addons["screencast_keys"].preferences
         current_time = time.time()
 
         event_history = []
@@ -372,7 +372,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
            Retrun value: (Window, Area, Region, x, y)
         """
 
-        prefs = compat.get_user_preferences(context).addons["screencastkeys"].preferences
+        prefs = compat.get_user_preferences(context).addons["screencast_keys"].preferences
 
         def is_window_match(window):
             return window.as_pointer() == cls.origin["window"]
@@ -450,7 +450,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                  --------------     --------------
         """
 
-        prefs = compat.get_user_preferences(context).addons["screencastkeys"].preferences
+        prefs = compat.get_user_preferences(context).addons["screencast_keys"].preferences
 
         font_size = prefs.font_size
         font_id = 0         # TODO: font_id should be constant.
@@ -567,7 +567,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def draw_callback(cls, context):
-        prefs = compat.get_user_preferences(context).addons["screencastkeys"].preferences
+        prefs = compat.get_user_preferences(context).addons["screencast_keys"].preferences
 
         if context.window.as_pointer() != cls.origin["window"]:
             return      # Not match target window.
@@ -740,7 +740,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return event_type in self.MODIFIER_EVENT_TYPES
 
     def modal(self, context, event):
-        prefs = compat.get_user_preferences(context).addons["screencastkeys"].preferences
+        prefs = compat.get_user_preferences(context).addons["screencast_keys"].preferences
 
         if not self.__class__.is_running():
             return {'FINISHED'}
