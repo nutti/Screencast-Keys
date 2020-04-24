@@ -25,6 +25,11 @@ import enum
 import re
 import string
 import time
+from ctypes import (
+    c_void_p,
+    cast,
+    POINTER,
+)
 
 import blf
 import bpy
@@ -32,6 +37,7 @@ import bpy.props
 
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
+from .utils import c_structures
 
 if compat.check_version(2, 80, 0) >= 0:
     from .compat import bglx as bgl
@@ -347,7 +353,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def removed_old_event_history(cls):
         """Return event history whose old events are removed."""
 
-        prefs = compat.get_user_preferences(bpy.context).addons["screencast_keys"].preferences
+        prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
         current_time = time.time()
 
         event_history = []
@@ -372,7 +378,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
            Retrun value: (Window, Area, Region, x, y)
         """
 
-        prefs = compat.get_user_preferences(context).addons["screencast_keys"].preferences
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
         def is_window_match(window):
             return window.as_pointer() == cls.origin["window"]
@@ -450,7 +456,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                  --------------     --------------
         """
 
-        prefs = compat.get_user_preferences(context).addons["screencast_keys"].preferences
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
         font_size = prefs.font_size
         font_id = 0         # TODO: font_id should be constant.
@@ -567,7 +573,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def draw_callback(cls, context):
-        prefs = compat.get_user_preferences(context).addons["screencast_keys"].preferences
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
         if context.window.as_pointer() != cls.origin["window"]:
             return      # Not match target window.
@@ -697,6 +703,46 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if region_drawn:
             cls.draw_regions_prev.add(region.as_pointer())
 
+    @staticmethod
+    @bpy.app.handlers.persistent
+    def sort_modalhandlers(scene):
+        """Sort modalhandlers registered on wmWindow.
+           This makes SK_OT_ScreencastKeys.model method enable to get events
+           consumed by other modalhandlers."""
+
+        prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+        if not prefs.get_event_aggressively:
+            return
+
+        for w in bpy.context.window_manager.windows:
+            window = cast(c_void_p(w.as_pointer()),
+                    POINTER(c_structures.wmWindow)).contents
+            handler_ptr = cast(window.modalhandlers.first,
+                            POINTER(c_structures.wmEventHandler))
+            indices = []
+            i = 0
+            while handler_ptr:
+                handler = handler_ptr.contents
+                if handler.type == 3:       # WM_HANDLER_TYPE_OP
+                    op = handler.op.contents
+                    idname = op.idname.decode()
+                    op_prefix, op_name = idname.split("_OT_")
+                    idname_py = "{}.{}".format(op_prefix.lower(), op_name)
+                    if idname_py == SK_OT_ScreencastKeys.bl_idname:
+                        indices.append(i)
+                handler_ptr = cast(handler.next,
+                                POINTER(c_structures.wmEventHandler))
+                i += 1
+
+            if indices:
+                handlers = window.modalhandlers
+                for count, index in enumerate(indices):
+                    if index != count:
+                        prev = handlers.find(index - 2)
+                        handler = handlers.find(index)
+                        handlers.remove(handler)
+                        handlers.insert_after(prev, handler)
+
     def update_hold_modifier_keys(self, event):
         """Update hold modifier keys."""
 
@@ -740,7 +786,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return event_type in self.MODIFIER_EVENT_TYPES
 
     def modal(self, context, event):
-        prefs = compat.get_user_preferences(context).addons["screencast_keys"].preferences
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
         if not self.__class__.is_running():
             return {'FINISHED'}
@@ -871,7 +917,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     def invoke(self, context, event):
         cls = self.__class__
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
         if cls.is_running():
+            if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
+                bpy.app.handlers.depsgraph_update_pre.remove(cls.sort_modalhandlers)
             self.event_timer_remove(context)
             self.draw_handler_remove_all()
             self.hold_modifier_keys.clear()
@@ -890,6 +940,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             self.origin["space"] = context.space_data.as_pointer()
             self.origin["region_type"] = context.region.type
             context.area.tag_redraw()
+            if prefs.get_event_aggressively:
+                bpy.app.handlers.depsgraph_update_pre.append(cls.sort_modalhandlers)
             cls.running = True
             return {'RUNNING_MODAL'}
 

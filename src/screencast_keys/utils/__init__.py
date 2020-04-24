@@ -24,9 +24,11 @@ if "bpy" in locals():
     importlib.reload(addon_updator)
     importlib.reload(bl_class_registry)
     importlib.reload(compatibility)
+    importlib.reload(c_structures)
 else:
     from . import addon_updator
     from . import bl_class_registry
     from . import compatibility
+    from . import c_structures
 
 import bpy

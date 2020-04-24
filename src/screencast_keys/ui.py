@@ -40,7 +40,7 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        prefs = compat.get_user_preferences(bpy.context).addons["screencast_keys"].preferences
+        prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
 
         column = layout.column()
 

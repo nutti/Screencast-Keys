@@ -75,7 +75,7 @@ def register_updater(bl_info):
     config.owner = "nutti"
     config.repository = "Screencast-Keys"
     config.current_addon_path = os.path.dirname(os.path.realpath(__file__))
-    config.branches = ["master", "develop"]
+    config.branches = ["master"]
     config.addon_directory = config.current_addon_path[:config.current_addon_path.rfind("/")]
     config.min_release_version = bl_info["version"]
     config.target_addon_path = "src/screencast_keys"
@@ -88,7 +88,7 @@ def register_shortcut_key():
     kc = wm.keyconfigs.addon
     if kc:
         km = kc.keymaps.new(name="3D View", space_type='VIEW_3D')
-        kmi = km.keymap_items.new("wm.screencast_keys", 'C', 'PRESS',
+        kmi = km.keymap_items.new("wm.sk_screencast_keys", 'C', 'PRESS',
                                   shift=True, alt=True)
         addon_keymaps.append((km, kmi))
 
@@ -107,7 +107,7 @@ def register():
 
     # Apply preferences of the panel location.
     context = bpy.context
-    prefs = context.preferences.addons["screencast_keys"].preferences
+    prefs = context.preferences.addons[__package__].preferences
     preferences.SK_Preferences.panel_category_update_fn(prefs, context)
     preferences.SK_Preferences.panel_space_type_update_fn(prefs, context)
 

@@ -77,7 +77,7 @@ def get_update_candidate_branches(_, __):
 @BlClassRegistry()
 @compat.make_annotations
 class SK_Preferences(bpy.types.AddonPreferences):
-    bl_idname = "screencast_keys"
+    bl_idname = __package__
 
     category = EnumProperty(
         name="Category",
@@ -188,6 +188,13 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default=False,
     )
 
+    get_event_aggressively = bpy.props.BoolProperty(
+        name="Get Event Aggressively",
+        description="""Get events which will be dropped by the other
+                       modalhandlers. This may make blender unstable.""",
+        default=False,
+    )
+
     # for add-on updater
     updater_branch_to_update = EnumProperty(
         name="branch",
@@ -225,6 +232,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
             col = layout.column()
             col.prop(self, "panel_space_type")
             col.prop(self, "panel_category")
+
+            layout.separator()
+
+            layout.label(text="Experimental:")
+            col = layout.column()
+            col.prop(self, "get_event_aggressively")
 
         elif self.category == 'UPDATE':
             updater = AddonUpdatorManager.get_instance()
