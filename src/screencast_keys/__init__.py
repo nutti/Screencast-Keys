@@ -107,7 +107,11 @@ def register():
 
     # Apply preferences of the panel location.
     context = bpy.context
-    prefs = context.preferences.addons[__package__].preferences
+    prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
+    # Only default panel location is available in < 2.80
+    if utils.compatibility.check_version(2, 80, 0) < 0:
+        prefs.panel_space_type = 'VIEW_3D'
+        prefs.panel_category = "Screencast Key"
     preferences.SK_Preferences.panel_category_update_fn(prefs, context)
     preferences.SK_Preferences.panel_space_type_update_fn(prefs, context)
 

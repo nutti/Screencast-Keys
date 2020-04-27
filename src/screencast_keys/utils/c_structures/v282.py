@@ -1,10 +1,12 @@
-#import ctypes
 from ctypes import (
     c_void_p, c_char, c_short, c_int, c_int8,
     addressof, cast, pointer,
     Structure,
     POINTER,
 )
+
+
+WM_HANDLER_TYPE_OP = 3
 
 class Link(Structure):
     """Defined in source/blender/makesdna/DNA_listBase.h"""

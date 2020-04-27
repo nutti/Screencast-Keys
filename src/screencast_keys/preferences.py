@@ -226,12 +226,14 @@ class SK_Preferences(bpy.types.AddonPreferences):
             col.prop(self, "show_mouse_events")
             col.prop(self, "show_last_operator")
 
-            layout.separator()
+            # Panel location is only available in >= 2.80
+            if compat.check_version(2, 80, 0) >= 0:
+                layout.separator()
 
-            layout.label(text="Panel Location:")
-            col = layout.column()
-            col.prop(self, "panel_space_type")
-            col.prop(self, "panel_category")
+                layout.label(text="Panel Location:")
+                col = layout.column()
+                col.prop(self, "panel_space_type")
+                col.prop(self, "panel_category")
 
             layout.separator()
 

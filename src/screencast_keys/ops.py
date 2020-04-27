@@ -723,13 +723,22 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             i = 0
             while handler_ptr:
                 handler = handler_ptr.contents
-                if handler.type == 3:       # WM_HANDLER_TYPE_OP
-                    op = handler.op.contents
-                    idname = op.idname.decode()
-                    op_prefix, op_name = idname.split("_OT_")
-                    idname_py = "{}.{}".format(op_prefix.lower(), op_name)
-                    if idname_py == SK_OT_ScreencastKeys.bl_idname:
-                        indices.append(i)
+                if compat.check_version(2, 80, 0) >= 0:
+                    if handler.type == c_structures.WM_HANDLER_TYPE_OP:
+                        op = handler.op.contents
+                        idname = op.idname.decode()
+                        op_prefix, op_name = idname.split("_OT_")
+                        idname_py = "{}.{}".format(op_prefix.lower(), op_name)
+                        if idname_py == SK_OT_ScreencastKeys.bl_idname:
+                            indices.append(i)
+                else:
+                    if handler.op:
+                        op = handler.op.contents
+                        idname = op.idname.decode()
+                        op_prefix, op_name = idname.split("_OT_")
+                        idname_py = "{}.{}".format(op_prefix.lower(), op_name)
+                        if idname_py == SK_OT_ScreencastKeys.bl_idname:
+                            indices.append(i)
                 handler_ptr = cast(handler.next,
                                 POINTER(c_structures.wmEventHandler))
                 i += 1
@@ -920,8 +929,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
         if cls.is_running():
-            if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
-                bpy.app.handlers.depsgraph_update_pre.remove(cls.sort_modalhandlers)
+            if compat.check_version(2, 80, 0) >= 0:
+                if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
+                    bpy.app.handlers.depsgraph_update_pre.remove(cls.sort_modalhandlers)
+            else:
+                if cls.sort_modalhandlers in bpy.app.handlers.scene_update_pre:
+                    bpy.app.handlers.scene_update_pre.remove(cls.sort_modalhandlers)
             self.event_timer_remove(context)
             self.draw_handler_remove_all()
             self.hold_modifier_keys.clear()
@@ -941,7 +954,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             self.origin["region_type"] = context.region.type
             context.area.tag_redraw()
             if prefs.get_event_aggressively:
-                bpy.app.handlers.depsgraph_update_pre.append(cls.sort_modalhandlers)
+                if compat.check_version(2, 80, 0) >= 0:
+                    bpy.app.handlers.depsgraph_update_pre.append(cls.sort_modalhandlers)
+                else:
+                    bpy.app.handlers.scene_update_pre.append(cls.sort_modalhandlers)
             cls.running = True
             return {'RUNNING_MODAL'}
 
