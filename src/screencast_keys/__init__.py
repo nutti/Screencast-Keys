@@ -42,12 +42,14 @@ if "bpy" in locals():
     importlib.reload(preferences)
     importlib.reload(ops)
     importlib.reload(ui)
+    importlib.reload(common)
 else:
     import bpy
     from . import utils
     from . import preferences
     from . import ops
     from . import ui
+    from . import common
 
 import os
 

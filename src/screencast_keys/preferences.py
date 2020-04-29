@@ -195,6 +195,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default=False,
     )
 
+    debug_mode = bpy.props.BoolProperty(
+        name="Debug Mode",
+        description="Debug mode (Output log messages for add-on's developers)",
+        default=False
+    )
+
     # for add-on updater
     updater_branch_to_update = EnumProperty(
         name="branch",
@@ -240,6 +246,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
             layout.label(text="Experimental:")
             col = layout.column()
             col.prop(self, "get_event_aggressively")
+
+            layout.separator()
+
+            layout.label(text="Development:")
+            col = layout.column()
+            col.prop(self, "debug_mode")
 
         elif self.category == 'UPDATE':
             updater = AddonUpdatorManager.get_instance()

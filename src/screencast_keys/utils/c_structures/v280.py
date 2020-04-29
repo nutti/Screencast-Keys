@@ -6,7 +6,10 @@ from ctypes import (
 )
 
 
-WM_HANDLER_TYPE_OP = 3
+class eWM_EventHandlerType:
+    WM_HANDLER_TYPE_UI = 2
+    WM_HANDLER_TYPE_OP = 3
+
 
 class Link(Structure):
     """Defined in source/blender/makesdna/DNA_listBase.h"""

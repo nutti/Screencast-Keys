@@ -35,6 +35,7 @@ import blf
 import bpy
 import bpy.props
 
+from .common import debug_print
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 from .utils import c_structures
@@ -721,16 +722,24 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                             POINTER(c_structures.wmEventHandler))
             indices = []
             i = 0
+            debug_print("====== HANDLER_LIST ======")
+            has_ui_handler = False
             while handler_ptr:
                 handler = handler_ptr.contents
                 if compat.check_version(2, 80, 0) >= 0:
-                    if handler.type == c_structures.WM_HANDLER_TYPE_OP:
+                    if handler.type == c_structures.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
                         op = handler.op.contents
                         idname = op.idname.decode()
                         op_prefix, op_name = idname.split("_OT_")
                         idname_py = "{}.{}".format(op_prefix.lower(), op_name)
                         if idname_py == SK_OT_ScreencastKeys.bl_idname:
                             indices.append(i)
+                        debug_print("  TYPE: WM_HANDLER_TYPE_OP ({})".format(idname_py))
+                    elif handler.type == c_structures.eWM_EventHandlerType.WM_HANDLER_TYPE_UI:
+                        has_ui_handler = True
+                        debug_print("  TYPE: WM_HANDLER_TYPE_UI")
+                    else:
+                        debug_print("  TYPE: {}".format(handler.type))
                 else:
                     if handler.op:
                         op = handler.op.contents
@@ -742,6 +751,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 handler_ptr = cast(handler.next,
                                 POINTER(c_structures.wmEventHandler))
                 i += 1
+            debug_print("==========================")
+
+            # Blender will crash when we change the space type while Screencast Key is running.
+            # This issue is caused by changing order of WM_HANDLER_TYPE_UI handler.
+            # So, do nothing if there is a WM_HANDLER_TYPE_UI handler.
+            # TODO: Sort only WM_HANDLER_TYPE_OP handlers.
+            if has_ui_handler:
+                return
 
             if indices:
                 handlers = window.modalhandlers
