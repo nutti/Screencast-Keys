@@ -237,6 +237,22 @@ def get_region_rect_on_v3d(context, area=None, region=None):
     return xmin, ymin, xmax, ymax
 
 
+def get_display_event_text(event_id):
+    prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+
+    if not prefs.enable_display_event_text_aliases:
+        return EventType.names[event_id]
+
+    for prop in prefs.display_event_text_aliases_props:
+        if prop.event_id == event_id:
+            if prop.alias_text == "":
+                return prop.default_text
+            else:
+                return prop.alias_text
+
+    return "UNKNOWN"
+
+
 @BlClassRegistry()
 class SK_OT_ScreencastKeys(bpy.types.Operator):
     bl_idname = "wm.sk_screencast_keys"
@@ -683,7 +699,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             color = prefs.color
             compat.set_blf_font_color(font_id, *color, 1.0)
 
-            text = event_type.names[event_type.name]
+            text = get_display_event_text(event_type.name)
             if modifiers:
                 mod_keys = cls.sorted_modifier_keys(modifiers)
                 text = "{} + {}".format(" + ".join(mod_keys), text)

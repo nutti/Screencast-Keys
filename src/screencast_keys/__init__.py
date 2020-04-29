@@ -103,6 +103,8 @@ def unregister_shortcut_key():
 
 def register():
     register_updater(bl_info)
+    # TODO: Register by BlClassRegistry
+    bpy.utils.register_class(preferences.DisplayEventTextAliasProperties)
     utils.bl_class_registry.BlClassRegistry.register()
     register_shortcut_key()
     bpy.app.handlers.load_pre.append(load_pre_handler)
@@ -117,11 +119,18 @@ def register():
     preferences.SK_Preferences.panel_category_update_fn(prefs, context)
     preferences.SK_Preferences.panel_space_type_update_fn(prefs, context)
 
+    for event in list(ops.EventType):
+        item = prefs.display_event_text_aliases_props.add()
+        item.event_id = event.name
+        item.default_text = ops.EventType.names[event.name]
+
 
 def unregister():
     bpy.app.handlers.load_pre.remove(load_pre_handler)
     unregister_shortcut_key()
+    # TODO: Unregister by BlClassRegistry
     utils.bl_class_registry.BlClassRegistry.unregister()
+    bpy.utils.unregister_class(preferences.DisplayEventTextAliasProperties)
 
 
 if __name__ == "__main__":

@@ -25,6 +25,7 @@ from bpy.props import (
     EnumProperty,
 )
 
+from .ops import EventType
 from .ui import SK_PT_ScreencastKeys
 from .utils.addon_updator import AddonUpdatorManager
 from .utils.bl_class_registry import BlClassRegistry
@@ -74,6 +75,13 @@ def get_update_candidate_branches(_, __):
     return [(name, name, "") for name in updater.get_candidate_branch_names()]
 
 
+@compat.make_annotations
+class DisplayEventTextAliasProperties(bpy.types.PropertyGroup):
+    alias_text = bpy.props.StringProperty(name="Alias Text", default="")
+    default_text = bpy.props.StringProperty(options={'HIDDEN'})
+    event_id = bpy.props.StringProperty(options={'HIDDEN'})
+
+
 @BlClassRegistry()
 @compat.make_annotations
 class SK_Preferences(bpy.types.AddonPreferences):
@@ -84,6 +92,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         description="Preferences Category",
         items=[
             ('CONFIG', "Configuration", "Configuration about this add-on"),
+            ('DISPLAY_EVENT_TEXT_ALIAS', "Display Event Text Alias", "Event text aliases for display"),
             ('UPDATE', "Update", "Update this add-on"),
         ],
         default='CONFIG'
@@ -191,7 +200,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
     get_event_aggressively = bpy.props.BoolProperty(
         name="Get Event Aggressively",
         description="""Get events which will be dropped by the other
-                       modalhandlers. This may make blender unstable.""",
+                       modalhandlers. This may make blender unstable""",
         default=False,
     )
 
@@ -199,6 +208,17 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Debug Mode",
         description="Debug mode (Output log messages for add-on's developers)",
         default=False
+    )
+
+    # for display event text alias
+    enable_display_event_text_aliases = bpy.props.BoolProperty(
+        name="Enable Display Event Text Aliases",
+        description="Enable display event text aliases",
+        default=False,
+    )
+
+    display_event_text_aliases_props = bpy.props.CollectionProperty(
+        type=DisplayEventTextAliasProperties
     )
 
     # for add-on updater
@@ -252,6 +272,37 @@ class SK_Preferences(bpy.types.AddonPreferences):
             layout.label(text="Development:")
             col = layout.column()
             col.prop(self, "debug_mode")
+
+        elif self.category == 'DISPLAY_EVENT_TEXT_ALIAS':
+            layout.separator()
+
+            layout.prop(self, "enable_display_event_text_aliases")
+
+            layout.separator()
+
+            if self.enable_display_event_text_aliases:
+                sp = compat.layout_split(layout, factor=0.33)
+                col = sp.column()
+                col.label(text="Event ID")
+                sp = compat.layout_split(sp, factor=0.5)
+                col = sp.column()
+                col.label(text="Default Text")
+                sp = compat.layout_split(sp, factor=1.0)
+                col = sp.column()
+                col.label(text="Alias Text")
+
+                layout.separator()
+
+                for d in self.display_event_text_aliases_props:
+                    sp = compat.layout_split(layout, factor=0.33)
+                    col = sp.column()
+                    col.label(text=d.event_id)
+                    sp = compat.layout_split(sp, factor=0.5)
+                    col = sp.column()
+                    col.label(text=d.default_text)
+                    sp = compat.layout_split(sp, factor=1.0)
+                    col = sp.column()
+                    col.prop(d, "alias_text", text="")
 
         elif self.category == 'UPDATE':
             updater = AddonUpdatorManager.get_instance()
