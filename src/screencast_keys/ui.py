@@ -45,9 +45,13 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column = layout.column()
 
         column.prop(prefs, "color")
-        column.prop(prefs, "color_shadow")
+        column.prop(prefs, "shadow")
+        if prefs.shadow:
+            column.prop(prefs, "color_shadow", text="")
+        column.prop(prefs, "background")
+        if prefs.background:
+            column.prop(prefs, "color_background", text="")
         column.prop(prefs, "font_size")
-        column.prop(prefs, "display_time")
 
         column.separator()
 
@@ -55,8 +59,17 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         row = column.row()
         row.prop(prefs, "offset")
         column.operator("wm.sk_set_origin", text="Set Origin")
+        column.prop(prefs, "display_time")
+
+        column.separator()
+
         column.prop(prefs, "show_mouse_events")
         column.prop(prefs, "show_last_operator")
+
+        column.separator()
+
+        column.label(text="Experimental:")
+        column.prop(prefs, "get_event_aggressively")
 
     @classmethod
     def register(cls):

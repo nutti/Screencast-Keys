@@ -152,13 +152,29 @@ class SK_Preferences(bpy.types.AddonPreferences):
         subtype='COLOR_GAMMA',
         size=3
     )
+    shadow = bpy.props.BoolProperty(
+        name="Shadow",
+        default=False
+    )
     color_shadow = bpy.props.FloatVectorProperty(
         name="Shadow Color",
-        default=(0.0, 0.0, 0.0, 0.0),
+        default=(0.0, 0.0, 0.0),
         min=0.0,
         max=1.0,
-        subtype='COLOR_GAMMA',
-        size=4
+        subtype='COLOR',
+        size=3
+    )
+    background = bpy.props.BoolProperty(
+        name="Background",
+        default=False
+    )
+    color_background = bpy.props.FloatVectorProperty(
+        name="Background Color",
+        default=(0.0, 0.0, 0.0),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=3
     )
     font_size = bpy.props.IntProperty(
         name="Font Size",
@@ -199,8 +215,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
     get_event_aggressively = bpy.props.BoolProperty(
         name="Get Event Aggressively",
-        description="""Get events which will be dropped by the other
-                       modalhandlers. This may make blender unstable""",
+        description="""(Experimental) Get events which will be dropped by the
+                       other modalhandlers. This may make blender unstable""",
         default=False,
     )
 
@@ -240,15 +256,21 @@ class SK_Preferences(bpy.types.AddonPreferences):
             split = column.split()
             col = split.column()
             col.prop(self, "color")
-            col.prop(self, "color_shadow")
+            col.prop(self, "shadow")
+            if self.shadow:
+                col.prop(self, "color_shadow", text="")
+            col.prop(self, "background")
+            if self.background:
+                col.prop(self, "color_background", text="")
             col.prop(self, "font_size")
-
-            col = split.column()
-            col.prop(self, "display_time")
 
             col = split.column()
             col.prop(self, "origin")
             col.prop(self, "offset")
+            col.prop(self, "display_time")
+
+            col = split.column()
+
             col.prop(self, "show_mouse_events")
             col.prop(self, "show_last_operator")
 

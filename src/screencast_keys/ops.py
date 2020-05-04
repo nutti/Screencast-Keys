@@ -54,7 +54,7 @@ EventType = enum.IntEnum(
 EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
-def draw_rounded_box(x, y, w, h, round_radius):
+def draw_rounded_box(x, y, w, h, round_radius, fill=False, fill_color=None):
 
     def circle_verts_num(r):
         """Get number of verticies for circle optimized for drawing."""
@@ -91,7 +91,11 @@ def draw_rounded_box(x, y, w, h, round_radius):
         math.pi * 0.5,
     ]
 
-    bgl.glBegin(bgl.GL_LINE_LOOP)
+    if fill:
+        bgl.glColor3f(*fill_color)
+        bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    else:
+        bgl.glBegin(bgl.GL_LINE_LOOP)
     for x0, y0, angle in zip(x_origin, y_origin, angle_start):
         for _ in range(n):
             x = x0 + round_radius * math.cos(angle)
@@ -99,34 +103,60 @@ def draw_rounded_box(x, y, w, h, round_radius):
             bgl.glVertex2f(x, y)
             angle += dangle
     bgl.glEnd()
+    bgl.glColor3f(1.0, 1.0, 1.0)
 
 
-def draw_text(text, font_id, color, color_shadow):
+def draw_rect(x1, y1, x2, y2, color):
+    bgl.glColor3f(*color)
+
+    bgl.glBegin(bgl.GL_QUADS)
+    bgl.glVertex2f(x1, y1)
+    bgl.glVertex2f(x1, y2)
+    bgl.glVertex2f(x2, y2)
+    bgl.glVertex2f(x2, y1)
+    bgl.glEnd()
+
+    bgl.glColor3f(1.0, 1.0, 1.0)
+
+
+def draw_text_background(text, font_id, x, y, color_background):
+    width = blf.dimensions(font_id, text)[0]
+    height = blf.dimensions(font_id, string.printable)[1]
+    margin = height * 0.2
+
+    draw_rect(x, y - margin, x + width, y + height - margin, color_background)
+
+
+def draw_text(text, font_id, color, shadow=False, color_shadow=None):
+    blf.enable(font_id, blf.SHADOW)
+
     # Draw shadow.
-    compat.set_blf_font_color(font_id, *color_shadow[:3], color_shadow[3] * 20)
-    compat.set_blf_blur(font_id, 5)
-    blf.draw(font_id, text)
-    compat.set_blf_blur(font_id, 0)
+    if shadow:
+        blf.shadow_offset(font_id, 3, -3)
+        blf.shadow(font_id, 5, *color_shadow, 1.0)
 
     # Draw text.
     compat.set_blf_font_color(font_id, *color, 1.0)
     blf.draw(font_id, text)
 
+    blf.disable(font_id, blf.SHADOW)
 
-def draw_line(p1, p2, color, color_shadow):
+
+def draw_line(p1, p2, color, shadow=False, color_shadow=None):
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
     # Draw shadow.
-    bgl.glLineWidth(3.0)
-    bgl.glColor4f(*color_shadow)
-    bgl.glBegin(bgl.GL_LINES)
-    bgl.glVertex2f(*p1)
-    bgl.glVertex2f(*p2)
-    bgl.glEnd()
+    if shadow:
+        bgl.glLineWidth(3.0)
+        bgl.glColor4f(*color_shadow, 1.0)
+        bgl.glBegin(bgl.GL_LINES)
+        bgl.glVertex2f(*p1)
+        bgl.glVertex2f(*p2)
+        bgl.glEnd()
 
     # Draw line.
-    bgl.glLineWidth(1.0 if color_shadow[-1] == 0.0 else 1.5)
+    bgl.glLineWidth(1.5 if shadow else 1.0)
     bgl.glColor3f(*color)
     bgl.glBegin(bgl.GL_LINES)
     bgl.glVertex2f(*p1)
@@ -654,12 +684,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 text = bpy.app.translations.pgettext_iface(bl_label, "Operator")
                 text += " ('{}')".format(idname_py)
                 blf.position(font_id, x, y, 0)
-                draw_text(text, font_id, prefs.color, prefs.color_shadow)
+                if prefs.background:
+                    draw_text_background(text, font_id, x, y, prefs.color_background)
+                draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
                 y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
 
                 # Draw separator.
                 sw = blf.dimensions(font_id, "Left Mouse")[0]
-                draw_line([x, y], [x + sw, y], prefs.color, prefs.color_shadow)
+                draw_line([x, y], [x + sw, y], prefs.color, prefs.shadow, prefs.color_shadow)
                 y += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.8
 
                 region_drawn = True
@@ -678,15 +710,17 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             else:
                 text = " + ".join(mod_keys)
 
-            # Draw key text.
-            blf.position(font_id, x, y + margin, 0)
-            draw_text(text, font_id, prefs.color, prefs.color_shadow)
-
             # Draw rounded box.
             box_height = sh + margin * 2
             box_width = blf.dimensions(font_id, text)[0] + margin * 2
             draw_rounded_box(x - margin, y - margin,
-                             box_width, box_height, box_height * 0.2)
+                             box_width, box_height, box_height * 0.2,
+                             prefs.background, prefs.color_background)
+
+            # Draw key text.
+            blf.position(font_id, x, y + margin, 0)
+            draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
+            bgl.glColor4f(*prefs.color, 1.0)
 
             region_drawn = True
 
@@ -707,7 +741,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 text += " x{}".format(repeat_count)
 
             blf.position(font_id, x, y, 0)
-            draw_text(text, font_id, prefs.color, prefs.color_shadow)
+            if prefs.background:
+                draw_text_background(text, font_id, x, y, prefs.color_background)
+            draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
 
             y += sh
 
