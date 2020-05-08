@@ -420,6 +420,27 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return cls.operator_history[-32:]
 
     @classmethod
+    def get_offset_for_alignment(cls, width, context):
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        dw, _ = cls.calc_draw_area_size(context)
+        dw -= 30.0
+
+        offset_x = 0.0
+        if prefs.align == 'CENTER':
+            offset_x = (dw - width) / 2.0
+        elif prefs.align == 'RIGHT':
+            offset_x = dw - width
+
+        return offset_x
+
+    @classmethod
+    def get_text_offset_for_alignment(cls, font_id, text, context):
+        tw = blf.dimensions(font_id, text)[0]
+
+        return cls.get_offset_for_alignment(tw, context)
+
+    @classmethod
     def get_origin(cls, context):
         """Get draw target.
            Retrun value: (Window, Area, Region, x, y)
@@ -447,12 +468,72 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         def is_region_match(area):
             return region.type == cls.origin["region_type"]
 
-        x, y = prefs.offset
         for window in context.window_manager.windows:
             if is_window_match(window):
                 break
         else:
             return None, None, None, 0, 0
+
+        # Calculate draw offset
+        draw_area_width, draw_area_height = cls.calc_draw_area_size(context)
+        if prefs.align == 'LEFT':
+            x, y = prefs.offset
+        elif prefs.align == 'CENTER':
+            if prefs.origin == 'WINDOW':
+                x, y = prefs.offset
+                x += (window.width * 2 - draw_area_width) / 2
+            elif prefs.origin == 'AREA':
+                x, y = prefs.offset
+                for area in window.screen.areas:
+                    if is_area_match(area):
+                        x += (area.width - draw_area_width) / 2
+                        break
+            elif prefs.origin == 'REGION':
+                x, y = prefs.offset
+                found = False
+                for area in window.screen.areas:
+                    if found:
+                        break
+                    if not is_area_match(area):
+                        continue
+                    for region in area.regions:
+                        if found:
+                            break
+                        if is_region_match(region):
+                            if area.type == 'VIEW_3D':
+                                rect = get_region_rect_on_v3d(context, area, region)
+                                x += (rect[2] - rect[0] - draw_area_width) / 2
+                            else:
+                                x += (region.width - draw_area_width) / 2
+                            found = True
+        elif prefs.align == 'RIGHT':
+            if prefs.origin == 'WINDOW':
+                x, y = prefs.offset
+                x += window.width * 2 - draw_area_width
+            elif prefs.origin == 'AREA':
+                x, y = prefs.offset
+                for area in window.screen.areas:
+                    if is_area_match(area):
+                        x += area.width - draw_area_width
+                        break
+            elif prefs.origin == 'REGION':
+                x, y = prefs.offset
+                found = False
+                for area in window.screen.areas:
+                    if found:
+                        break
+                    if not is_area_match(area):
+                        continue
+                    for region in area.regions:
+                        if found:
+                            break
+                        if is_region_match(region):
+                            if area.type == 'VIEW_3D':
+                                rect = get_region_rect_on_v3d(context, area, region)
+                                x += rect[2] - rect[0] - draw_area_width
+                            else:
+                                x += region.width - draw_area_width
+                            found = True
 
         if prefs.origin == 'WINDOW':
             return window, None, None, x, y
@@ -478,8 +559,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return None, None, None, 0, 0
 
     @classmethod
-    def calc_draw_area_rect(cls, context):
-        """Return draw area rectangle.
+    def calc_draw_area_size(cls, context):
+        """Return draw area size.
 
         Draw format:
 
@@ -512,11 +593,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Get string height in draw area.
         sh = blf.dimensions(font_id, string.printable)[1]
-
-        # Get draw target.
-        window, area, region, x, y = cls.get_origin(context)
-        if not window:
-            return None
 
         # Calculate width/height of draw area.
         draw_area_width = 0
@@ -561,6 +637,26 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             draw_area_height += sh
 
         draw_area_height += sh
+
+        # Add margin.
+        draw_area_height += 30
+        draw_area_width += 30
+
+        return draw_area_width, draw_area_height
+
+    @classmethod
+    def calc_draw_area_rect(cls, context):
+        """Return draw area rectangle."""
+
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        # Get draw target.
+        window, area, region, x, y = cls.get_origin(context)
+        if not window:
+            return None
+
+        # Calculate width/height of draw area.
+        draw_area_width, draw_area_height = cls.calc_draw_area_size(context)
 
         if prefs.origin == 'WINDOW':
             return x, y, x + draw_area_width, y + draw_area_height
@@ -683,15 +779,17 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 # Draw operator text.
                 text = bpy.app.translations.pgettext_iface(bl_label, "Operator")
                 text += " ('{}')".format(idname_py)
-                blf.position(font_id, x, y, 0)
+                offset_x = cls.get_text_offset_for_alignment(font_id, text, context)
+                blf.position(font_id, x + offset_x, y, 0)
                 if prefs.background:
-                    draw_text_background(text, font_id, x, y, prefs.color_background)
+                    draw_text_background(text, font_id, x + offset_x, y, prefs.color_background)
                 draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
                 y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
 
                 # Draw separator.
                 sw = blf.dimensions(font_id, "Left Mouse")[0]
-                draw_line([x, y], [x + sw, y], prefs.color, prefs.shadow, prefs.color_shadow)
+                offset_x = cls.get_offset_for_alignment(sw, context)
+                draw_line([x + offset_x, y], [x + sw + offset_x, y], prefs.color, prefs.shadow, prefs.color_shadow)
                 y += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.8
 
                 region_drawn = True
@@ -710,15 +808,17 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             else:
                 text = " + ".join(mod_keys)
 
+            offset_x = cls.get_text_offset_for_alignment(font_id, text, context)
+
             # Draw rounded box.
             box_height = sh + margin * 2
             box_width = blf.dimensions(font_id, text)[0] + margin * 2
-            draw_rounded_box(x - margin, y - margin,
+            draw_rounded_box(x - margin + offset_x, y - margin,
                              box_width, box_height, box_height * 0.2,
                              prefs.background, prefs.color_background)
 
             # Draw key text.
-            blf.position(font_id, x, y + margin, 0)
+            blf.position(font_id, x + offset_x, y + margin, 0)
             draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
             bgl.glColor4f(*prefs.color, 1.0)
 
@@ -740,9 +840,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             if repeat_count > 1:
                 text += " x{}".format(repeat_count)
 
-            blf.position(font_id, x, y, 0)
+            offset_x = cls.get_text_offset_for_alignment(font_id, text, context)
+            blf.position(font_id, x + offset_x, y, 0)
             if prefs.background:
-                draw_text_background(text, font_id, x, y, prefs.color_background)
+                draw_text_background(text, font_id, x + offset_x, y, prefs.color_background)
             draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
 
             y += sh

@@ -196,6 +196,15 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default=(20, 80),
         size=2,
     )
+    align = bpy.props.EnumProperty(
+        name="Align",
+        items=[
+            ('LEFT', "Left", ""),
+            ('CENTER', "Center", ""),
+            ('RIGHT', "Right", ""),
+        ],
+        default='LEFT'
+    )
     display_time = bpy.props.FloatProperty(
         name="Display Time",
         default=3.0,
@@ -266,11 +275,11 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
             col = split.column()
             col.prop(self, "origin")
+            col.prop(self, "align")
             col.prop(self, "offset")
             col.prop(self, "display_time")
 
             col = split.column()
-
             col.prop(self, "show_mouse_events")
             col.prop(self, "show_last_operator")
 

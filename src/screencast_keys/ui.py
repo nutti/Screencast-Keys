@@ -56,6 +56,7 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column.separator()
 
         column.prop(prefs, "origin")
+        column.prop(prefs, "align")
         row = column.row()
         row.prop(prefs, "offset")
         column.operator("wm.sk_set_origin", text="Set Origin")
