@@ -366,6 +366,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     # TODO: We can check it with the valid of event handler.
     running = False
 
+    # Current mouse coordinate.
+    current_mouse_co = [0.0, 0.0]
+
     @classmethod
     def is_running(cls):
         return cls.running
@@ -478,18 +481,19 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         draw_area_width, draw_area_height = cls.calc_draw_area_size(context)
         if prefs.align == 'LEFT':
             x, y = prefs.offset
+            if prefs.origin == 'CURSOR':
+                x += cls.current_mouse_co[0] - draw_area_width / 2
+                y += cls.current_mouse_co[1] - draw_area_height
         elif prefs.align == 'CENTER':
+            x, y = prefs.offset
             if prefs.origin == 'WINDOW':
-                x, y = prefs.offset
                 x += (window.width * 2 - draw_area_width) / 2
             elif prefs.origin == 'AREA':
-                x, y = prefs.offset
                 for area in window.screen.areas:
                     if is_area_match(area):
                         x += (area.width - draw_area_width) / 2
                         break
             elif prefs.origin == 'REGION':
-                x, y = prefs.offset
                 found = False
                 for area in window.screen.areas:
                     if found:
@@ -506,18 +510,19 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                             else:
                                 x += (region.width - draw_area_width) / 2
                             found = True
+            elif prefs.origin == 'CURSOR':
+                x += cls.current_mouse_co[0] - draw_area_width / 2
+                y += cls.current_mouse_co[1] - draw_area_height
         elif prefs.align == 'RIGHT':
+            x, y = prefs.offset
             if prefs.origin == 'WINDOW':
-                x, y = prefs.offset
                 x += window.width * 2 - draw_area_width
             elif prefs.origin == 'AREA':
-                x, y = prefs.offset
                 for area in window.screen.areas:
                     if is_area_match(area):
                         x += area.width - draw_area_width
                         break
             elif prefs.origin == 'REGION':
-                x, y = prefs.offset
                 found = False
                 for area in window.screen.areas:
                     if found:
@@ -534,8 +539,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                             else:
                                 x += region.width - draw_area_width
                             found = True
+            elif prefs.origin == 'CURSOR':
+                x += cls.current_mouse_co[0] - draw_area_width / 2
+                y += cls.current_mouse_co[1] - draw_area_height
 
-        if prefs.origin == 'WINDOW':
+        if (prefs.origin == 'WINDOW') or (prefs.origin == 'CURSOR'):
             return window, None, None, x, y
         elif prefs.origin == 'AREA':
             for area in window.screen.areas:
@@ -615,7 +623,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
             sw = blf.dimensions(font_id, text)[0]
             draw_area_width = max(draw_area_width, sw)
-            draw_area_height += sh
+
+        draw_area_height += sh
 
         event_history = cls.removed_old_event_history()
 
@@ -658,7 +667,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         # Calculate width/height of draw area.
         draw_area_width, draw_area_height = cls.calc_draw_area_size(context)
 
-        if prefs.origin == 'WINDOW':
+        if (prefs.origin == 'WINDOW') or (prefs.origin == 'CURSOR'):
             return x, y, x + draw_area_width, y + draw_area_height
         elif prefs.origin == 'AREA':
             xmin = area.x
@@ -975,6 +984,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             # identified as '' and raise KeyErrors in EventType
             # (i.e. caps lock and the spin tool in edit mode)
             return {'PASS_THROUGH'}
+
+        if event.type == 'MOUSEMOVE':
+            self.__class__.current_mouse_co = [event.mouse_x, event.mouse_y]
+
         event_type = EventType[event.type]
 
         current_time = time.time()

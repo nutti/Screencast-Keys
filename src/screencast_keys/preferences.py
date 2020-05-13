@@ -187,7 +187,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
         items=[
             ('REGION', "Region", ""),
             ('AREA', "Area", ""),
-            ('WINDOW', "Window", "")
+            ('WINDOW', "Window", ""),
+            ('CURSOR', "Cursor", ""),
         ],
         default='REGION',
     )
