@@ -214,6 +214,13 @@ class SK_Preferences(bpy.types.AddonPreferences):
         step=10,
         subtype='TIME'
     )
+    max_event_history = bpy.props.IntProperty(
+        name="Max Event History",
+        description="Maximum number of event history to display",
+        default=5,
+        min=1,
+        step=1,
+    )
     show_mouse_events = bpy.props.BoolProperty(
         name="Show Mouse Events",
         default=True,
@@ -281,6 +288,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
             col.prop(self, "display_time")
 
             col = split.column()
+            col.prop(self, "max_event_history")
             col.prop(self, "show_mouse_events")
             col.prop(self, "show_last_operator")
 

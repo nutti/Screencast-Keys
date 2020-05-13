@@ -413,6 +413,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             if t <= prefs.display_time:
                 event_history.append(item)
 
+        if len(event_history) >= prefs.max_event_history:
+            event_history = event_history[-prefs.max_event_history:]
+
         return event_history
 
     @classmethod
