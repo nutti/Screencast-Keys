@@ -54,7 +54,60 @@ EventType = enum.IntEnum(
 EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
-def draw_rounded_box(x, y, w, h, round_radius, fill=False, fill_color=None):
+def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
+               round_radius):
+
+    mouse_body = [x, y, w, h/2]
+    left_mouse_button = [x, y + h/2, w/3, h/2]
+    middle_mouse_button = [x + w/3, y + h/2, w/3, h/2]
+    right_mouse_button = [x + 2*w/3, y + h/2, w/3, h/2]
+
+    draw_rounded_box(mouse_body[0], mouse_body[1],
+                     mouse_body[2], mouse_body[3],
+                     round_radius,
+                     fill=False, fill_color=color,
+                     round_corner=[True, True, False, False])
+
+    draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
+                     left_mouse_button[2], left_mouse_button[3],
+                     round_radius / 2,
+                     fill=False, fill_color=color,
+                     round_corner=[False, False, False, True])
+    if left_pressed:
+        draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
+                        left_mouse_button[2], left_mouse_button[3],
+                        round_radius / 2,
+                        fill=True, fill_color=color,
+                        round_corner=[False, False, False, True])
+
+    draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
+                     middle_mouse_button[2], middle_mouse_button[3],
+                     round_radius / 2,
+                     fill=False, fill_color=color,
+                     round_corner=[False, False, False, False])
+    if middle_pressed:
+        draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
+                        middle_mouse_button[2], middle_mouse_button[3],
+                        round_radius / 2,
+                        fill=True, fill_color=color,
+                        round_corner=[False, False, False, False])
+
+    draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
+                     right_mouse_button[2], right_mouse_button[3],
+                     round_radius / 2,
+                     fill=False, fill_color=color,
+                     round_corner=[False, False, True, False])
+    if right_pressed:
+        draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
+                        right_mouse_button[2], right_mouse_button[3],
+                        round_radius / 2,
+                        fill=True, fill_color=color,
+                        round_corner=[False, False, True, False])
+
+
+def draw_rounded_box(x, y, w, h, round_radius, fill=False, fill_color=None,
+                     round_corner=[True, True, True, True]):
+    """round_corner: [Right Bottom, Left Bottom, Right Top, Left Top]"""
 
     def circle_verts_num(r):
         """Get number of verticies for circle optimized for drawing."""
@@ -72,17 +125,19 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False, fill_color=None):
     n = int(num_verts / 4) + 1
     dangle = math.pi * 2 / num_verts
 
+    radius = [round_radius if rc else 0 for rc in round_corner]
+
     x_origin = [
-        x + round_radius,
-        x + w - round_radius,
-        x + w - round_radius,
-        x + round_radius,
+        x + radius[0],
+        x + w - radius[1],
+        x + w - radius[2],
+        x + radius[3],
     ]
     y_origin = [
-        y + round_radius,
-        y + round_radius,
-        y + h - round_radius,
-        y + h - round_radius,
+        y + radius[0],
+        y + radius[1],
+        y + h - radius[2],
+        y + h - radius[3],
     ]
     angle_start = [
         math.pi * 1.0,
@@ -96,10 +151,10 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False, fill_color=None):
         bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     else:
         bgl.glBegin(bgl.GL_LINE_LOOP)
-    for x0, y0, angle in zip(x_origin, y_origin, angle_start):
+    for x0, y0, angle, r in zip(x_origin, y_origin, angle_start, radius):
         for _ in range(n):
-            x = x0 + round_radius * math.cos(angle)
-            y = y0 + round_radius * math.sin(angle)
+            x = x0 + r * math.cos(angle)
+            y = y0 + r * math.sin(angle)
             bgl.glVertex2f(x, y)
             angle += dangle
     bgl.glEnd()
@@ -283,6 +338,18 @@ def get_display_event_text(event_id):
     return "UNKNOWN"
 
 
+def show_mouse_hold_status(prefs):
+    if not prefs.show_mouse_events:
+        return False
+    return prefs.mouse_events_show_mode in ['HOLD_STATUS', 'EVENT_HISTORY_AND_HOLD_STATUS']
+
+
+def show_mouse_event_history(prefs):
+    if not prefs.show_mouse_events:
+        return False
+    return prefs.mouse_events_show_mode in ['EVENT_HISTORY', 'EVENT_HISTORY_AND_HOLD_STATUS']
+
+
 @BlClassRegistry()
 class SK_OT_ScreencastKeys(bpy.types.Operator):
     bl_idname = "wm.sk_screencast_keys"
@@ -292,6 +359,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     # Hold modifier keys.
     hold_modifier_keys = []
+    # Hold mouse buttons.
+    hold_mouse_buttons = {
+        'LEFTMOUSE': False,
+        'RIGHTMOUSE': False,
+        'MIDDLEMOUSE': False,
+    }
     # Event history.
     # Format: [time, event_type, modifiers, repeat_count]
     event_history = []
@@ -328,8 +401,18 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     SPACE_TYPES = compat.get_all_space_types()
 
-    # Height ratio against font for separator.
+    # Height ratio for separator (against text height).
     HEIGHT_RATIO_FOR_SEPARATOR = 0.6
+
+    # Height ratio for hold mouse status (against width).
+    HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS = 1.3
+
+    # Margin ratio for hold modifier keys box (against text height).
+    MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX = 0.2
+
+    # Width ratio for separator between hold mouse status and
+    # hold modifier keys (against mouse width).
+    WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS = 0.4
 
     # Interval for 'TIMER' event (redraw).
     TIMER_STEP = 0.1
@@ -581,7 +664,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 Event history[-2]
                 Event history[-1]
 
-                Hold modifier key list
+                Mouse hold status  Hold modifier key list
                 ----------------
                 Operator history
 
@@ -609,6 +692,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         draw_area_width = 0
         draw_area_height = 0
 
+        # Last operator.
         if prefs.show_last_operator:
             operator_history = cls.removed_old_operator_history()
             if operator_history:
@@ -620,22 +704,29 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 draw_area_width = max(draw_area_width, sw)
             draw_area_height += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
 
+        # Hold mouse status / Hold modifier keys.
+        mouse_hold_status_width = 0.0
+        mouse_hold_status_height = 0.0
+        if show_mouse_hold_status(prefs):
+            mouse_hold_status_width = prefs.mouse_size
+            mouse_hold_status_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
+
+        margin = sh * cls.MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX
+        tw = mouse_hold_status_width
         if cls.hold_modifier_keys:
             mod_names = cls.sorted_modifier_keys(cls.hold_modifier_keys)
             text = " + ".join(mod_names)
+            tw += blf.dimensions(font_id, text)[0] + margin * 2 + \
+                mouse_hold_status_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS
 
-            sw = blf.dimensions(font_id, text)[0]
-            draw_area_width = max(draw_area_width, sw)
+        draw_area_width = max(draw_area_width, tw)
+        if mouse_hold_status_height > sh:
+            draw_area_height += mouse_hold_status_height + margin * 2
+        else:
+            draw_area_height += sh + margin * 2
 
-        draw_area_height += sh
-
+        # Event history.
         event_history = cls.removed_old_event_history()
-
-        if cls.hold_modifier_keys or event_history:
-            sw = blf.dimensions(font_id, "Left Mouse")[0]
-            draw_area_width = max(draw_area_width, sw)
-            draw_area_height += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
-
         for _, event_type, modifiers, repeat_count in event_history[::-1]:
             text = event_type.names[event_type.name]
             if modifiers:
@@ -646,9 +737,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
             sw = blf.dimensions(font_id, text)[0]
             draw_area_width = max(draw_area_width, sw)
-            draw_area_height += sh
-
-        draw_area_height += sh
+        draw_area_height += prefs.max_event_history * sh
 
         # Add margin.
         draw_area_height += 30
@@ -812,31 +901,69 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         # Draw hold modifier keys.
         drawing = False     # TODO: Need to check if drawing is now on progress.
         compat.set_blf_font_color(font_id, *prefs.color, 1.0)
-        margin = sh * 0.2
+        margin = sh * cls.MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX
+
+        # Calculate width which includes mouse size
+        text_and_mouse_width = 0
+        modifier_keys_text = ""
         if cls.hold_modifier_keys or drawing:
             mod_keys = cls.sorted_modifier_keys(cls.hold_modifier_keys)
             if drawing:
-                text = ""
+                modifier_keys_text = ""
             else:
-                text = " + ".join(mod_keys)
+                modifier_keys_text = " + ".join(mod_keys)
+            text_and_mouse_width = blf.dimensions(font_id, modifier_keys_text)[0] + margin * 2
 
-            offset_x = cls.get_text_offset_for_alignment(font_id, text, context)
+        mouse_hold_status_width = 0.0
+        mouse_hold_status_height = 0.0
+        offset_x_for_hold_modifier_keys = 0
+        offset_y_for_hold_modifier_keys = 0
+        if show_mouse_hold_status(prefs):
+            mouse_hold_status_width = prefs.mouse_size
+            mouse_hold_status_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
+            offset_x_for_hold_modifier_keys = mouse_hold_status_width + \
+                mouse_hold_status_width * \
+                    cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS
+            offset_y_for_hold_modifier_keys = (mouse_hold_status_height - sh) / 2
+            text_and_mouse_width += mouse_hold_status_width
+            if cls.hold_modifier_keys:
+                text_and_mouse_width += mouse_hold_status_width * \
+                    cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS
+        offset_x = cls.get_offset_for_alignment(text_and_mouse_width, context)
 
+        # Draw hold mouse status.
+        if show_mouse_hold_status(prefs):
+            draw_mouse(x + offset_x, y,
+                       mouse_hold_status_width, mouse_hold_status_height,
+                       cls.hold_mouse_buttons['LEFTMOUSE'],
+                       cls.hold_mouse_buttons['RIGHTMOUSE'],
+                       cls.hold_mouse_buttons['MIDDLEMOUSE'],
+                       prefs.color,
+                       prefs.mouse_size * 0.5)
+
+        # Draw hold modifier keys.
+        if cls.hold_modifier_keys or drawing:
             # Draw rounded box.
             box_height = sh + margin * 2
-            box_width = blf.dimensions(font_id, text)[0] + margin * 2
-            draw_rounded_box(x - margin + offset_x, y - margin,
+            box_width = blf.dimensions(font_id, modifier_keys_text)[0] + margin * 2
+            draw_rounded_box(x + offset_x + offset_x_for_hold_modifier_keys,
+                             y - margin + offset_y_for_hold_modifier_keys,
                              box_width, box_height, box_height * 0.2,
                              prefs.background, prefs.color_background)
 
-            # Draw key text.
-            blf.position(font_id, x + offset_x, y + margin, 0)
-            draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
+            # Draw modifier key text.
+            blf.position(font_id,
+                         x + margin + offset_x + offset_x_for_hold_modifier_keys,
+                         y + margin + offset_y_for_hold_modifier_keys, 0)
+            draw_text(modifier_keys_text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
             bgl.glColor4f(*prefs.color, 1.0)
 
             region_drawn = True
 
-        y += sh + margin * 2
+        if mouse_hold_status_height > sh:
+            y += mouse_hold_status_height + margin * 2
+        else:
+            y += sh + margin * 2
 
         # Draw event history.
         event_history = cls.removed_old_event_history()
@@ -951,6 +1078,23 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if EventType[event.type] == EventType.WINDOW_DEACTIVATE:
             self.hold_modifier_keys.clear()
 
+    def update_hold_mouse_buttons(self, event):
+        """Update hold mouse buttons."""
+
+        if (event.type != 'MOUSEMOVE') and (event.type not in self.hold_mouse_buttons.keys()):
+            return
+
+        if event.type == 'MOUSEMOVE':
+            if event.value == 'RELEASE':
+                for k in self.hold_mouse_buttons.keys():
+                    self.hold_mouse_buttons[k] = False
+                return
+
+        if event.value == 'PRESS':
+            self.hold_mouse_buttons[event.type] = True
+        elif event.value == 'RELEASE':
+            self.hold_mouse_buttons[event.type] = False
+
     def is_ignore_event(self, event, prefs=None):
         """Return True if event will not be shown."""
 
@@ -960,7 +1104,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                           EventType.WINDOW_DEACTIVATE, EventType.TEXTINPUT}:
             return True
         elif (prefs is not None
-              and not prefs.show_mouse_events
+              and not show_mouse_event_history(prefs)
               and event_type in self.MOUSE_EVENT_TYPES):
             return True
         elif event_type.name.startswith("EVT_TWEAK"):
@@ -1006,6 +1150,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if event_type in current_mod_keys:
             # Remove modifier key which is just pressed.
             current_mod_keys.remove(event_type)
+
+        # Update hold mouse buttons.
+        self.update_hold_mouse_buttons(event)
 
         # Update event history.
         if (not self.is_ignore_event(event, prefs=prefs) and

@@ -21,7 +21,7 @@
 
 import bpy
 
-from .ops import SK_OT_ScreencastKeys
+from .ops import SK_OT_ScreencastKeys, show_mouse_hold_status
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 
@@ -52,20 +52,24 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         if prefs.background:
             column.prop(prefs, "color_background", text="")
         column.prop(prefs, "font_size")
+        if show_mouse_hold_status(prefs):
+            column.prop(prefs, "mouse_size")
 
         column.separator()
 
         column.prop(prefs, "origin")
+        column.operator("wm.sk_set_origin", text="Set Origin")
         column.prop(prefs, "align")
         row = column.row()
         row.prop(prefs, "offset")
-        column.operator("wm.sk_set_origin", text="Set Origin")
         column.prop(prefs, "display_time")
 
         column.separator()
 
         column.prop(prefs, "max_event_history")
         column.prop(prefs, "show_mouse_events")
+        if prefs.show_mouse_events:
+            column.prop(prefs, "mouse_events_show_mode")
         column.prop(prefs, "show_last_operator")
 
         column.separator()

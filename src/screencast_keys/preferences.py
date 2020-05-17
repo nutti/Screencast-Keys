@@ -25,7 +25,7 @@ from bpy.props import (
     EnumProperty,
 )
 
-from .ops import EventType
+from .ops import EventType, show_mouse_hold_status
 from .ui import SK_PT_ScreencastKeys
 from .utils.addon_updator import AddonUpdatorManager
 from .utils.bl_class_registry import BlClassRegistry
@@ -182,6 +182,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
         min=6,
         max=48
     )
+    mouse_size = bpy.props.IntProperty(
+        name="Mouse Size",
+        default=compat.get_user_preferences(bpy.context).ui_styles[0].widget.points*3,
+        min=18,
+        max=144,
+    )
     origin = bpy.props.EnumProperty(
         name="Origin",
         items=[
@@ -224,6 +230,15 @@ class SK_Preferences(bpy.types.AddonPreferences):
     show_mouse_events = bpy.props.BoolProperty(
         name="Show Mouse Events",
         default=True,
+    )
+    mouse_events_show_mode = bpy.props.EnumProperty(
+        name="Mouse Events",
+        items=[
+            ('EVENT_HISTORY', "Event History", ""),
+            ('HOLD_STATUS', "Hold Status", ""),
+            ('EVENT_HISTORY_AND_HOLD_STATUS', "Event History + Hold Status", ""),
+        ],
+        default='HOLD_STATUS'
     )
     show_last_operator = bpy.props.BoolProperty(
         name="Show Last Operator",
@@ -280,6 +295,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
             if self.background:
                 col.prop(self, "color_background", text="")
             col.prop(self, "font_size")
+            if show_mouse_hold_status(self):
+                col.prop(self, "mouse_size")
 
             col = split.column()
             col.prop(self, "origin")
@@ -290,6 +307,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
             col = split.column()
             col.prop(self, "max_event_history")
             col.prop(self, "show_mouse_events")
+            if self.show_mouse_events:
+                col.prop(self, "mouse_events_show_mode")
             col.prop(self, "show_last_operator")
 
             # Panel location is only available in >= 2.80
