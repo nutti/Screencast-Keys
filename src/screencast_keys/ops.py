@@ -55,57 +55,85 @@ EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
 def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
-               round_radius):
+               round_radius, fill=False, fill_color=None):
 
     mouse_body = [x, y, w, h/2]
     left_mouse_button = [x, y + h/2, w/3, h/2]
     middle_mouse_button = [x + w/3, y + h/2, w/3, h/2]
     right_mouse_button = [x + 2*w/3, y + h/2, w/3, h/2]
 
+    # Mouse body.
+    if fill:
+        draw_rounded_box(mouse_body[0], mouse_body[1],
+                         mouse_body[2], mouse_body[3],
+                         round_radius,
+                         fill=True, color=fill_color,
+                         round_corner=[True, True, False, False])
     draw_rounded_box(mouse_body[0], mouse_body[1],
                      mouse_body[2], mouse_body[3],
                      round_radius,
-                     fill=False, fill_color=color,
+                     fill=False, color=color,
                      round_corner=[True, True, False, False])
 
+    # Left button.
+    if fill:
+        draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
+                         left_mouse_button[2], left_mouse_button[3],
+                         round_radius / 2,
+                         fill=True, color=fill_color,
+                         round_corner=[False, False, False, True])
     draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
                      left_mouse_button[2], left_mouse_button[3],
                      round_radius / 2,
-                     fill=False, fill_color=color,
+                     fill=False, color=color,
                      round_corner=[False, False, False, True])
     if left_pressed:
         draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
                         left_mouse_button[2], left_mouse_button[3],
                         round_radius / 2,
-                        fill=True, fill_color=color,
+                        fill=True, color=color,
                         round_corner=[False, False, False, True])
 
+    # Middle button.
+    if fill:
+        draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
+                         middle_mouse_button[2], middle_mouse_button[3],
+                         round_radius / 2,
+                         fill=True, color=fill_color,
+                         round_corner=[False, False, False, False])
     draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
                      middle_mouse_button[2], middle_mouse_button[3],
                      round_radius / 2,
-                     fill=False, fill_color=color,
+                     fill=False, color=color,
                      round_corner=[False, False, False, False])
     if middle_pressed:
         draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
                         middle_mouse_button[2], middle_mouse_button[3],
                         round_radius / 2,
-                        fill=True, fill_color=color,
+                        fill=True, color=color,
                         round_corner=[False, False, False, False])
 
+    # Right button.
+    if fill:
+        draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
+                         right_mouse_button[2], right_mouse_button[3],
+                         round_radius / 2,
+                         fill=True, color=fill_color,
+                         round_corner=[False, False, True, False])
     draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
                      right_mouse_button[2], right_mouse_button[3],
                      round_radius / 2,
-                     fill=False, fill_color=color,
+                     fill=False, color=color,
                      round_corner=[False, False, True, False])
     if right_pressed:
         draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
                         right_mouse_button[2], right_mouse_button[3],
                         round_radius / 2,
-                        fill=True, fill_color=color,
+                        fill=True, color=color,
                         round_corner=[False, False, True, False])
 
 
-def draw_rounded_box(x, y, w, h, round_radius, fill=False, fill_color=None,
+def draw_rounded_box(x, y, w, h, round_radius, fill=False, color=[1.0, 1.0, 1.0],
                      round_corner=[True, True, True, True]):
     """round_corner: [Right Bottom, Left Bottom, Right Top, Left Top]"""
 
@@ -146,8 +174,8 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False, fill_color=None,
         math.pi * 0.5,
     ]
 
+    bgl.glColor3f(*color)
     if fill:
-        bgl.glColor3f(*fill_color)
         bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     else:
         bgl.glBegin(bgl.GL_LINE_LOOP)
@@ -174,21 +202,21 @@ def draw_rect(x1, y1, x2, y2, color):
     bgl.glColor3f(1.0, 1.0, 1.0)
 
 
-def draw_text_background(text, font_id, x, y, color_background):
+def draw_text_background(text, font_id, x, y, background_color):
     width = blf.dimensions(font_id, text)[0]
     height = blf.dimensions(font_id, string.printable)[1]
     margin = height * 0.2
 
-    draw_rect(x, y - margin, x + width, y + height - margin, color_background)
+    draw_rect(x, y - margin, x + width, y + height - margin, background_color)
 
 
-def draw_text(text, font_id, color, shadow=False, color_shadow=None):
+def draw_text(text, font_id, color, shadow=False, shadow_color=None):
     blf.enable(font_id, blf.SHADOW)
 
     # Draw shadow.
     if shadow:
         blf.shadow_offset(font_id, 3, -3)
-        blf.shadow(font_id, 5, *color_shadow, 1.0)
+        blf.shadow(font_id, 5, *shadow_color, 1.0)
 
     # Draw text.
     compat.set_blf_font_color(font_id, *color, 1.0)
@@ -197,14 +225,14 @@ def draw_text(text, font_id, color, shadow=False, color_shadow=None):
     blf.disable(font_id, blf.SHADOW)
 
 
-def draw_line(p1, p2, color, shadow=False, color_shadow=None):
+def draw_line(p1, p2, color, shadow=False, shadow_color=None):
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
     # Draw shadow.
     if shadow:
         bgl.glLineWidth(3.0)
-        bgl.glColor4f(*color_shadow, 1.0)
+        bgl.glColor4f(*shadow_color, 1.0)
         bgl.glBegin(bgl.GL_LINES)
         bgl.glVertex2f(*p1)
         bgl.glVertex2f(*p2)
@@ -350,6 +378,18 @@ def show_mouse_event_history(prefs):
     return prefs.mouse_events_show_mode in ['EVENT_HISTORY', 'EVENT_HISTORY_AND_HOLD_STATUS']
 
 
+def show_text_background(prefs):
+    if not prefs.background:
+        return False
+    return prefs.background_mode == 'TEXT'
+
+
+def show_draw_area_background(prefs):
+    if not prefs.background:
+        return False
+    return prefs.background_mode == 'DRAW_AREA'
+
+
 @BlClassRegistry()
 class SK_OT_ScreencastKeys(bpy.types.Operator):
     bl_idname = "wm.sk_screencast_keys"
@@ -413,6 +453,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     # Width ratio for separator between hold mouse status and
     # hold modifier keys (against mouse width).
     WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS = 0.4
+
+    # Draw area margin.
+    DRAW_AREA_MARGIN_LEFT = 15
+    DRAW_AREA_MARGIN_RIGHT = 15
+    DRAW_AREA_MARGIN_TOP = 15
+    DRAW_AREA_MARGIN_BOTTOM = 15
 
     # Interval for 'TIMER' event (redraw).
     TIMER_STEP = 0.1
@@ -513,7 +559,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
         dw, _ = cls.calc_draw_area_size(context)
-        dw -= 30.0
+        dw -= cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
 
         offset_x = 0.0
         if prefs.align == 'CENTER':
@@ -521,7 +567,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         elif prefs.align == 'RIGHT':
             offset_x = dw - width
 
-        return offset_x
+        return offset_x + cls.DRAW_AREA_MARGIN_LEFT, cls.DRAW_AREA_MARGIN_BOTTOM
 
     @classmethod
     def get_text_offset_for_alignment(cls, font_id, text, context):
@@ -727,6 +773,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Event history.
         event_history = cls.removed_old_event_history()
+        draw_area_height += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
         for _, event_type, modifiers, repeat_count in event_history[::-1]:
             text = event_type.names[event_type.name]
             if modifiers:
@@ -740,8 +787,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         draw_area_height += prefs.max_event_history * sh
 
         # Add margin.
-        draw_area_height += 30
-        draw_area_width += 30
+        draw_area_width += cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
+        draw_area_height += cls.DRAW_AREA_MARGIN_TOP + cls.DRAW_AREA_MARGIN_BOTTOM
 
         return draw_area_width, draw_area_height
 
@@ -760,7 +807,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         draw_area_width, draw_area_height = cls.calc_draw_area_size(context)
 
         if (prefs.origin == 'WINDOW') or (prefs.origin == 'CURSOR'):
-            return x, y, x + draw_area_width, y + draw_area_height
+            return (x,
+                    y,
+                    x + draw_area_width,
+                    y + draw_area_height)
         elif prefs.origin == 'AREA':
             xmin = area.x
             ymin = area.y
@@ -828,9 +878,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         draw_area_min_x, draw_area_min_y, draw_area_max_x, draw_area_max_y = rect
         _, _, _, origin_x, origin_y = cls.get_origin(context)
-        width = draw_area_max_x - origin_x
-        height = draw_area_max_y - origin_y
-        if width == height == 0:
+        draw_area_width = draw_area_max_x - origin_x
+        draw_area_height = draw_area_max_y - origin_y
+        if draw_area_width == draw_area_height == 0:
             return
 
         region = context.region
@@ -870,32 +920,44 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         x = origin_x - region.x
         y = origin_y - region.y
 
+        # Draw draw area based background.
+        if show_draw_area_background(prefs):
+            draw_rect(draw_area_min_x - region.x,
+                      draw_area_min_y - region.y,
+                      draw_area_max_x - region.x,
+                      draw_area_max_y - region.y,
+                      prefs.background_color)
+
         # Draw last operator.
         operator_history = cls.removed_old_operator_history()
-        if prefs.show_last_operator and operator_history:
-            time_, bl_label, idname_py, _ = operator_history[-1]
-            if current_time - time_ <= prefs.display_time:
-                compat.set_blf_font_color(font_id, *prefs.color, 1.0)
+        if prefs.show_last_operator:
+            if operator_history:
+                time_, bl_label, idname_py, _ = operator_history[-1]
+                if current_time - time_ <= prefs.display_time:
+                    compat.set_blf_font_color(font_id, *prefs.color, 1.0)
 
-                # Draw operator text.
-                text = bpy.app.translations.pgettext_iface(bl_label, "Operator")
-                text += " ('{}')".format(idname_py)
-                offset_x = cls.get_text_offset_for_alignment(font_id, text, context)
-                blf.position(font_id, x + offset_x, y, 0)
-                if prefs.background:
-                    draw_text_background(text, font_id, x + offset_x, y, prefs.color_background)
-                draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
-                y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
+                    # Draw operator text.
+                    text = bpy.app.translations.pgettext_iface(bl_label, "Operator")
+                    text += " ('{}')".format(idname_py)
+                    offset_x, offset_y = cls.get_text_offset_for_alignment(font_id, text, context)
+                    blf.position(font_id, x + offset_x, y + offset_y, 0)
+                    if show_text_background(prefs):
+                        draw_text_background(text, font_id, x + offset_x, y + offset_y, prefs.background_color)
+                    draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
+                    y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
 
-                # Draw separator.
-                sw = blf.dimensions(font_id, "Left Mouse")[0]
-                offset_x = cls.get_offset_for_alignment(sw, context)
-                draw_line([x + offset_x, y], [x + sw + offset_x, y], prefs.color, prefs.shadow, prefs.color_shadow)
-                y += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.8
+                    # Draw separator.
+                    sw = blf.dimensions(font_id, "Left Mouse")[0]
+                    offset_x, offset_y = cls.get_offset_for_alignment(sw, context)
+                    draw_line([x + offset_x, y + offset_y],
+                              [x + sw + offset_x, y + offset_y],
+                              prefs.color, prefs.shadow, prefs.shadow_color)
+                    y += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.8
 
-                region_drawn = True
-
-            else:
+                    region_drawn = True
+                else:   # if current_time - time_ <= prefs.display_time:
+                    y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+            else:   # if operator_history:
                 y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
 
         # Draw hold modifier keys.
@@ -929,17 +991,19 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             if cls.hold_modifier_keys:
                 text_and_mouse_width += mouse_hold_status_width * \
                     cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS
-        offset_x = cls.get_offset_for_alignment(text_and_mouse_width, context)
+        offset_x, offset_y = cls.get_offset_for_alignment(text_and_mouse_width, context)
 
         # Draw hold mouse status.
         if show_mouse_hold_status(prefs):
-            draw_mouse(x + offset_x, y,
+            draw_mouse(x + offset_x, y + offset_y,
                        mouse_hold_status_width, mouse_hold_status_height,
                        cls.hold_mouse_buttons['LEFTMOUSE'],
                        cls.hold_mouse_buttons['RIGHTMOUSE'],
                        cls.hold_mouse_buttons['MIDDLEMOUSE'],
                        prefs.color,
-                       prefs.mouse_size * 0.5)
+                       prefs.mouse_size * 0.5,
+                       fill=prefs.background,
+                       fill_color=prefs.background_color)
 
         # Draw hold modifier keys.
         if cls.hold_modifier_keys or drawing:
@@ -947,15 +1011,16 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             box_height = sh + margin * 2
             box_width = blf.dimensions(font_id, modifier_keys_text)[0] + margin * 2
             draw_rounded_box(x + offset_x + offset_x_for_hold_modifier_keys,
-                             y - margin + offset_y_for_hold_modifier_keys,
+                             y + offset_y - margin + offset_y_for_hold_modifier_keys,
                              box_width, box_height, box_height * 0.2,
-                             prefs.background, prefs.color_background)
+                             show_text_background(prefs),
+                             prefs.background_color if show_text_background(prefs) else prefs.color)
 
             # Draw modifier key text.
             blf.position(font_id,
                          x + margin + offset_x + offset_x_for_hold_modifier_keys,
-                         y + margin + offset_y_for_hold_modifier_keys, 0)
-            draw_text(modifier_keys_text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
+                         y + margin + offset_y + offset_y_for_hold_modifier_keys, 0)
+            draw_text(modifier_keys_text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
             bgl.glColor4f(*prefs.color, 1.0)
 
             region_drawn = True
@@ -979,11 +1044,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             if repeat_count > 1:
                 text += " x{}".format(repeat_count)
 
-            offset_x = cls.get_text_offset_for_alignment(font_id, text, context)
-            blf.position(font_id, x + offset_x, y, 0)
-            if prefs.background:
-                draw_text_background(text, font_id, x + offset_x, y, prefs.color_background)
-            draw_text(text, font_id, prefs.color, prefs.shadow, prefs.color_shadow)
+            offset_x, offset_y = cls.get_text_offset_for_alignment(font_id, text, context)
+            blf.position(font_id, x + offset_x, y + offset_y, 0)
+            if show_text_background(prefs):
+                draw_text_background(text, font_id, x + offset_x, y + offset_y, prefs.background_color)
+            draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
 
             y += sh
 

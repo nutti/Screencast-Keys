@@ -156,7 +156,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Shadow",
         default=False
     )
-    color_shadow = bpy.props.FloatVectorProperty(
+    shadow_color = bpy.props.FloatVectorProperty(
         name="Shadow Color",
         default=(0.0, 0.0, 0.0),
         min=0.0,
@@ -168,7 +168,15 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Background",
         default=False
     )
-    color_background = bpy.props.FloatVectorProperty(
+    background_mode = bpy.props.EnumProperty(
+        name="Background Mode",
+        items=[
+            ('TEXT', "Text", ""),
+            ('DRAW_AREA', "Draw Area", ""),
+        ],
+        default='DRAW_AREA',
+    )
+    background_color = bpy.props.FloatVectorProperty(
         name="Background Color",
         default=(0.0, 0.0, 0.0),
         min=0.0,
@@ -290,10 +298,13 @@ class SK_Preferences(bpy.types.AddonPreferences):
             col.prop(self, "color")
             col.prop(self, "shadow")
             if self.shadow:
-                col.prop(self, "color_shadow", text="")
+                col.prop(self, "shadow_color", text="")
             col.prop(self, "background")
             if self.background:
-                col.prop(self, "color_background", text="")
+                sp = compat.layout_split(col, factor=0.5)
+                sp.prop(self, "background_mode", text="")
+                sp = compat.layout_split(sp, factor=1.0)
+                sp.prop(self, "background_color", text="")
             col.prop(self, "font_size")
             if show_mouse_hold_status(self):
                 col.prop(self, "mouse_size")

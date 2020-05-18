@@ -47,10 +47,13 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column.prop(prefs, "color")
         column.prop(prefs, "shadow")
         if prefs.shadow:
-            column.prop(prefs, "color_shadow", text="")
+            column.prop(prefs, "shadow_color", text="")
         column.prop(prefs, "background")
         if prefs.background:
-            column.prop(prefs, "color_background", text="")
+            sp = compat.layout_split(column, factor=0.5)
+            sp.prop(prefs, "background_mode", text="")
+            sp = compat.layout_split(sp, factor=1.0)
+            sp.prop(prefs, "background_color", text="")
         column.prop(prefs, "font_size")
         if show_mouse_hold_status(prefs):
             column.prop(prefs, "mouse_size")
