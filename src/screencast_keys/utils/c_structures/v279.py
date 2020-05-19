@@ -24,12 +24,12 @@ class ListBase(Structure):
         link = vlink
         if not vlink:
             return
-        
+
         if link.next:
             link.next.contents.prev = link.prev
         if link.prev:
             link.prev.contents.next = link.next
-        
+
         if self.last == addressof(link):
             self.last = cast(link.prev, c_void_p)
         if self.first == addressof(link):
@@ -59,7 +59,7 @@ class ListBase(Structure):
             if isinstance(link, (int, type(None))):
                 return cast(c_void_p(link), POINTER(Link))
             else:
-                return pointer(link)        
+                return pointer(link)
 
         if not self.first:
             self.first = self.last = addressof(newlink)
@@ -71,10 +71,10 @@ class ListBase(Structure):
             newlink.next.contents.prev = gen_ptr(newlink)
             self.first = addressof(newlink)
             return
-        
+
         if self.last == addressof(prevlink):
             self.last = addressof(newlink)
-        
+
         newlink.next = prevlink.next
         newlink.prev = gen_ptr(prevlink)
         prevlink.next = gen_ptr(newlink)

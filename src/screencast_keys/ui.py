@@ -24,6 +24,7 @@ import bpy
 from .ops import SK_OT_ScreencastKeys, show_mouse_hold_status
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
+from .utils import c_structures
 
 
 @BlClassRegistry()
@@ -78,7 +79,9 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column.separator()
 
         column.label(text="Experimental:")
-        column.prop(prefs, "get_event_aggressively")
+        col = column.column()
+        col.prop(prefs, "get_event_aggressively")
+        col.enabled = False if c_structures.NOT_SUPPORTED else True
 
     @classmethod
     def register(cls):

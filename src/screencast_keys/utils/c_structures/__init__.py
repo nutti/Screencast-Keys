@@ -19,6 +19,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
+NOT_SUPPORTED = False
+
 if "bpy" in locals():
     import importlib
     if compat.check_version(2, 79, 0) == 0:
@@ -29,10 +31,12 @@ if "bpy" in locals():
         importlib.reload(v281)
     elif compat.check_version(2, 82, 0) == 0:
         importlib.reload(v282)
+    elif compat.check_version(2, 83, 0) == 0:
+        importlib.reload(v283)
     elif compat.check_version(2, 90, 0) == 0:
         importlib.reload(v290)
     else:
-        raise NotImplementedError("Screencast Keys does not support this Blender version")
+        NOT_SUPPORTED = True
 else:
     import bpy
     from .. import compatibility as compat
@@ -44,7 +48,9 @@ else:
         from .v281 import *
     elif compat.check_version(2, 82, 0) == 0:
         from .v282 import *
+    elif compat.check_version(2, 83, 0) == 0:
+        from .v283 import *
     elif compat.check_version(2, 90, 0) == 0:
         from .v290 import *
     else:
-        raise NotImplementedError("Screencast Keys does not support this Blender version")
+        NOT_SUPPORTED = True
