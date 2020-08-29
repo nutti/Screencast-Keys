@@ -894,7 +894,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             region_max_y = region.y + region.height - 1
         if not intersect_aabb(
                 [region_min_x, region_min_y], [region_max_x, region_max_y],
-                [draw_area_min_x + 1, draw_area_min_y + 1], [draw_area_max_x - 1, draw_area_max_x - 1]):
+                [draw_area_min_x + 1, draw_area_min_y + 1], [draw_area_max_x - 1, draw_area_max_y - 1]):
             # We don't need to draw if draw area is not overlapped with region.
             return
 
