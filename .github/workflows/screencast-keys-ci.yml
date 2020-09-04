@@ -1,0 +1,61 @@
+name: Screencast-Keys CI
+
+on:
+  push:
+    branches:
+      - master
+      - ci_testing
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  build:
+    name: Build add-on
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Compress add-on
+        run: |
+          mkdir release
+          cd src
+          zip -r screencast_keys.zip screencast_keys
+          cd ..
+          mv src/screencast_keys.zip release
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: screencast_keys
+          path: "release"
+
+  publish:
+    name: Publish Add-on
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Fetch Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: dist
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_FOR_ACTIONS }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+          prerelease: false
+      - name: Publish Add-on to GitHub Release Page
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_FOR_ACTIONS }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/screencast_keys/screencast_keys.zip
+          asset_name: screencast_keys.zip
+          asset_content_type: application/zip
