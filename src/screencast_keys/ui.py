@@ -75,6 +75,8 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         if prefs.show_mouse_events:
             column.prop(prefs, "mouse_events_show_mode")
         column.prop(prefs, "show_last_operator")
+        if prefs.show_last_operator:
+            column.prop(prefs, "last_operator_show_mode")
 
         column.separator()
 

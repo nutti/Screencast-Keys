@@ -153,10 +153,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
         subtype='COLOR_GAMMA',
         size=3
     )
+
     shadow = bpy.props.BoolProperty(
         name="Shadow",
         default=False
     )
+
     shadow_color = bpy.props.FloatVectorProperty(
         name="Shadow Color",
         default=(0.0, 0.0, 0.0),
@@ -165,10 +167,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
         subtype='COLOR',
         size=3
     )
+
     background = bpy.props.BoolProperty(
         name="Background",
         default=False
     )
+
     background_mode = bpy.props.EnumProperty(
         name="Background Mode",
         items=[
@@ -177,6 +181,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         ],
         default='DRAW_AREA',
     )
+
     background_color = bpy.props.FloatVectorProperty(
         name="Background Color",
         default=(0.0, 0.0, 0.0),
@@ -185,18 +190,21 @@ class SK_Preferences(bpy.types.AddonPreferences):
         subtype='COLOR',
         size=3
     )
+
     font_size = bpy.props.IntProperty(
         name="Font Size",
         default=compat.get_user_preferences(bpy.context).ui_styles[0].widget.points,
         min=6,
         max=48
     )
+
     mouse_size = bpy.props.IntProperty(
         name="Mouse Size",
         default=compat.get_user_preferences(bpy.context).ui_styles[0].widget.points*3,
         min=18,
         max=144,
     )
+
     origin = bpy.props.EnumProperty(
         name="Origin",
         items=[
@@ -207,11 +215,13 @@ class SK_Preferences(bpy.types.AddonPreferences):
         ],
         default='REGION',
     )
+
     offset = bpy.props.IntVectorProperty(
         name="Offset",
         default=(20, 80),
         size=2,
     )
+
     align = bpy.props.EnumProperty(
         name="Align",
         items=[
@@ -221,6 +231,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         ],
         default='LEFT'
     )
+
     display_time = bpy.props.FloatProperty(
         name="Display Time",
         default=3.0,
@@ -229,6 +240,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         step=10,
         subtype='TIME'
     )
+
     max_event_history = bpy.props.IntProperty(
         name="Max Event History",
         description="Maximum number of event history to display",
@@ -236,10 +248,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
         min=1,
         step=1,
     )
+
     show_mouse_events = bpy.props.BoolProperty(
         name="Show Mouse Events",
         default=True,
     )
+
     mouse_events_show_mode = bpy.props.EnumProperty(
         name="Mouse Events",
         items=[
@@ -247,11 +261,22 @@ class SK_Preferences(bpy.types.AddonPreferences):
             ('HOLD_STATUS', "Hold Status", ""),
             ('EVENT_HISTORY_AND_HOLD_STATUS', "Event History + Hold Status", ""),
         ],
-        default='HOLD_STATUS'
+        default='HOLD_STATUS',
     )
+
     show_last_operator = bpy.props.BoolProperty(
         name="Show Last Operator",
         default=False,
+    )
+
+    last_operator_show_mode = bpy.props.EnumProperty(
+        name="Last Operator",
+        items=[
+            ('LABEL', "Label", ""),
+            ('IDNAME', "ID Name", ""),
+            ('LABEL_AND_IDNAME', "Label + ID Name", ""),
+        ],
+        default='LABEL_AND_IDNAME',
     )
 
     get_event_aggressively = bpy.props.BoolProperty(
@@ -322,6 +347,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
             if self.show_mouse_events:
                 col.prop(self, "mouse_events_show_mode")
             col.prop(self, "show_last_operator")
+            if self.show_last_operator:
+                col.prop(self, "last_operator_show_mode")
 
             # Panel location is only available in >= 2.80
             if compat.check_version(2, 80, 0) >= 0:

@@ -832,7 +832,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         
         assert False, "Value 'prefs.origin' is invalid (value={}).".format(prefs.origin)
 
-
     @classmethod
     def find_redraw_regions(cls, context):
         """Find regions to redraw."""
@@ -937,8 +936,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     compat.set_blf_font_color(font_id, *prefs.color, 1.0)
 
                     # Draw operator text.
-                    text = bpy.app.translations.pgettext_iface(bl_label, "Operator")
-                    text += " ('{}')".format(idname_py)
+                    text = ""
+                    if prefs.last_operator_show_mode == 'LABEL':
+                        text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+                    elif prefs.last_operator_show_mode == 'IDNAME':
+                        text += "{}".format(idname_py)
+                    elif prefs.last_operator_show_mode == 'LABEL_AND_IDNAME':
+                        text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+                        text += " ('{}')".format(idname_py)
                     offset_x, offset_y = cls.get_text_offset_for_alignment(font_id, text, context)
                     blf.position(font_id, x + offset_x, y + offset_y, 0)
                     if show_text_background(prefs):
