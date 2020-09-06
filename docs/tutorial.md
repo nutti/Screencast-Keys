@@ -128,9 +128,21 @@ See **Mouse Event** option if you want to change how to display the mouse status
 
 ### Show Last Operator
 
-If **Show Last Operator** option is enabled, the last executed operator will be displayed.
+If **Show Last Operator** option is enabled, the last executed operator will be displayed.  
+See **Last Operator** option if you want to change how to display the last operator.
 
-![Option (Show Last Operator)](images/tutorial/option_show_last_operator.png)
+![Option (Last Operator)](images/tutorial/option_last_operator.png)
+
+
+### Last Operator
+
+**Last Operator** option specifies how to display the last operator.
+
+|||
+|---|---|
+|**Label**|Label (`bl_label`) of operator will be displayed.|
+|**ID Name**|ID Name (`bl_idname`) of operator will be displayed.|
+|**Label + ID Name**|Both **Label** and **ID Name**.|
 
 
 ### Get Event Aggressively

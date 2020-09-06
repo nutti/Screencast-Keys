@@ -6,6 +6,7 @@
 |Version|Download URL|
 |---|---|
 |*unstable*|[Download](https://github.com/nutti/Screencast-Keys/archive/master.zip)|
+|3.3|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.3)|
 |3.2|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.2)|
 |3.1|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.1)|
 |3.0|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.0)|
@@ -21,7 +22,7 @@ Add-on sources are located on the different places depending on the add-on versi
 |Version|Sources|
 |---|---|
 |unstable|src/screencast_keys|
-|3.1 - 3.2|screencast_keys|
+|3.1 - 3.3|screencast_keys|
 |3.0|screencastkeys|
 
 

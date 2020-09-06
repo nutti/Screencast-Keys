@@ -1,7 +1,21 @@
 # Change log
 
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.2...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.3...master)
+
+
+## [Version 3.3](https://github.com/nutti/Screencast-Keys/compare/v3.2...v3.3) - 2020.X.XX
+
+### Updated features
+
+* Added options
+  * Change display method of last operator
+
+
+### Other updates
+
+* Fix bugs
+* Change CI to GitHub Actions from Circle CI
 
 
 ## [Version 3.2](https://github.com/nutti/Screencast-Keys/compare/v3.1...v3.2) - 2020.5.24
