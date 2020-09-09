@@ -3,6 +3,7 @@
 * [Introduction (Video)](#introduction-video)
 * [Options](#options)
 * [Preferences](#preferences)
+* [Shortcut Keys](#shortcut-keys)
 
 
 ## Introduction (Video)
@@ -184,3 +185,9 @@ This can be useful when you want to display events from special input devices.
 
 ![Preference (Text Aliases)](images/tutorial/preference_text_aliases.png)
 
+
+## Shortcut Keys
+
+|Shortcut Keys|Description|
+|---|---|
+|Shift + Alt + C|Enable/Disable Screencast Keys|
