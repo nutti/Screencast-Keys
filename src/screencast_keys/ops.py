@@ -1234,7 +1234,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             # If this event has same event_type and modifiers, we increment
             # repeat_count. However, we reset repeat_count if event interval
             # overs display time.
-            if (last_event and
+            if (prefs.repeat_count and last_event and
                     last_event[1:-1] == current_event[1:-1] and
                     current_time - last_event[0] < prefs.display_time):
                 last_event[0] = current_time

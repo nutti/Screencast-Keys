@@ -249,6 +249,11 @@ class SK_Preferences(bpy.types.AddonPreferences):
         step=1,
     )
 
+    repeat_count = bpy.props.BoolProperty(
+        name="Repeat Count",
+        default=True,
+    )
+
     show_mouse_events = bpy.props.BoolProperty(
         name="Show Mouse Events",
         default=True,
@@ -343,6 +348,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
             col = split.column()
             col.prop(self, "max_event_history")
+            col.prop(self, "repeat_count")
             col.prop(self, "show_mouse_events")
             if self.show_mouse_events:
                 col.prop(self, "mouse_events_show_mode")

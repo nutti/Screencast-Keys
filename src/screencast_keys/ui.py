@@ -71,6 +71,7 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column.separator()
 
         column.prop(prefs, "max_event_history")
+        column.prop(prefs, "repeat_count")
         column.prop(prefs, "show_mouse_events")
         if prefs.show_mouse_events:
             column.prop(prefs, "mouse_events_show_mode")
