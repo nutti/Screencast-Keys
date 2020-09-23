@@ -463,6 +463,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     # Interval for 'TIMER' event (redraw).
     TIMER_STEP = 0.1
 
+    # Maximum interval for ignoring same event.
+    INTERVAL_FOR_IGNORE_SAME_EVENT = 0.05
+
     # Previous redraw time.
     prev_time = 0.0
 
@@ -1231,10 +1234,18 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             last_event = self.event_history[-1] if self.event_history else None
             current_event = [current_time, event_type, current_mod_keys, 1]
 
+
+            # If events are raised in short time (e.g. Double Click), the additional
+            # events will be raised from the Internal of Blender. This check avoids
+            # not to count such events.
+            if (last_event and
+                    last_event[1:-1] == current_event[1:-1] and
+                    current_time - last_event[0] < self.INTERVAL_FOR_IGNORE_SAME_EVENT):
+                pass
             # If this event has same event_type and modifiers, we increment
             # repeat_count. However, we reset repeat_count if event interval
             # overs display time.
-            if (prefs.repeat_count and last_event and
+            elif (prefs.repeat_count and last_event and
                     last_event[1:-1] == current_event[1:-1] and
                     current_time - last_event[0] < prefs.display_time):
                 last_event[0] = current_time
