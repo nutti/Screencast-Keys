@@ -43,6 +43,9 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 If you want to report bug, request features or discuss about this add-on, see [ISSUES.md](ISSUES.md).
 
+We provide [the answers](docs/faq.md) for the frequently asked questions.
+See these answers before making bug reports
+
 
 ## Contribution
 
