@@ -30,7 +30,14 @@ import shutil
 import datetime
 
 
+def get_separator():
+    if os.name == "nt":
+        return "\\"
+    return "/"
+
+
 def _request(url, json_decode=True):
+    # pylint: disable=W0212
     ssl._create_default_https_context = ssl._create_unverified_context
     req = urllib.request.Request(url)
 
@@ -49,7 +56,7 @@ def _request(url, json_decode=True):
             return json.JSONDecoder().decode(data.decode())
         except Exception as e:
             raise RuntimeError("API response has invalid JSON format ({})"
-                               .format(str(e.reason)))
+                               .format(str(e)))
 
     return data.decode()
 
@@ -64,7 +71,7 @@ def _download(url, path):
 
 
 def _make_workspace_path(addon_dir):
-    return addon_dir + "/addon_updator_workspace"
+    return addon_dir + get_separator() + "addon_updater_workspace"
 
 
 def _make_workspace(addon_dir):
@@ -74,7 +81,7 @@ def _make_workspace(addon_dir):
 
 def _make_temp_addon_path(addon_dir, url):
     filename = url.split("/")[-1]
-    filepath = _make_workspace_path(addon_dir) + "/" + filename
+    filepath = _make_workspace_path(addon_dir) + get_separator() + filename
     return filepath
 
 
@@ -98,7 +105,7 @@ def _replace_addon(addon_dir, info, current_addon_path, offset_path=""):
         with zipfile.ZipFile(tmp_addon_path) as zf:
             zf.extractall(workspace_path)
         if offset_path != "":
-            src = workspace_path + "/" + offset_path
+            src = workspace_path + get_separator() + offset_path
             dst = addon_dir
             shutil.move(src, dst)
     elif ext == ".py":
@@ -142,7 +149,7 @@ def _compare_version(ver1, ver2):
 
         if v1[idx] > v2[idx]:
             return 1        # v1 > v2
-        elif v1[idx] < v2[idx]:
+        if v1[idx] < v2[idx]:
             return -1       # v1 < v2
 
         return comp(v1, v2, idx + 1)
@@ -150,7 +157,7 @@ def _compare_version(ver1, ver2):
     return comp(ver1, ver2, 0)
 
 
-class AddonUpdatorConfig:
+class AddonUpdaterConfig:
     def __init__(self):
         # Name of owner
         self.owner = ""
@@ -168,7 +175,13 @@ class AddonUpdatorConfig:
         self.min_release_version = (-1, -1)
 
         # Target add-on path
-        self.target_addon_path = ""
+        # {"branch/tag": "add-on path"}
+        self.target_addon_path = {}
+
+        # Default target add-on path.
+        # Search this path if branch/tag is not found in
+        # self.target_addon_path.
+        self.default_target_addon_path = ""
 
         # Current add-on path
         self.current_addon_path = ""
@@ -184,7 +197,7 @@ class UpdateCandidateInfo:
         self.group = ""   # BRANCH|RELEASE
 
 
-class AddonUpdatorManager:
+class AddonUpdaterManager:
     __inst = None
     __lock = Lock()
 
@@ -229,7 +242,7 @@ class AddonUpdatorManager:
 
     def check_update_candidate(self):
         if not self.initialized():
-            raise RuntimeError("AddonUpdatorManager must be initialized")
+            raise RuntimeError("AddonUpdaterManager must be initialized")
 
         self.__update_candidate = []
         self.__candidate_checked = False
@@ -282,11 +295,12 @@ class AddonUpdatorManager:
 
     def update(self, version_name):
         if not self.initialized():
-            raise RuntimeError("AddonUpdatorManager must be initialized.")
+            raise RuntimeError("AddonUpdaterManager must be initialized.")
 
         if not self.candidate_checked():
             raise RuntimeError("Update candidate is not checked.")
 
+        info = None
         for info in self.__update_candidate:
             if info.name == version_name:
                 break
@@ -294,20 +308,29 @@ class AddonUpdatorManager:
             raise RuntimeError("{} is not found in update candidate"
                                .format(version_name))
 
+        if info is None:
+            raise RuntimeError("Not found any update candidates")
+
         try:
             # create workspace
             _make_workspace(self.__config.addon_directory)
             # download add-on
             _download_addon(self.__config.addon_directory, info.url)
 
+            # get add-on path
+            if info.name in self.__config.target_addon_path:
+                addon_path = self.__config.target_addon_path[info.name]
+            else:
+                addon_path = self.__config.default_target_addon_path
+
             # replace add-on
             offset_path = ""
             if info.group == 'BRANCH':
-                offset_path = "{}-{}/{}".format(self.__config.repository,
-                                                info.name,
-                                                self.__config.target_addon_path)
+                offset_path = "{}-{}{}{}".format(
+                    self.__config.repository, info.name, get_separator(),
+                    addon_path)
             elif info.group == 'RELEASE':
-                offset_path = self.__config.target_addon_path
+                offset_path = addon_path
             _replace_addon(self.__config.addon_directory,
                            info, self.__config.current_addon_path,
                            offset_path)
@@ -322,7 +345,7 @@ class AddonUpdatorManager:
 
     def get_candidate_branch_names(self):
         if not self.initialized():
-            raise RuntimeError("AddonUpdatorManager must be initialized.")
+            raise RuntimeError("AddonUpdaterManager must be initialized.")
 
         if not self.candidate_checked():
             raise RuntimeError("Update candidate is not checked.")
@@ -330,12 +353,16 @@ class AddonUpdatorManager:
         return [info.name for info in self.__update_candidate]
 
     def latest_version(self):
-        release_versions = [info.name for info in self.__update_candidate if info.group == 'RELEASE']
+        release_versions = [info.name
+                            for info in self.__update_candidate
+                            if info.group == 'RELEASE']
 
         latest = ""
         for version in release_versions:
-            if latest == "" or _compare_version(_parse_release_version(version),
-                                                _parse_release_version(latest)) > 0:
+            if latest == "":
+                latest = version
+            elif _compare_version(_parse_release_version(version),
+                                  _parse_release_version(latest)) > 0:
                 latest = version
 
         return latest

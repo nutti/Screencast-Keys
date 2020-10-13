@@ -27,7 +27,7 @@ from bpy.props import (
 
 from .ops import EventType, show_mouse_hold_status
 from .ui import SK_PT_ScreencastKeys
-from .utils.addon_updator import AddonUpdatorManager
+from .utils.addon_updater import AddonUpdaterManager
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 from .utils import c_structures
@@ -41,7 +41,7 @@ class SK_OT_CheckAddonUpdate(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        updater = AddonUpdatorManager.get_instance()
+        updater = AddonUpdaterManager.get_instance()
         updater.check_update_candidate()
 
         return {'FINISHED'}
@@ -62,14 +62,14 @@ class SK_OT_UpdateAddon(bpy.types.Operator):
     )
 
     def execute(self, context):
-        updater = AddonUpdatorManager.get_instance()
+        updater = AddonUpdaterManager.get_instance()
         updater.update(self.branch_name)
 
         return {'FINISHED'}
 
 
 def get_update_candidate_branches(_, __):
-    updater = AddonUpdatorManager.get_instance()
+    updater = AddonUpdaterManager.get_instance()
     if not updater.candidate_checked():
         return []
 
@@ -410,7 +410,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
                     col.prop(d, "alias_text", text="")
 
         elif self.category == 'UPDATE':
-            updater = AddonUpdatorManager.get_instance()
+            updater = AddonUpdaterManager.get_instance()
 
             layout.separator()
 
