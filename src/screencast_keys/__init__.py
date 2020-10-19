@@ -105,23 +105,34 @@ def unregister_shortcut_key():
     addon_keymaps.clear()
 
 
+def call_silently(fn, *args):
+    try:
+        fn(*args)
+    except:
+        pass
+
+
 def register():
     register_updater(bl_info)
     # TODO: Register by BlClassRegistry
     bpy.utils.register_class(preferences.DisplayEventTextAliasProperties)
+    bpy.utils.register_class(ui.SK_PT_ScreencastKeys)
+    bpy.utils.register_class(ui.SK_PT_ScreencastKeys_Overlay)
     utils.bl_class_registry.BlClassRegistry.register()
     register_shortcut_key()
     bpy.app.handlers.load_pre.append(load_pre_handler)
 
-    # Apply preferences of the panel location.
+    # Apply preferences of UI.
     context = bpy.context
     prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
     # Only default panel location is available in < 2.80
     if utils.compatibility.check_version(2, 80, 0) < 0:
         prefs.panel_space_type = 'VIEW_3D'
         prefs.panel_category = "Screencast Key"
-    preferences.SK_Preferences.panel_category_update_fn(prefs, context)
-    preferences.SK_Preferences.panel_space_type_update_fn(prefs, context)
+        prefs.show_ui_in_sidebar = True
+        prefs.show_ui_in_overlay = False
+    preferences.SK_Preferences.ui_in_sidebar_update_fn(prefs, context)
+    preferences.SK_Preferences.ui_in_overlay_update_fn(prefs, context)
 
     for event in list(ops.EventType):
         item = prefs.display_event_text_aliases_props.add()
@@ -134,6 +145,8 @@ def unregister():
     unregister_shortcut_key()
     # TODO: Unregister by BlClassRegistry
     utils.bl_class_registry.BlClassRegistry.unregister()
+    call_silently(bpy.utils.unregister_class, ui.SK_PT_ScreencastKeys_Overlay)
+    call_silently(bpy.utils.unregister_class, ui.SK_PT_ScreencastKeys)
     bpy.utils.unregister_class(preferences.DisplayEventTextAliasProperties)
 
 

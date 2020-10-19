@@ -26,7 +26,7 @@ from bpy.props import (
 )
 
 from .ops import EventType, show_mouse_hold_status
-from .ui import SK_PT_ScreencastKeys
+from .ui import SK_PT_ScreencastKeys, SK_PT_ScreencastKeys_Overlay
 from .utils.addon_updater import AddonUpdaterManager
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
@@ -99,52 +99,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default='CONFIG'
     )
 
-    # for UI
-    def panel_space_type_update_fn(self, context):
-        has_panel = hasattr(bpy.types, SK_PT_ScreencastKeys.bl_idname)
-        if has_panel:
-            try:
-                bpy.utils.unregister_class(SK_PT_ScreencastKeys)
-            except:
-                pass
-
-        SK_PT_ScreencastKeys.bl_space_type = self.panel_space_type
-        bpy.utils.register_class(SK_PT_ScreencastKeys)
-
-    def panel_space_type_items_fn(self, _):
-        space_types = compat.get_all_space_types()
-        items = []
-        for i, (identifier, space) in enumerate(space_types.items()):
-            space_name = space.bl_rna.name
-            space_name = space_name.replace(" Space", "")
-            space_name = space_name.replace("Space ", "")
-            items.append((identifier, space_name, space_name, i))
-        return items
-
-    panel_space_type = bpy.props.EnumProperty(
-        name="Space",
-        description="Space to show ScreencastKey panel",
-        items=panel_space_type_items_fn,
-        update=panel_space_type_update_fn,
-    )
-
-    def panel_category_update_fn(self, context):
-        has_panel = hasattr(bpy.types, SK_PT_ScreencastKeys.bl_idname)
-        if has_panel:
-            try:
-                bpy.utils.unregister_class(SK_PT_ScreencastKeys)
-            except:
-                pass
-        SK_PT_ScreencastKeys.bl_category = self.panel_category
-        bpy.utils.register_class(SK_PT_ScreencastKeys)
-
-    panel_category = bpy.props.StringProperty(
-        name="Category",
-        description="Category to show ScreencastKey panel",
-        default="Screencast Keys",
-        update=panel_category_update_fn,
-    )
-
+    # for Config.
     color = bpy.props.FloatVectorProperty(
         name="Color",
         default=(1.0, 1.0, 1.0),
@@ -297,11 +252,74 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default=False
     )
 
+    # for UI.
+    def panel_space_type_items_fn(self, _):
+        space_types = compat.get_all_space_types()
+        items = []
+        for i, (identifier, space) in enumerate(space_types.items()):
+            space_name = space.bl_rna.name
+            space_name = space_name.replace(" Space", "")
+            space_name = space_name.replace("Space ", "")
+            items.append((identifier, space_name, space_name, i))
+        return items
+
+    def ui_in_sidebar_update_fn(self, context):
+        has_panel = hasattr(bpy.types, SK_PT_ScreencastKeys.bl_idname)
+        if has_panel:
+            try:
+                bpy.utils.unregister_class(SK_PT_ScreencastKeys)
+            except:
+                pass
+
+        if self.show_ui_in_sidebar:
+            SK_PT_ScreencastKeys.bl_space_type = self.panel_space_type
+            SK_PT_ScreencastKeys.bl_category = self.panel_category
+            bpy.utils.register_class(SK_PT_ScreencastKeys)
+
+    panel_space_type = bpy.props.EnumProperty(
+        name="Space",
+        description="Space to show ScreencastKey panel",
+        items=panel_space_type_items_fn,
+        update=ui_in_sidebar_update_fn,
+    )
+
+    panel_category = bpy.props.StringProperty(
+        name="Category",
+        description="Category to show ScreencastKey panel",
+        default="Screencast Keys",
+        update=ui_in_sidebar_update_fn,
+    )
+
+    show_ui_in_sidebar = bpy.props.BoolProperty(
+        name="Sidebar",
+        description="Show UI in Sidebar",
+        default=True,
+        update=ui_in_sidebar_update_fn,
+    )
+
+    def ui_in_overlay_update_fn(self, context):
+        has_panel = hasattr(bpy.types, SK_PT_ScreencastKeys_Overlay.bl_idname)
+        if has_panel:
+            try:
+                bpy.utils.unregister_class(SK_PT_ScreencastKeys_Overlay)
+            except:
+                pass
+        if self.show_ui_in_overlay:
+            bpy.utils.register_class(SK_PT_ScreencastKeys_Overlay)
+
+    show_ui_in_overlay = bpy.props.BoolProperty(
+        name="Overlay",
+        description="Show UI in Overlay",
+        default=False,
+        update=ui_in_overlay_update_fn,
+    )
+
     # for display event text alias
     enable_display_event_text_aliases = bpy.props.BoolProperty(
         name="Enable Display Event Text Aliases",
         description="Enable display event text aliases",
         default=False,
+        update=ui_in_overlay_update_fn,
     )
 
     display_event_text_aliases_props = bpy.props.CollectionProperty(
@@ -360,10 +378,16 @@ class SK_Preferences(bpy.types.AddonPreferences):
             if compat.check_version(2, 80, 0) >= 0:
                 layout.separator()
 
-                layout.label(text="Panel Location:")
+                layout.label(text="UI:")
                 col = layout.column()
-                col.prop(self, "panel_space_type")
-                col.prop(self, "panel_category")
+                col.prop(self, "show_ui_in_sidebar")
+
+                if self.show_ui_in_sidebar:
+                    col.label(text="Panel Location:")
+                    col.prop(self, "panel_space_type")
+                    col.prop(self, "panel_category")
+
+                col.prop(self, "show_ui_in_overlay")
 
             layout.separator()
 

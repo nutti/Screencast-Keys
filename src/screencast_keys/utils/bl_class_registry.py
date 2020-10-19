@@ -30,6 +30,11 @@ class BlClassRegistry:
     def __call__(self, cls):
         if hasattr(cls, "bl_idname"):
             BlClassRegistry.add_class(cls.bl_idname, cls, self.legacy)
+        elif not hasattr(cls, "bl_context"):
+            bl_idname = "{}{}{}".format(cls.bl_space_type,
+                                        cls.bl_region_type,
+                                        cls.bl_label)
+            BlClassRegistry.add_class(bl_idname, cls, self.legacy)
         else:
             bl_idname = "{}{}{}{}".format(cls.bl_space_type,
                                           cls.bl_region_type,
