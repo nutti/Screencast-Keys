@@ -35,6 +35,8 @@ if "bpy" in locals():
         importlib.reload(v283)
     elif compat.check_version(2, 90, 0) == 0:
         importlib.reload(v290)
+    elif compat.check_version(2, 91, 0) == 0:
+        importlib.reload(v291)
     else:
         NOT_SUPPORTED = True
 else:
@@ -52,5 +54,7 @@ else:
         from .v283 import *
     elif compat.check_version(2, 90, 0) == 0:
         from .v290 import *
+    elif compat.check_version(2, 91, 0) == 0:
+        from .v291 import *
     else:
         NOT_SUPPORTED = True
