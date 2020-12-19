@@ -1,7 +1,22 @@
 # Change Log
 
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.3...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.4...master)
+
+
+## [Version 3.4](https://github.com/nutti/Screencast-Keys/compare/v3.3...v3.4) - 2020.X.XX
+
+### Updated Features
+
+* Added options
+  * Enable/Disable repeat key counting
+  * Show UI in sidebar/overlay
+* Blender 2.91 support about the option "Get Event Aggressively"
+
+
+### Other Updates
+
+* Fix bugs
 
 
 ## [Version 3.3](https://github.com/nutti/Screencast-Keys/compare/v3.2...v3.3) - 2020.9.6
