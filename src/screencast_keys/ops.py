@@ -622,7 +622,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         elif prefs.align == 'CENTER':
             x, y = prefs.offset
             if prefs.origin == 'WINDOW':
-                x += (window.width * 2 - draw_area_width) / 2
+                x += (window.width - draw_area_width) / 2
             elif prefs.origin == 'AREA':
                 for area in window.screen.areas:
                     if is_area_match(area):
@@ -651,7 +651,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         elif prefs.align == 'RIGHT':
             x, y = prefs.offset
             if prefs.origin == 'WINDOW':
-                x += window.width * 2 - draw_area_width
+                x += window.width - draw_area_width
             elif prefs.origin == 'AREA':
                 for area in window.screen.areas:
                     if is_area_match(area):
