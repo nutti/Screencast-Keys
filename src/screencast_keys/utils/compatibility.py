@@ -48,7 +48,7 @@ def make_annotations(cls):
         return cls
 
     # make annotation from attributes
-    props = {k: v for k, v in cls.__dict__.items() if isinstance(v, tuple)}
+    props = {k: v for k, v in cls.__dict__.items() if isinstance(v, getattr(bpy.props, '_PropertyDeferred', tuple))}
     if props:
         if '__annotations__' not in cls.__dict__:
             setattr(cls, '__annotations__', {})
