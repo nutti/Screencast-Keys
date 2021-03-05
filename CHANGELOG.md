@@ -1,7 +1,20 @@
 # Change Log
 
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.4...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.5...master)
+
+
+## [Version 3.5](https://github.com/nutti/Screencast-Keys/compare/v3.4...v3.5) - 2021.X.X
+
+### Updated Features
+
+* Blender 2.92 support about the option "Get Event Aggressively"
+* Enable "Get Event Aggressively" option by default (Experimental)
+
+
+### Other Updates
+
+* Fix bugs
 
 
 ## [Version 3.4](https://github.com/nutti/Screencast-Keys/compare/v3.3...v3.4) - 2020.12.19
