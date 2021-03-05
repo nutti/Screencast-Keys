@@ -243,7 +243,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Get Event Aggressively",
         description="""(Experimental) Get events which will be dropped by the
                        other modalhandlers. This may make blender unstable""",
-        default=False,
+        default=True,
     )
 
     debug_mode = bpy.props.BoolProperty(

@@ -1342,6 +1342,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         cls = self.__class__
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
+        # Disable "Get Event Aggressively" when Blender does not support.
+        if c_structures.NOT_SUPPORTED:
+            prefs.get_event_aggressively = False
+
         if cls.is_running():
             if compat.check_version(2, 80, 0) >= 0:
                 if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
