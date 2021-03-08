@@ -55,7 +55,7 @@ EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
 def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
-               round_radius, fill=False, fill_color=None):
+               round_radius, fill=False, fill_color=None, line_thickness=1):
 
     mouse_body = [x, y, w, h/2]
     left_mouse_button = [x, y + h/2, w/3, h/2]
@@ -68,12 +68,14 @@ def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
                          mouse_body[2], mouse_body[3],
                          round_radius,
                          fill=True, color=fill_color,
-                         round_corner=[True, True, False, False])
+                         round_corner=[True, True, False, False],
+                         line_thickness=line_thickness)
     draw_rounded_box(mouse_body[0], mouse_body[1],
                      mouse_body[2], mouse_body[3],
                      round_radius,
                      fill=False, color=color,
-                     round_corner=[True, True, False, False])
+                     round_corner=[True, True, False, False],
+                     line_thickness=line_thickness)
 
     # Left button.
     if fill:
@@ -81,18 +83,21 @@ def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
                          left_mouse_button[2], left_mouse_button[3],
                          round_radius / 2,
                          fill=True, color=fill_color,
-                         round_corner=[False, False, False, True])
+                         round_corner=[False, False, False, True],
+                         line_thickness=line_thickness)
     draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
                      left_mouse_button[2], left_mouse_button[3],
                      round_radius / 2,
                      fill=False, color=color,
-                     round_corner=[False, False, False, True])
+                     round_corner=[False, False, False, True],
+                     line_thickness=line_thickness)
     if left_pressed:
         draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
                         left_mouse_button[2], left_mouse_button[3],
                         round_radius / 2,
                         fill=True, color=color,
-                        round_corner=[False, False, False, True])
+                        round_corner=[False, False, False, True],
+                        line_thickness=line_thickness)
 
     # Middle button.
     if fill:
@@ -100,18 +105,21 @@ def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
                          middle_mouse_button[2], middle_mouse_button[3],
                          round_radius / 2,
                          fill=True, color=fill_color,
-                         round_corner=[False, False, False, False])
+                         round_corner=[False, False, False, False],
+                         line_thickness=line_thickness)
     draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
                      middle_mouse_button[2], middle_mouse_button[3],
                      round_radius / 2,
                      fill=False, color=color,
-                     round_corner=[False, False, False, False])
+                     round_corner=[False, False, False, False],
+                     line_thickness=line_thickness)
     if middle_pressed:
         draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
                         middle_mouse_button[2], middle_mouse_button[3],
                         round_radius / 2,
                         fill=True, color=color,
-                        round_corner=[False, False, False, False])
+                        round_corner=[False, False, False, False],
+                        line_thickness=line_thickness)
 
     # Right button.
     if fill:
@@ -119,22 +127,25 @@ def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
                          right_mouse_button[2], right_mouse_button[3],
                          round_radius / 2,
                          fill=True, color=fill_color,
-                         round_corner=[False, False, True, False])
+                         round_corner=[False, False, True, False],
+                         line_thickness=line_thickness)
     draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
                      right_mouse_button[2], right_mouse_button[3],
                      round_radius / 2,
                      fill=False, color=color,
-                     round_corner=[False, False, True, False])
+                     round_corner=[False, False, True, False],
+                     line_thickness=line_thickness)
     if right_pressed:
         draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
                         right_mouse_button[2], right_mouse_button[3],
                         round_radius / 2,
                         fill=True, color=color,
-                        round_corner=[False, False, True, False])
+                        round_corner=[False, False, True, False],
+                        line_thickness=line_thickness)
 
 
 def draw_rounded_box(x, y, w, h, round_radius, fill=False, color=[1.0, 1.0, 1.0],
-                     round_corner=[True, True, True, True]):
+                     round_corner=[True, True, True, True], line_thickness=1):
     """round_corner: [Right Bottom, Left Bottom, Right Top, Left Top]"""
 
     def circle_verts_num(r):
@@ -175,6 +186,8 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False, color=[1.0, 1.0, 1.0]
     ]
 
     bgl.glColor3f(*color)
+    bgl.glLineWidth(line_thickness)
+
     if fill:
         bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     else:
@@ -183,9 +196,11 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False, color=[1.0, 1.0, 1.0]
         for _ in range(n):
             x = x0 + r * math.cos(angle)
             y = y0 + r * math.sin(angle)
-            bgl.glVertex2f(x, y)
+            bgl.glVertex3f(x, y, 0)
             angle += dangle
     bgl.glEnd()
+
+    bgl.glLineWidth(1.0)
     bgl.glColor3f(1.0, 1.0, 1.0)
 
 
@@ -225,29 +240,30 @@ def draw_text(text, font_id, color, shadow=False, shadow_color=None):
     blf.disable(font_id, blf.SHADOW)
 
 
-def draw_line(p1, p2, color, shadow=False, shadow_color=None):
+def draw_line(p1, p2, color, shadow=False, shadow_color=None, line_thickness=1):
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
     # Draw shadow.
     if shadow:
-        bgl.glLineWidth(3.0)
+        bgl.glLineWidth(line_thickness + 3.0)
         bgl.glColor4f(*shadow_color, 1.0)
         bgl.glBegin(bgl.GL_LINES)
-        bgl.glVertex2f(*p1)
-        bgl.glVertex2f(*p2)
+        bgl.glVertex3f(*p1)
+        bgl.glVertex3f(*p2)
         bgl.glEnd()
 
     # Draw line.
-    bgl.glLineWidth(1.5 if shadow else 1.0)
+    bgl.glLineWidth(line_thickness + 2.0 if shadow else line_thickness)
     bgl.glColor3f(*color)
+
     bgl.glBegin(bgl.GL_LINES)
-    bgl.glVertex2f(*p1)
-    bgl.glVertex2f(*p2)
+    bgl.glVertex3f(*p1)
+    bgl.glVertex3f(*p2)
     bgl.glEnd()
 
     bgl.glLineWidth(1.0)
-    bgl.glDisable(bgl.GL_LINE_SMOOTH)
+    bgl.glColor3f(1.0, 1.0, 1.0)
+    bgl.glDisable(bgl.GL_BLEND)
 
 
 def intersect_aabb(min1, max1, min2, max2):
@@ -922,6 +938,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         x = origin_x - region.x
         y = origin_y - region.y
 
+        # Warm up rendering.
+        # This is needed to render the line with more than 1.5 thickness properly.
+        draw_rect(0, 0, 0, 0, [0.0, 0.0, 0.0])
+
         # Draw draw area based background.
         if show_draw_area_background(prefs):
             draw_rect(draw_area_min_x - region.x,
@@ -957,9 +977,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     # Draw separator.
                     sw = blf.dimensions(font_id, "Left Mouse")[0]
                     offset_x, offset_y = cls.get_offset_for_alignment(sw, context)
-                    draw_line([x + offset_x, y + offset_y],
-                              [x + sw + offset_x, y + offset_y],
-                              prefs.color, prefs.shadow, prefs.shadow_color)
+                    draw_line([x + offset_x, y + offset_y, 0.0],
+                              [x + sw + offset_x, y + offset_y, 0.0],
+                              prefs.color, prefs.shadow, prefs.shadow_color,
+                              prefs.line_thickness)
                     y += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.8
 
                     region_drawn = True
@@ -1011,7 +1032,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                        prefs.color,
                        prefs.mouse_size * 0.5,
                        fill=prefs.background,
-                       fill_color=prefs.background_color)
+                       fill_color=prefs.background_color,
+                       line_thickness=prefs.line_thickness)
 
         # Draw hold modifier keys.
         if cls.hold_modifier_keys or drawing:
@@ -1022,7 +1044,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                              y + offset_y - margin + offset_y_for_hold_modifier_keys,
                              box_width, box_height, box_height * 0.2,
                              show_text_background(prefs),
-                             prefs.background_color if show_text_background(prefs) else prefs.color)
+                             prefs.background_color if show_text_background(prefs) else prefs.color,
+                             line_thickness=prefs.line_thickness)
 
             # Draw modifier key text.
             blf.position(font_id,

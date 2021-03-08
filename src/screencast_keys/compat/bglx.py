@@ -12,6 +12,19 @@ GL_TRIANGLES = 5
 GL_TRIANGLE_FAN = 6
 GL_QUADS = 4
 
+
+def primitive_mode_is_line(mode):
+    return mode in [GL_LINES, GL_LINE_STRIP, GL_LINE_LOOP]
+
+
+def is_shader_supported(shader_name):
+    try:
+        gpu.shader.from_builtin(shader_name)
+        return True
+    except ValueError:
+        return False
+
+
 class InternalData:
     __inst = None
     __lock = Lock()
@@ -86,6 +99,8 @@ def glLineWidth(width):
     inst = InternalData.get_instance()
     inst.set_line_width(width)
 
+    bgl.glLineWidth(width)
+
 
 def glColor3f(r, g, b):
     inst = InternalData.get_instance()
@@ -156,11 +171,22 @@ def glEnd():
         if len(tex_coords) == 0:
             shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
         else:
-            #shader = gpu.shader.from_builtin('2D_IMAGE')
             vert_shader, frag_shader = _get_transparency_shader()
             shader = gpu.types.GPUShader(vert_shader, frag_shader)
+    elif inst.get_dims() == 3:
+        if len(tex_coords) == 0:
+            if primitive_mode_is_line(inst.get_prim_mode()):
+                if is_shader_supported('3D_POLYLINE_UNIFORM_COLOR'):
+                    shader = gpu.shader.from_builtin('3D_POLYLINE_UNIFORM_COLOR')
+                else:
+                    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+            else:
+                shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+        else:
+            raise NotImplemented("Texture is not supported in get_dims() == 3")
     else:
         raise NotImplemented("get_dims() != 2")
+
 
     if len(tex_coords) == 0:
         data = {
@@ -211,6 +237,9 @@ def glEnd():
         shader.uniform_float("modelViewMatrix", gpu.matrix.get_model_view_matrix())
         shader.uniform_float("projectionMatrix", gpu.matrix.get_projection_matrix())
         shader.uniform_int("image", 0)
+    if (primitive_mode_is_line(inst.get_prim_mode()) and
+            is_shader_supported('3D_POLYLINE_UNIFORM_COLOR')):
+        shader.uniform_float("lineWidth", inst.get_line_width())
     shader.uniform_float("color", color)
     batch.draw(shader)
 
@@ -221,6 +250,12 @@ def glVertex2f(x, y):
     inst = InternalData.get_instance()
     inst.add_vert([x, y])
     inst.set_dims(2)
+
+
+def glVertex3f(x, y, z):
+    inst = InternalData.get_instance()
+    inst.add_vert([x, y, z])
+    inst.set_dims(3)
 
 
 def glTexCoord2f(u, v):

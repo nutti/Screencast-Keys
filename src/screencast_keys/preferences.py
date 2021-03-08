@@ -150,14 +150,21 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Font Size",
         default=compat.get_user_preferences(bpy.context).ui_styles[0].widget.points,
         min=6,
-        max=48
+        max=1000
+    )
+
+    line_thickness = bpy.props.FloatProperty(
+        name="Line Thickness",
+        default=1,
+        min=1,
+        max=100
     )
 
     mouse_size = bpy.props.IntProperty(
         name="Mouse Size",
         default=compat.get_user_preferences(bpy.context).ui_styles[0].widget.points*3,
         min=18,
-        max=144,
+        max=1000,
     )
 
     origin = bpy.props.EnumProperty(
@@ -355,6 +362,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
                 sp = compat.layout_split(sp, factor=1.0)
                 sp.prop(self, "background_color", text="")
             col.prop(self, "font_size")
+            col.prop(self, "line_thickness")
             if show_mouse_hold_status(self):
                 col.prop(self, "mouse_size")
 
