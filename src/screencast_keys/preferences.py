@@ -182,6 +182,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Offset",
         default=(20, 80),
         size=2,
+        subtype='XYZ',
     )
 
     align = bpy.props.EnumProperty(

@@ -45,15 +45,24 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column = layout.column()
 
         column.prop(prefs, "color")
+
+        column.separator()
+
         column.prop(prefs, "shadow")
         if prefs.shadow:
             column.prop(prefs, "shadow_color", text="")
+
+        column.separator()
+
         column.prop(prefs, "background")
         if prefs.background:
             sp = compat.layout_split(column, factor=0.5)
             sp.prop(prefs, "background_mode", text="")
             sp = compat.layout_split(sp, factor=1.0)
             sp.prop(prefs, "background_color", text="")
+
+        column.separator()
+
         column.prop(prefs, "font_size")
         column.prop(prefs, "line_thickness")
         if show_mouse_hold_status(prefs):
@@ -61,30 +70,61 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
 
         column.separator()
 
-        column.prop(prefs, "origin")
+        column.label(text="Origin:")
+        column.prop(prefs, "origin", text="")
         column.operator("wm.sk_set_origin", text="Set Origin")
-        column.prop(prefs, "align")
-        row = column.row()
-        row.prop(prefs, "offset")
-        column.prop(prefs, "display_time")
+
+        column.separator()
+        column.label(text="Align:")
+        column.prop(prefs, "align", text="")
 
         column.separator()
 
+        column.label(text="Offset:")
+        row = column.row()
+        row.prop(prefs, "offset", text="")
+
+        column.separator()
+
+        column.prop(prefs, "display_time")
         column.prop(prefs, "max_event_history")
+
+        column.separator()
+
         column.prop(prefs, "repeat_count")
+
+        column.separator()
+
         column.prop(prefs, "show_mouse_events")
         if prefs.show_mouse_events:
-            column.prop(prefs, "mouse_events_show_mode")
+            sp = compat.layout_split(column, factor=0.05)
+            _ = sp.column()     # spacer.
+            sp = compat.layout_split(sp, factor=1.0)
+            c = sp.column()
+            c.label(text="Mode:")
+            c.prop(prefs, "mouse_events_show_mode", text="")
+
+        column.separator()
+
         column.prop(prefs, "show_last_operator")
         if prefs.show_last_operator:
-            column.prop(prefs, "last_operator_show_mode")
+            sp = compat.layout_split(column, factor=0.05)
+            _ = sp.column()     # spacer.
+            sp = compat.layout_split(sp, factor=1.0)
+            c = sp.column()
+            c.label(text="Mode:")
+            c.prop(prefs, "last_operator_show_mode", text="")
 
         column.separator()
 
         column.label(text="Experimental:")
         col = column.column()
-        col.prop(prefs, "get_event_aggressively")
-        col.enabled = False if c_structures.NOT_SUPPORTED else True
+        sp = compat.layout_split(column, factor=0.05)
+        _ = sp.column()     # spacer.
+        sp = compat.layout_split(sp, factor=1.0)
+        c = sp.column()
+        c.prop(prefs, "get_event_aggressively")
+        c.enabled = False if c_structures.NOT_SUPPORTED else True
 
     @classmethod
     def register(cls):
