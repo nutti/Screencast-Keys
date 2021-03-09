@@ -34,7 +34,7 @@ import blf
 import bpy
 import bpy.props
 
-from .common import debug_print, fix_modifier_display_text
+from .common import debug_print, fix_modifier_display_text, use_3d_polyline
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 from .utils import c_structures
@@ -195,7 +195,10 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False, color=[1.0, 1.0, 1.0]
         for _ in range(n):
             x = x0 + r * math.cos(angle)
             y = y0 + r * math.sin(angle)
-            bgl.glVertex3f(x, y, 0)
+            if use_3d_polyline(line_thickness):
+                bgl.glVertex3f(x, y, 0)
+            else:
+                bgl.glVertex2f(x, y)
             angle += dangle
     bgl.glEnd()
 
@@ -247,8 +250,12 @@ def draw_line(p1, p2, color, shadow=False, shadow_color=None, line_thickness=1):
         bgl.glLineWidth(line_thickness + 3.0)
         bgl.glColor4f(*shadow_color, 1.0)
         bgl.glBegin(bgl.GL_LINES)
-        bgl.glVertex3f(*p1)
-        bgl.glVertex3f(*p2)
+        if use_3d_polyline(line_thickness):
+            bgl.glVertex3f(p1[0], p1[1], 0.0)
+            bgl.glVertex3f(p2[0], p2[1], 0.0)
+        else:
+            bgl.glVertex2f(*p1)
+            bgl.glVertex2f(*p2)
         bgl.glEnd()
 
     # Draw line.
@@ -256,8 +263,12 @@ def draw_line(p1, p2, color, shadow=False, shadow_color=None, line_thickness=1):
     bgl.glColor3f(*color)
 
     bgl.glBegin(bgl.GL_LINES)
-    bgl.glVertex3f(*p1)
-    bgl.glVertex3f(*p2)
+    if use_3d_polyline(line_thickness):
+        bgl.glVertex3f(p1[0], p1[1], 0.0)
+        bgl.glVertex3f(p2[0], p2[1], 0.0)
+    else:
+        bgl.glVertex2f(*p1)
+        bgl.glVertex2f(*p2)
     bgl.glEnd()
 
     bgl.glLineWidth(1.0)
@@ -983,8 +994,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     # Draw separator.
                     sw = blf.dimensions(font_id, "Left Mouse")[0]
                     offset_x, offset_y = cls.get_offset_for_alignment(sw, context)
-                    draw_line([x + offset_x, y + offset_y, 0.0],
-                              [x + sw + offset_x, y + offset_y, 0.0],
+                    draw_line([x + offset_x, y + offset_y],
+                              [x + sw + offset_x, y + offset_y],
                               prefs.color, prefs.shadow, prefs.shadow_color,
                               prefs.line_thickness)
                     y += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.8

@@ -25,6 +25,9 @@ import bpy
 
 from .utils import compatibility as compat
 
+if compat.check_version(2, 80, 0) >= 0:
+    import gpu
+
 
 def is_debug_mode():
     prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
@@ -75,3 +78,21 @@ def fix_modifier_display_text(name):
 
     fixed_name = mappings[system][fixed_name]
     return fixed_name
+
+
+def use_3d_polyline(line_thickness=1.0):
+    if compat.check_version(2, 80, 0) < 0:
+        return False
+
+    if line_thickness < 1.5:
+        return False
+
+    system = platform.system()
+    if system == 'Darwin':
+        try:
+            gpu.shader.from_builtin('3D_POLYLINE_UNIFORM_COLOR')
+            return True
+        except ValueError:
+            return False
+
+    return False

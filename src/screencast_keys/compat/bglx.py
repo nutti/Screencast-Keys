@@ -167,6 +167,7 @@ def glEnd():
     color = inst.get_color()
     coords = inst.get_verts()
     tex_coords = inst.get_tex_coords()
+    use_3d_polyline = False
     if inst.get_dims() == 2:
         if len(tex_coords) == 0:
             shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
@@ -178,6 +179,7 @@ def glEnd():
             if primitive_mode_is_line(inst.get_prim_mode()):
                 if is_shader_supported('3D_POLYLINE_UNIFORM_COLOR'):
                     shader = gpu.shader.from_builtin('3D_POLYLINE_UNIFORM_COLOR')
+                    use_3d_polyline = True
                 else:
                     shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
             else:
@@ -237,8 +239,7 @@ def glEnd():
         shader.uniform_float("modelViewMatrix", gpu.matrix.get_model_view_matrix())
         shader.uniform_float("projectionMatrix", gpu.matrix.get_projection_matrix())
         shader.uniform_int("image", 0)
-    if (primitive_mode_is_line(inst.get_prim_mode()) and
-            is_shader_supported('3D_POLYLINE_UNIFORM_COLOR')):
+    if use_3d_polyline:
         shader.uniform_float("lineWidth", inst.get_line_width())
     shader.uniform_float("color", color)
     batch.draw(shader)
