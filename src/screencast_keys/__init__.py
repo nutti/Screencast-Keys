@@ -77,13 +77,14 @@ def register_updater(bl_info):
     config.owner = "nutti"
     config.repository = "Screencast-Keys"
     config.current_addon_path = os.path.dirname(os.path.realpath(__file__))
-    config.branches = ["master"]
+    config.branches = ["master", "develop"]
     config.addon_directory = \
         config.current_addon_path[:config.current_addon_path.rfind(utils.addon_updater.get_separator())]
     config.min_release_version = bl_info["version"]
     config.default_target_addon_path = "screencast_keys"
     config.target_addon_path = {
-        "master": "src{}screencast_keys".format(utils.addon_updater.get_separator())
+        "master": "src{}screencast_keys".format(utils.addon_updater.get_separator()),
+        "develop": "src{}screencast_keys".format(utils.addon_updater.get_separator()),
     }
     updater = utils.addon_updater.AddonUpdaterManager.get_instance()
     updater.init(bl_info, config)
