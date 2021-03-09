@@ -22,7 +22,6 @@
 import math
 import collections
 import enum
-import re
 import string
 import time
 from ctypes import (
@@ -35,7 +34,7 @@ import blf
 import bpy
 import bpy.props
 
-from .common import debug_print
+from .common import debug_print, fix_modifier_display_text
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 from .utils import c_structures
@@ -370,7 +369,10 @@ def get_display_event_text(event_id):
     prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
 
     if not prefs.enable_display_event_text_aliases:
-        return EventType.names[event_id]
+        if EventType[event_id] in SK_OT_ScreencastKeys.MODIFIER_EVENT_TYPES:
+            return fix_modifier_display_text(EventType.names[event_id])
+        else:
+            return EventType.names[event_id]
 
     for prop in prefs.display_event_text_aliases_props:
         if prop.event_id == event_id:
@@ -522,6 +524,13 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return cls.running
 
     @classmethod
+    def is_modifier_event(cls, event):
+        """Return True if event came from modifier key."""
+
+        event_type = EventType[event.type]
+        return event_type in cls.MODIFIER_EVENT_TYPES
+
+    @classmethod
     def sorted_modifier_keys(cls, modifiers):
         """Sort and unique modifier keys."""
 
@@ -534,12 +543,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         modifiers = sorted(modifiers, key=key_fn)
         names = []
         for mod in modifiers:
-            name = mod.names[mod.name]
+            name = get_display_event_text(mod.name)
             assert mod in cls.MODIFIER_EVENT_TYPES, \
                    "{} must be modifier types".format(name)
-
-            # Remove left and right identifier.
-            name = re.sub("(Left |Right )", "", name)
 
             # Unique.
             if name not in names:
@@ -794,7 +800,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         event_history = cls.removed_old_event_history()
         draw_area_height += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
         for _, event_type, modifiers, repeat_count in event_history[::-1]:
-            text = event_type.names[event_type.name]
+            text = get_display_event_text(event_type.name)
             if modifiers:
                 mod_keys = cls.sorted_modifier_keys(modifiers)
                 text = "{} + {}".format(" + ".join(mod_keys), text)
@@ -1210,12 +1216,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         return False
 
-    def is_modifier_event(self, event):
-        """Return True if event came from modifier key."""
-
-        event_type = EventType[event.type]
-        return event_type in self.MODIFIER_EVENT_TYPES
-
     def modal(self, context, event):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
@@ -1252,11 +1252,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Update event history.
         if (not self.is_ignore_event(event, prefs=prefs) and
-                not self.is_modifier_event(event) and
+                not self.__class__.is_modifier_event(event) and
                 event.value == 'PRESS'):
             last_event = self.event_history[-1] if self.event_history else None
             current_event = [current_time, event_type, current_mod_keys, 1]
-
 
             # If events are raised in short time (e.g. Double Click), the additional
             # events will be raised from the Internal of Blender. This check avoids

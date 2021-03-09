@@ -137,7 +137,12 @@ def register():
     for event in list(ops.EventType):
         item = prefs.display_event_text_aliases_props.add()
         item.event_id = event.name
-        item.default_text = ops.EventType.names[event.name]
+        if event in ops.SK_OT_ScreencastKeys.MODIFIER_EVENT_TYPES:
+            item.default_text = common.fix_modifier_display_text(
+                ops.EventType.names[event.name]
+            )
+        else:
+            item.default_text = ops.EventType.names[event.name]
 
 
 def unregister():

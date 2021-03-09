@@ -18,6 +18,9 @@
 
 # <pep8 compliant>
 
+import re
+import platform
+
 import bpy
 
 from .utils import compatibility as compat
@@ -36,3 +39,39 @@ def debug_print(s):
 
     if is_debug_mode():
         print(s)
+
+
+def fix_modifier_display_text(name):
+    # Remove left and right identifier.
+    fixed_name = re.sub("(Left |Right )", "", name)
+
+    mappings = {
+        "Windows": {
+            "Shift": "Shift",
+            "Ctrl": "Ctrl",
+            "Alt": "Alt",
+            "OS Key": "Windows Key",
+        },
+        "Darwin": {
+            "Shift": "Shift",
+            "Ctrl": "Control",
+            "Alt": "Option",
+            "OS Key": "Command",
+        },
+        "Linux": {
+            "Shift": "Shift",
+            "Ctrl": "Ctrl",
+            "Alt": "Alt",
+            "OS Key": "OS Key",
+        }
+    }
+
+    # Change to the platform specific text.
+    system = platform.system()
+    if system not in mappings:
+        return fixed_name
+    if fixed_name not in mappings[system]:
+        return fixed_name
+
+    fixed_name = mappings[system][fixed_name]
+    return fixed_name
