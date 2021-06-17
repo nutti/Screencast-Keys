@@ -7,7 +7,7 @@ This is a blender add-on **Screencast Keys** to display the Keyboard/Mouse and O
 
 ## Download / Installation
 
-All released Screencast Keys add-on is availabled on [Release Page](https://github.com/nutti/Screencast-Keys/releases).  
+All released Screencast Keys add-on is available on [Release Page](https://github.com/nutti/Screencast-Keys/releases).  
 If you want to try newest (unstable) version, you can download it from [unstable version](https://github.com/nutti/Screencast-Keys/archive/master.zip).
 
 Installation process is a bit confusing.  
@@ -26,7 +26,7 @@ The features of this add-on are as follows.
 
 ## Tutorials
 
-Introduction video is availabe on [YouTube](https://www.youtube.com/watch?v=mWkkPCp7RSI).
+Introduction video is available on [YouTube](https://www.youtube.com/watch?v=mWkkPCp7RSI).
 
 *Note: This introduction video is created for v3.0. UI and features introduced in this video will be changed in the later release.*
 
