@@ -157,7 +157,7 @@ If **Get Event Aggressively** option is enabled, the events raised in the modal 
 
 ## Preferences
 
-In addition to the above options, some options are located on Perferences.  
+In addition to the above options, some options are located on Preferences.  
 You can update this add-on from Preferences.
 
 
