@@ -527,6 +527,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     # TODO: We can check it with the valid of event handler.
     running = False
 
+    # Should screencast be restarted
+    restart: bpy.props.BoolProperty(
+        default=False
+    )
+
     # Current mouse coordinate.
     current_mouse_co = [0.0, 0.0]
 
@@ -1371,31 +1376,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 wm.event_timer_remove(cls.timers[key])
         cls.timers.clear()
 
-    def invoke(self, context, event):
-        cls = self.__class__
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
-
-        # Disable "Get Event Aggressively" when Blender does not support.
-        if c_structures.NOT_SUPPORTED:
-            prefs.get_event_aggressively = False
-
-        if cls.is_running():
-            if compat.check_version(2, 80, 0) >= 0:
-                if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
-                    bpy.app.handlers.depsgraph_update_pre.remove(cls.sort_modalhandlers)
-            else:
-                if cls.sort_modalhandlers in bpy.app.handlers.scene_update_pre:
-                    bpy.app.handlers.scene_update_pre.remove(cls.sort_modalhandlers)
-            self.event_timer_remove(context)
-            self.draw_handler_remove_all()
-            self.hold_modifier_keys.clear()
-            self.event_history.clear()
-            self.operator_history.clear()
-            self.draw_regions_prev.clear()
-            context.area.tag_redraw()
-            cls.running = False
-            return {'CANCELLED'}
-        else:
+    @classmethod
+    def start(cls, self, context, event, prefs, is_start):
+        if is_start:
+            if cls.is_running():
+                return
+            
             self.update_hold_modifier_keys(event)
             self.event_timer_add(context)
             context.window_manager.modal_handler_add(self)
@@ -1410,7 +1396,45 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 else:
                     bpy.app.handlers.scene_update_pre.append(cls.sort_modalhandlers)
             cls.running = True
+        else:
+            if cls.is_running() == False:
+                return
+
+            if compat.check_version(2, 80, 0) >= 0:
+                if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
+                    bpy.app.handlers.depsgraph_update_pre.remove(cls.sort_modalhandlers)
+            else:
+                if cls.sort_modalhandlers in bpy.app.handlers.scene_update_pre:
+                    bpy.app.handlers.scene_update_pre.remove(cls.sort_modalhandlers)
+            self.event_timer_remove(context)
+            self.draw_handler_remove_all()
+            self.hold_modifier_keys.clear()
+            self.event_history.clear()
+            self.operator_history.clear()
+            self.draw_regions_prev.clear()
+            context.area.tag_redraw()
+            cls.running = False
+
+    def invoke(self, context, event):
+        cls = self.__class__
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        # Disable "Get Event Aggressively" when Blender does not support.
+        if c_structures.NOT_SUPPORTED:
+            prefs.get_event_aggressively = False
+
+        if (self.restart == True):
+            self.start(self, context, event, prefs, False)
+            self.start(self, context, event, prefs, True)
+
             return {'RUNNING_MODAL'}
+        else:
+            if cls.is_running():
+                self.start(self, context, event, prefs, False)
+                return {'CANCELLED'}
+            else:
+                self.start(self, context, event, prefs, True)
+                return {'RUNNING_MODAL'}
 
 
 @BlClassRegistry()
@@ -1507,3 +1531,24 @@ class SK_OT_SetOrigin(bpy.types.Operator):
         self.draw_handler_add(context)
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
+
+
+@BlClassRegistry()
+class SK_OT_WaitForInitialize(bpy.types.Operator):
+    bl_idname = "wm.sk_wait_for_initialize"
+    bl_label = "Screencast Keys Wait For Initialize"
+
+    initialization_handler = None
+
+    def execute(self, context):
+        cls = self.__class__
+        cls.initialization_handler = bpy.types.SpaceView3D.draw_handler_add(cls.intialization_callback, (None, None), 'WINDOW', 'POST_PIXEL')
+        return {'FINISHED'}
+
+    @classmethod
+    def intialization_callback(cls, self, cotext):
+        print(cls.initialization_handler)
+
+        if bpy.context.area is not None:
+            bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN', restart=True)
+            bpy.types.SpaceView3D.draw_handler_remove(cls.initialization_handler, 'WINDOW')
