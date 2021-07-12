@@ -52,6 +52,10 @@ EventType = enum.IntEnum(
 )
 EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
+# Check if screencast is running.
+# TODO: We can check it with the valid of event handler.
+running = False
+
 
 def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
                round_radius, fill=False, fill_color=None, line_thickness=1):
@@ -419,6 +423,16 @@ def show_draw_area_background(prefs):
     return prefs.background_mode == 'DRAW_AREA'
 
 
+def is_running():
+    global running
+    return running
+
+
+def set_is_running(value):
+    global running
+    running = value
+
+
 @BlClassRegistry()
 class SK_OT_ScreencastKeys(bpy.types.Operator):
     bl_idname = "wm.sk_screencast_keys"
@@ -523,10 +537,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     # TODO: Clear when this model is finished.
     area_spaces = collections.defaultdict(set)
 
-    # Check if this operator is running.
-    # TODO: We can check it with the valid of event handler.
-    running = False
-
     # Should screencast be restarted
     restart: bpy.props.BoolProperty(
         default=False
@@ -534,10 +544,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     # Current mouse coordinate.
     current_mouse_co = [0.0, 0.0]
-
-    @classmethod
-    def is_running(cls):
-        return cls.running
 
     @classmethod
     def is_modifier_event(cls, event):
@@ -1235,7 +1241,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def modal(self, context, event):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
-        if not self.__class__.is_running():
+        if not is_running():
             return {'FINISHED'}
 
         if event.type == '':
@@ -1379,7 +1385,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     @classmethod
     def start(cls, self, context, event, prefs, is_start):
         if is_start:
-            if cls.is_running():
+            if is_running():
                 return
             
             self.update_hold_modifier_keys(event)
@@ -1395,9 +1401,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     bpy.app.handlers.depsgraph_update_pre.append(cls.sort_modalhandlers)
                 else:
                     bpy.app.handlers.scene_update_pre.append(cls.sort_modalhandlers)
-            cls.running = True
+
+            set_is_running(True)
         else:
-            if cls.is_running() == False:
+            if not is_running():
                 return
 
             if compat.check_version(2, 80, 0) >= 0:
@@ -1413,7 +1420,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             self.operator_history.clear()
             self.draw_regions_prev.clear()
             context.area.tag_redraw()
-            cls.running = False
+
+            set_is_running(False)
 
     def invoke(self, context, event):
         cls = self.__class__
@@ -1429,7 +1437,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
             return {'RUNNING_MODAL'}
         else:
-            if cls.is_running():
+            if is_running():
                 self.start(self, context, event, prefs, False)
                 return {'CANCELLED'}
             else:
@@ -1543,12 +1551,11 @@ class SK_OT_WaitForInitialize(bpy.types.Operator):
     def execute(self, context):
         cls = self.__class__
         cls.initialization_handler = bpy.types.SpaceView3D.draw_handler_add(cls.intialization_callback, (None, None), 'WINDOW', 'POST_PIXEL')
+        print(cls.initialization_handler)
         return {'FINISHED'}
 
     @classmethod
     def intialization_callback(cls, self, cotext):
-        print(cls.initialization_handler)
-
         if bpy.context.area is not None:
             bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN', restart=True)
             bpy.types.SpaceView3D.draw_handler_remove(cls.initialization_handler, 'WINDOW')
