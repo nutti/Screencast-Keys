@@ -113,8 +113,38 @@ def call_silently(fn, *args):
         pass
 
 
+def register_screencast_keys_enable_property():
+    def get_func(self):
+        return ops.SK_OT_ScreencastKeys.is_running()
+
+    def set_func(self, value):
+        pass
+
+    def update_func(self, context):
+        bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN')
+
+    if not hasattr(bpy.types.WindowManager, "enable_screencast_keys"):
+        bpy.types.WindowManager.enable_screencast_keys = \
+            bpy.props.BoolProperty(
+                name="Screencast Keys",
+                get=get_func,
+                set=set_func,
+                update=update_func,
+            )
+
+
+def unregister_screencast_keys_enable_property():
+    if hasattr(bpy.types.WindowManager, "enable_screencast_keys"):
+        del bpy.types.WindowManager.enable_screencast_keys
+
+
 def register():
     register_updater(bl_info)
+    # Register Screencast Key's enable property at here to use it in the
+    # both SK_PT_ScreencastKeys Panel and SK_PT_ScreencastKeys_Overlay Panel.
+    # TODO: This registration should be handled by BlClassRegistry to add
+    #       the priority feature.
+    register_screencast_keys_enable_property()
     # TODO: Register by BlClassRegistry
     bpy.utils.register_class(preferences.DisplayEventTextAliasProperties)
     bpy.utils.register_class(ui.SK_PT_ScreencastKeys)
@@ -154,6 +184,7 @@ def unregister():
     call_silently(bpy.utils.unregister_class, ui.SK_PT_ScreencastKeys_Overlay)
     call_silently(bpy.utils.unregister_class, ui.SK_PT_ScreencastKeys)
     bpy.utils.unregister_class(preferences.DisplayEventTextAliasProperties)
+    unregister_screencast_keys_enable_property()
 
 
 if __name__ == "__main__":

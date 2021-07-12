@@ -128,29 +128,6 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         c.prop(prefs, "get_event_aggressively")
         c.enabled = False if c_structures.NOT_SUPPORTED else True
 
-    @classmethod
-    def register(cls):
-        def get_func(self):
-            return SK_OT_ScreencastKeys.is_running()
-
-        def set_func(self, value):
-            pass
-
-        def update_func(self, context):
-            bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN')
-
-        bpy.types.WindowManager.enable_screencast_keys = \
-            bpy.props.BoolProperty(
-                name="Screencast Keys",
-                get=get_func,
-                set=set_func,
-                update=update_func,
-            )
-
-    @classmethod
-    def unregister(cls):
-        del bpy.types.WindowManager.enable_screencast_keys
-
 
 class SK_PT_ScreencastKeys_Overlay(bpy.types.Panel):
     bl_label = ""
