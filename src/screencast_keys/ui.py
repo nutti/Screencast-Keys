@@ -60,6 +60,8 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
             sp.prop(prefs, "background_mode", text="")
             sp = compat.layout_split(sp, factor=1.0)
             sp.prop(prefs, "background_color", text="")
+            column.prop(prefs, "background_margin")
+            column.prop(prefs, "background_round")
 
         column.separator()
 
