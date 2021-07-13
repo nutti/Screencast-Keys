@@ -254,6 +254,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default=True,
     )
 
+    load_on_startup = bpy.props.BoolProperty(
+        name="Load On Startup",
+        description="""(Experimental) Automatically enable screencast when blender is starting up""",
+        default=False
+    )
+
     debug_mode = bpy.props.BoolProperty(
         name="Debug Mode",
         description="Debug mode (Output log messages for add-on's developers)",
@@ -402,8 +408,9 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
             layout.label(text="Experimental:")
             col = layout.column()
-            col.prop(self, "get_event_aggressively")
-            col.enabled = False if c_structures.NOT_SUPPORTED else True
+            col.prop(self, "load_on_startup")
+            if c_structures.NOT_SUPPORTED == False:
+                col.prop(self, "get_event_aggressively")
 
             layout.separator()
 
