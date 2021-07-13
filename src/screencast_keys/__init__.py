@@ -116,7 +116,7 @@ def call_silently(fn, *args):
 
 def register_screencast_keys_enable_property():
     def get_func(self):
-        return ops.SK_OT_ScreencastKeys.is_running()
+        return ops.is_running()
 
     def set_func(self, value):
         pass
