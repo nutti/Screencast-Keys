@@ -254,12 +254,6 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default=True,
     )
 
-    load_on_startup = bpy.props.BoolProperty(
-        name="Load On Startup",
-        description="""(Experimental) Automatically enable screencast when blender is starting up""",
-        default=False
-    )
-
     debug_mode = bpy.props.BoolProperty(
         name="Debug Mode",
         description="Debug mode (Output log messages for add-on's developers)",
@@ -302,6 +296,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
         description="Category to show ScreencastKey panel",
         default="Screencast Keys",
         update=ui_in_sidebar_update_fn,
+    )
+
+    load_on_startup = bpy.props.BoolProperty(
+        name="Load On Startup",
+        description="""Automatically enable screencast when blender is starting up""",
+        default=False
     )
 
     show_ui_in_sidebar = bpy.props.BoolProperty(
@@ -389,12 +389,14 @@ class SK_Preferences(bpy.types.AddonPreferences):
             if self.show_last_operator:
                 col.prop(self, "last_operator_show_mode")
 
+            layout.separator()
+
+            layout.label(text="UI:")
+            col = layout.column()
+            col.prop(self, "load_on_startup")
+
             # Panel location is only available in >= 2.80
             if compat.check_version(2, 80, 0) >= 0:
-                layout.separator()
-
-                layout.label(text="UI:")
-                col = layout.column()
                 col.prop(self, "show_ui_in_sidebar")
 
                 if self.show_ui_in_sidebar:
@@ -408,9 +410,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
             layout.label(text="Experimental:")
             col = layout.column()
-            col.prop(self, "load_on_startup")
-            if c_structures.NOT_SUPPORTED == False:
-                col.prop(self, "get_event_aggressively")
+            col.prop(self, "get_event_aggressively")
+            col.enabled = False if c_structures.NOT_SUPPORTED else True
 
             layout.separator()
 

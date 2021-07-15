@@ -67,8 +67,8 @@ def load_post_handler(scene):
     context = bpy.context
     prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
 
-    if (prefs.load_on_startup and startup) or (not startup and ops.running):
-        bpy.ops.wm.sk_wait_for_initialize()
+    if (prefs.load_on_startup and startup) or (not startup and ops.SK_OT_ScreencastKeys.is_running()):
+        bpy.ops.wm.sk_wait_blender_initialized_and_start_screencast_keys()
 
     startup = False
 
@@ -116,7 +116,7 @@ def call_silently(fn, *args):
 
 def register_screencast_keys_enable_property():
     def get_func(self):
-        return ops.is_running()
+        return ops.SK_OT_ScreencastKeys.is_running()
 
     def set_func(self, value):
         pass
