@@ -1548,5 +1548,4 @@ class SK_OT_WaitBlenderInitializedAndStartScreencastKeys(bpy.types.Operator):
     def intialization_callback(cls, self, cotext):
         if bpy.context.area is not None:
             bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN', restart=True)
-
             bpy.types.SpaceView3D.draw_handler_remove(cls.initialization_handler, 'WINDOW')

@@ -298,9 +298,9 @@ class SK_Preferences(bpy.types.AddonPreferences):
         update=ui_in_sidebar_update_fn,
     )
 
-    load_on_startup = bpy.props.BoolProperty(
-        name="Load On Startup",
-        description="""Automatically enable screencast when blender is starting up""",
+    enable_on_startup = bpy.props.BoolProperty(
+        name="Enable On Startup",
+        description="""Automatically enable Screencast Keys when blender is starting up""",
         default=False
     )
 
@@ -355,6 +355,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
         if self.category == 'CONFIG':
             layout.separator()
 
+            layout.prop(self, "enable_on_startup")
+
             column = layout.column()
             split = column.split()
             col = split.column()
@@ -389,14 +391,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
             if self.show_last_operator:
                 col.prop(self, "last_operator_show_mode")
 
-            layout.separator()
-
-            layout.label(text="UI:")
-            col = layout.column()
-            col.prop(self, "load_on_startup")
-
             # Panel location is only available in >= 2.80
             if compat.check_version(2, 80, 0) >= 0:
+                layout.separator()
+
+                layout.label(text="UI:")
+                col = layout.column()
                 col.prop(self, "show_ui_in_sidebar")
 
                 if self.show_ui_in_sidebar:

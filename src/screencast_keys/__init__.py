@@ -67,7 +67,7 @@ def load_post_handler(scene):
     context = bpy.context
     prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
 
-    if (prefs.load_on_startup and startup) or (not startup and ops.SK_OT_ScreencastKeys.is_running()):
+    if (prefs.enable_on_startup and startup) or (not startup and ops.SK_OT_ScreencastKeys.is_running()):
         bpy.ops.wm.sk_wait_blender_initialized_and_start_screencast_keys()
 
     startup = False
