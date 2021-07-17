@@ -219,12 +219,12 @@ def draw_rect(x1, y1, x2, y2, color):
     bgl.glColor3f(1.0, 1.0, 1.0)
 
 
-def draw_text_background(text, font_id, x, y,margin, rounded, background_color, line_thickness):
+def draw_text_background(text, font_id, x, y, background_color):
     width = blf.dimensions(font_id, text)[0]
     height = blf.dimensions(font_id, string.printable)[1]
-    
-    #draw_rect(x, y - margin, x + width, y + height - margin, background_color)
-    draw_rounded_box(x - margin/2, y-margin/3*2, width + margin, height + margin, rounded, True, background_color,[True,True,True,True], line_thickness)
+    margin = height * 0.2
+
+    draw_rect(x, y - margin, x + width, y + height - margin, background_color)
 
 
 def draw_text(text, font_id, color, shadow=False, shadow_color=None):
@@ -484,7 +484,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS = 0.4
 
     # Draw area margin.
-    
     DRAW_AREA_MARGIN_LEFT = 15
     DRAW_AREA_MARGIN_RIGHT = 15
     DRAW_AREA_MARGIN_TOP = 15
@@ -598,13 +597,16 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         dw, _ = cls.calc_draw_area_size(context)
         dw -= cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
 
-        offset_x = 0.0
-        if prefs.align == 'CENTER':
-            offset_x = (dw - width) / 2.0
+        offset_x = cls.DRAW_AREA_MARGIN_LEFT
+        offset_y = cls.DRAW_AREA_MARGIN_BOTTOM + prefs.background_margin
+        if prefs.align == 'LEFT':
+            offset_x += prefs.background_margin
+        elif prefs.align == 'CENTER':
+            offset_x += (dw - width) / 2.0
         elif prefs.align == 'RIGHT':
-            offset_x = dw - width
+            offset_x += dw - width - prefs.background_margin
 
-        return offset_x + cls.DRAW_AREA_MARGIN_LEFT, cls.DRAW_AREA_MARGIN_BOTTOM
+        return offset_x, offset_y
 
     @classmethod
     def get_text_offset_for_alignment(cls, font_id, text, context):
@@ -761,7 +763,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                  --------------     --------------
         """
 
-        
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
         font_size = prefs.font_size
@@ -825,10 +826,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         draw_area_height += prefs.max_event_history * sh
 
         # Add margin.
-        draw_area_width += cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
-        draw_area_height += cls.DRAW_AREA_MARGIN_TOP + cls.DRAW_AREA_MARGIN_BOTTOM
-        
-        return draw_area_width, draw_area_height * prefs.background_margin + 19
+        draw_area_width += cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT + prefs.background_margin * 2
+        draw_area_height += cls.DRAW_AREA_MARGIN_TOP + cls.DRAW_AREA_MARGIN_BOTTOM + prefs.background_margin * 2
+
+        return draw_area_width, draw_area_height
 
     @classmethod
     def calc_draw_area_rect(cls, context):
@@ -941,7 +942,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         font_size = prefs.font_size
         font_id = 0
         dpi = compat.get_user_preferences(context).system.dpi
-        blf.size(font_id, font_size + prefs.background_margin + 19, dpi)
+        blf.size(font_id, font_size, dpi)
 
         scissor_box = bgl.Buffer(bgl.GL_INT, 4)
         bgl.glGetIntegerv(bgl.GL_SCISSOR_BOX, scissor_box)
@@ -965,9 +966,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if show_draw_area_background(prefs):
             draw_rounded_box(draw_area_min_x - region.x,
                              draw_area_min_y - region.y,
-                             draw_area_max_x - region.x,
-                             draw_area_max_y - region.y,
-                             True, prefs.background_color)
+                             draw_area_max_x - draw_area_min_x,
+                             draw_area_max_y - draw_area_min_y,
+                             prefs.background_round,
+                             True,
+                             prefs.background_color)
 
         # Draw last operator.
         operator_history = cls.removed_old_operator_history()
@@ -989,9 +992,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     offset_x, offset_y = cls.get_text_offset_for_alignment(font_id, text, context)
                     blf.position(font_id, x + offset_x, y + offset_y, 0)
                     if show_text_background(prefs):
-                        draw_text_background(text, font_id, x + offset_x, y + offset_y, 
-                                             prefs.background_margin + 19, prefs.background_round, 
-                                             prefs.background_color, prefs.line_thickness)
+                        draw_text_background(text, font_id, x + offset_x, y + offset_y, prefs.background_color)
                     draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
                     y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
 
@@ -1099,8 +1100,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             offset_x, offset_y = cls.get_text_offset_for_alignment(font_id, text, context)
             blf.position(font_id, x + offset_x, y + offset_y, 0)
             if show_text_background(prefs):
-                draw_text_background(text, font_id, x + offset_x, y + offset_y, prefs.background_margin + 19, 
-                                     prefs.background_round, prefs.background_color, prefs.line_thickness)
+                draw_text_background(text, font_id, x + offset_x, y + offset_y, prefs.background_color)
             draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
 
             y += sh

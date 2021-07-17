@@ -148,8 +148,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
     
     background_margin = bpy.props.IntProperty(
         name="Margin",
-        default=1,
-        min=1,
+        default=0,
+        min=0,
         max=1000
     )
 
