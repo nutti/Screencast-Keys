@@ -1540,6 +1540,9 @@ class SK_OT_WaitBlenderInitializedAndStartScreencastKeys(bpy.types.Operator):
 
     def execute(self, context):
         cls = self.__class__
+
+        # If we call bpy.ops.wm.sk_screencast_keys directly, no changes are made because bpy.context.area is not loaded at that moment. 
+        # Therefore, we need to call bpy.ops.wm.sk_screencast_keys with delay via co-routine method.
         cls.initialization_handler = bpy.types.SpaceView3D.draw_handler_add(cls.intialization_callback, (None, None), 'WINDOW', 'POST_PIXEL')
         debug_print("SK_OT_WaitBlenderInitializedAndStartScreencastKeys handler address: " + str(cls.initialization_handler))
         return {'FINISHED'}
