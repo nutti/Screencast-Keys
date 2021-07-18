@@ -298,6 +298,12 @@ class SK_Preferences(bpy.types.AddonPreferences):
         update=ui_in_sidebar_update_fn,
     )
 
+    enable_on_startup = bpy.props.BoolProperty(
+        name="Enable On Startup",
+        description="""Automatically enable Screencast Keys when blender is starting up""",
+        default=False
+    )
+
     show_ui_in_sidebar = bpy.props.BoolProperty(
         name="Sidebar",
         description="Show UI in Sidebar",
@@ -348,6 +354,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
         if self.category == 'CONFIG':
             layout.separator()
+
+            layout.prop(self, "enable_on_startup")
 
             column = layout.column()
             split = column.split()

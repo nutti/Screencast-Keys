@@ -57,19 +57,20 @@ import bpy
 
 
 addon_keymaps = []
+startup = True
 
 
 @bpy.app.handlers.persistent
-def load_pre_handler(scene):
-    """SK_OT_ScreencastKeys operation will remain running status when new .blend file is loaded.
-       It seems that events from timer is not issued after loading .blend file, but we could not
-       find the essential cause.
-       Instead, we solve this issue by using handler called at load_pre (i.e. before loading
-       .blend file)."""
+def load_post_handler(scene):
+    global startup
 
-    if ops.SK_OT_ScreencastKeys.is_running():
-        # Call invoke method also cleanup event handlers and draw handlers, so on.
-        bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN')
+    context = bpy.context
+    prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
+
+    if (prefs.enable_on_startup and startup) or (not startup and ops.SK_OT_ScreencastKeys.is_running()):
+        bpy.ops.wm.sk_wait_blender_initialized_and_start_screencast_keys()
+
+    startup = False
 
 
 def register_updater(bl_info):
@@ -151,7 +152,7 @@ def register():
     bpy.utils.register_class(ui.SK_PT_ScreencastKeys_Overlay)
     utils.bl_class_registry.BlClassRegistry.register()
     register_shortcut_key()
-    bpy.app.handlers.load_pre.append(load_pre_handler)
+    bpy.app.handlers.load_post.append(load_post_handler)
 
     # Apply preferences of UI.
     context = bpy.context
@@ -177,7 +178,7 @@ def register():
 
 
 def unregister():
-    bpy.app.handlers.load_pre.remove(load_pre_handler)
+    bpy.app.handlers.load_post.remove(load_post_handler)
     unregister_shortcut_key()
     # TODO: Unregister by BlClassRegistry
     utils.bl_class_registry.BlClassRegistry.unregister()
