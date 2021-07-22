@@ -145,6 +145,20 @@ class SK_Preferences(bpy.types.AddonPreferences):
         subtype='COLOR',
         size=3
     )
+    
+    background_margin = bpy.props.IntProperty(
+        name="Margin",
+        default=0,
+        min=0,
+        max=1000
+    )
+
+    background_round = bpy.props.IntProperty(
+        name="Coner round",
+        default=0,
+        min=0,
+        max=100,
+    )
 
     font_size = bpy.props.IntProperty(
         name="Font Size",
@@ -362,6 +376,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
                 sp.prop(self, "background_mode", text="")
                 sp = compat.layout_split(sp, factor=1.0)
                 sp.prop(self, "background_color", text="")
+                col.prop(self, "background_margin")
+                col.prop(self, "background_round")
             col.prop(self, "font_size")
             col.prop(self, "line_thickness")
             if show_mouse_hold_status(self):
