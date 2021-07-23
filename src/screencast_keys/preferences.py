@@ -145,6 +145,22 @@ class SK_Preferences(bpy.types.AddonPreferences):
         subtype='COLOR',
         size=3
     )
+    
+    background_margin = bpy.props.IntProperty(
+        name="Background Margin",
+        description="Margin for a Background",
+        default=0,
+        min=0,
+        max=1000
+    )
+
+    background_rounded_corner_radius = bpy.props.IntProperty(
+        name="Background Rounded Corner Radius",
+        description="Radius of a Rounded Radius for a Background",
+        default=0,
+        min=0,
+        max=100,
+    )
 
     font_size = bpy.props.IntProperty(
         name="Font Size",
@@ -361,15 +377,20 @@ class SK_Preferences(bpy.types.AddonPreferences):
             split = column.split()
             col = split.column()
             col.prop(self, "color")
+            col.separator()
             col.prop(self, "shadow")
             if self.shadow:
                 col.prop(self, "shadow_color", text="")
+            col.separator()
             col.prop(self, "background")
             if self.background:
                 sp = compat.layout_split(col, factor=0.5)
                 sp.prop(self, "background_mode", text="")
                 sp = compat.layout_split(sp, factor=1.0)
                 sp.prop(self, "background_color", text="")
+                col.prop(self, "background_margin", text="Margin")
+                col.prop(self, "background_rounded_corner_radius", text="Corner Radius")
+            col.separator()
             col.prop(self, "font_size")
             col.prop(self, "line_thickness")
             if show_mouse_hold_status(self):
@@ -377,16 +398,23 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
             col = split.column()
             col.prop(self, "origin")
+
+            col.separator()
             col.prop(self, "align")
+            col.separator()
             col.prop(self, "offset")
+            col.separator()
             col.prop(self, "display_time")
 
             col = split.column()
             col.prop(self, "max_event_history")
+            col.separator()
             col.prop(self, "repeat_count")
+            col.separator()
             col.prop(self, "show_mouse_events")
             if self.show_mouse_events:
                 col.prop(self, "mouse_events_show_mode")
+            col.separator()
             col.prop(self, "show_last_operator")
             if self.show_last_operator:
                 col.prop(self, "last_operator_show_mode")
@@ -403,6 +431,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
                     col.label(text="Panel Location:")
                     col.prop(self, "panel_space_type")
                     col.prop(self, "panel_category")
+
+                col.separator()
 
                 col.prop(self, "show_ui_in_overlay")
 
