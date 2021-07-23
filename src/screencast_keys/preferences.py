@@ -147,14 +147,16 @@ class SK_Preferences(bpy.types.AddonPreferences):
     )
     
     background_margin = bpy.props.IntProperty(
-        name="Margin",
+        name="Background Margin",
+        description="Margin for a Background",
         default=0,
         min=0,
         max=1000
     )
 
-    background_round = bpy.props.IntProperty(
-        name="Coner round",
+    background_rounded_corner_radius = bpy.props.IntProperty(
+        name="Background Rounded Corner Radius",
+        description="Radius of a Rounded Radius for a Background",
         default=0,
         min=0,
         max=100,
@@ -376,8 +378,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
                 sp.prop(self, "background_mode", text="")
                 sp = compat.layout_split(sp, factor=1.0)
                 sp.prop(self, "background_color", text="")
-                col.prop(self, "background_margin")
-                col.prop(self, "background_round")
+                col.prop(self, "background_margin", text="Margin")
+                col.prop(self, "background_rounded_corner_radius", text="Corner Radius")
             col.prop(self, "font_size")
             col.prop(self, "line_thickness")
             if show_mouse_hold_status(self):

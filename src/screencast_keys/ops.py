@@ -219,18 +219,19 @@ def draw_rect(x1, y1, x2, y2, color):
     bgl.glColor3f(1.0, 1.0, 1.0)
 
 
-def draw_text_background(text, font_id, x, y, background_color, padding=0, round_radius=0):
+def draw_text_background(text, font_id, x, y, background_color,
+                         background_margin=0, round_radius=0):
     width = blf.dimensions(font_id, text)[0]
     height = blf.dimensions(font_id, string.printable)[1]
     margin = height * 0.2
 
     if round_radius == 0:
-        draw_rect(x - padding, y - margin - padding,
-                  x + width + padding, y + height - margin + padding,
+        draw_rect(x - background_margin, y - margin - background_margin,
+                  x + width + background_margin, y + height - margin + background_margin,
                   background_color)
     else:
-        draw_rounded_box(x - padding, y - margin - padding,
-                         width + padding * 2, height + padding * 2,
+        draw_rounded_box(x - background_margin, y - margin - background_margin,
+                         width + background_margin * 2, height + background_margin * 2,
                          round_radius, True, background_color)
 
 
@@ -747,20 +748,20 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     @classmethod
     def calc_draw_text_area_width(cls, context, text, font_id):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
-        padding = prefs.background_margin
+        background_margin = prefs.background_margin
 
         sw = blf.dimensions(font_id, text)[0]
-        width = sw + padding * 2
+        width = sw + background_margin * 2
 
         return width
 
     @classmethod
     def calc_draw_text_area_height(cls, context, font_id):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
-        padding = prefs.background_margin
+        background_margin = prefs.background_margin
 
         sh = blf.dimensions(font_id, string.printable)[1]
-        height = sh + padding * 2
+        height = sh + background_margin * 2
 
         return height
 
@@ -995,7 +996,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                              draw_area_min_y - region.y,
                              draw_area_max_x - draw_area_min_x,
                              draw_area_max_y - draw_area_min_y,
-                             prefs.background_round,
+                             prefs.background_rounded_corner_radius,
                              True,
                              prefs.background_color)
 
@@ -1023,7 +1024,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                                              x + offset_x,
                                              y + offset_y,
                                              prefs.background_color, prefs.background_margin,
-                                             prefs.background_round)
+                                             prefs.background_rounded_corner_radius)
                     draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
                     y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
 
@@ -1135,7 +1136,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                                      x + offset_x,
                                      y + offset_y,
                                      prefs.background_color, prefs.background_margin,
-                                     prefs.background_round)
+                                     prefs.background_rounded_corner_radius)
             draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
 
             y += sh
