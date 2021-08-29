@@ -71,3 +71,6 @@ Support via [GitHub Sponsors](https://github.com/sponsors/nutti)
 ### Contributors
 
 * [**@Hawkpath**](https://github.com/Hawkpath)
+* [**@kant**](https://github.com/kant)
+* [**@CheeryLee**](https://github.com/CheeryLee)
+* [**@Kureii**](https://github.com/Kureii)
