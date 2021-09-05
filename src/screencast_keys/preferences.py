@@ -145,14 +145,6 @@ class SK_Preferences(bpy.types.AddonPreferences):
         subtype='COLOR',
         size=3
     )
-    
-    background_margin = bpy.props.IntProperty(
-        name="Background Margin",
-        description="Margin for a Background",
-        default=0,
-        min=0,
-        max=1000
-    )
 
     background_rounded_corner_radius = bpy.props.IntProperty(
         name="Background Rounded Corner Radius",
@@ -166,6 +158,14 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Font Size",
         default=compat.get_user_preferences(bpy.context).ui_styles[0].widget.points,
         min=6,
+        max=1000
+    )
+
+    margin = bpy.props.IntProperty(
+        name="Margin",
+        description="Margin",
+        default=0,
+        min=0,
         max=1000
     )
 
@@ -270,9 +270,15 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default=True,
     )
 
-    debug_mode = bpy.props.BoolProperty(
-        name="Debug Mode",
-        description="Debug mode (Output log messages for add-on's developers)",
+    output_debug_log = bpy.props.BoolProperty(
+        name="Output Debug Log",
+        description="(Debug) Output log messages",
+        default=False
+    )
+
+    display_draw_area = bpy.props.BoolProperty(
+        name="Display Draw Area",
+        description="(Debug) Display draw area",
         default=False
     )
 
@@ -388,10 +394,10 @@ class SK_Preferences(bpy.types.AddonPreferences):
                 sp.prop(self, "background_mode", text="")
                 sp = compat.layout_split(sp, factor=1.0)
                 sp.prop(self, "background_color", text="")
-                col.prop(self, "background_margin", text="Margin")
                 col.prop(self, "background_rounded_corner_radius", text="Corner Radius")
             col.separator()
             col.prop(self, "font_size")
+            col.prop(self, "margin")
             col.prop(self, "line_thickness")
             if show_mouse_hold_status(self):
                 col.prop(self, "mouse_size")
@@ -447,7 +453,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
             layout.label(text="Development:")
             col = layout.column()
-            col.prop(self, "debug_mode")
+            col.prop(self, "output_debug_log")
+            col.prop(self, "display_draw_area")
 
         elif self.category == 'DISPLAY_EVENT_TEXT_ALIAS':
             layout.separator()

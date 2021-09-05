@@ -60,12 +60,12 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
             sp.prop(prefs, "background_mode", text="")
             sp = compat.layout_split(sp, factor=1.0)
             sp.prop(prefs, "background_color", text="")
-            column.prop(prefs, "background_margin", text="Margin")
             column.prop(prefs, "background_rounded_corner_radius", text="Corner Radius")
 
         column.separator()
 
         column.prop(prefs, "font_size")
+        column.prop(prefs, "margin")
         column.prop(prefs, "line_thickness")
         if show_mouse_hold_status(prefs):
             column.prop(prefs, "mouse_size")

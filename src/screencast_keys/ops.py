@@ -34,7 +34,7 @@ import blf
 import bpy
 import bpy.props
 
-from .common import debug_print, fix_modifier_display_text, use_3d_polyline
+from .common import debug_print, fix_modifier_display_text, output_debug_log, use_3d_polyline
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 from .utils import c_structures
@@ -220,18 +220,18 @@ def draw_rect(x1, y1, x2, y2, color):
 
 
 def draw_text_background(text, font_id, x, y, background_color,
-                         background_margin=0, round_radius=0):
+                         margin=0, round_radius=0):
     width = blf.dimensions(font_id, text)[0]
     height = blf.dimensions(font_id, string.printable)[1]
-    margin = height * 0.2
+    correction = height * 0.2
 
     if round_radius == 0:
-        draw_rect(x - background_margin, y - margin - background_margin,
-                  x + width + background_margin, y + height - margin + background_margin,
+        draw_rect(x - margin, y - correction - margin,
+                  x + width + margin, y + height - correction + margin,
                   background_color)
     else:
-        draw_rounded_box(x - background_margin, y - margin - background_margin,
-                         width + background_margin * 2, height + background_margin * 2,
+        draw_rounded_box(x - margin, y - correction - margin,
+                         width + margin * 2, height + margin * 2,
                          round_radius, True, background_color)
 
 
@@ -605,28 +605,28 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return cls.operator_history[-32:]
 
     @classmethod
-    def get_offset_for_alignment(cls, width, context):
+    def get_offset_for_alignment(cls, context, width, margin=0):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
         dw, _ = cls.calc_draw_area_size(context)
         dw -= cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
 
         offset_x = cls.DRAW_AREA_MARGIN_LEFT
-        offset_y = cls.DRAW_AREA_MARGIN_BOTTOM + prefs.background_margin
+        offset_y = cls.DRAW_AREA_MARGIN_BOTTOM + margin
         if prefs.align == 'LEFT':
-            offset_x += prefs.background_margin
+            offset_x += margin
         elif prefs.align == 'CENTER':
-            offset_x += (dw - width) / 2.0
+            offset_x += (dw - width) / 2.0 + margin
         elif prefs.align == 'RIGHT':
-            offset_x += dw - width - prefs.background_margin
+            offset_x += dw - width + margin
 
         return offset_x, offset_y
 
     @classmethod
-    def get_text_offset_for_alignment(cls, font_id, text, context):
+    def get_text_offset_for_alignment(cls, context, font_id, text, margin=0):
         tw = blf.dimensions(font_id, text)[0]
 
-        return cls.get_offset_for_alignment(tw, context)
+        return cls.get_offset_for_alignment(context, tw, margin)
 
     @classmethod
     def get_origin(cls, context):
@@ -752,24 +752,103 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return None, None, None, 0, 0
 
     @classmethod
-    def calc_draw_text_area_width(cls, context, text, font_id):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
-        background_margin = prefs.background_margin
-
-        sw = blf.dimensions(font_id, text)[0]
-        width = sw + background_margin * 2
-
-        return width
+    def calc_draw_text_area_width(cls, text, font_id):
+        return blf.dimensions(font_id, text)[0]
 
     @classmethod
-    def calc_draw_text_area_height(cls, context, font_id):
+    def calc_draw_text_area_height(cls, font_id):
+        return blf.dimensions(font_id, string.printable)[1]
+
+    @classmethod
+    def _calc_draw_area_size_last_operator_layer(cls, context, font_id):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
-        background_margin = prefs.background_margin
 
-        sh = blf.dimensions(font_id, string.printable)[1]
-        height = sh + background_margin * 2
+        operator_history = cls.removed_old_operator_history()
+        sh = cls.calc_draw_text_area_height(font_id) + prefs.margin * 2
 
-        return height
+        if not operator_history:
+            layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+            return 0, layer_height
+
+        current_time = time.time()
+        time_, bl_label, idname_py, _ = operator_history[-1]
+        if current_time - time_ > prefs.display_time:
+            layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+            return 0, layer_height
+
+        operator_text = ""
+        if prefs.last_operator_show_mode == 'LABEL':
+            operator_text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+        elif prefs.last_operator_show_mode == 'IDNAME':
+            operator_text += "{}".format(idname_py)
+        elif prefs.last_operator_show_mode == 'LABEL_AND_IDNAME':
+            operator_text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+            operator_text += " ('{}')".format(idname_py)
+
+        layer_width = cls.calc_draw_text_area_width(operator_text, font_id) + prefs.margin * 2
+        layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+
+        return layer_width, layer_height
+
+    @classmethod
+    def _calc_draw_area_size_mouse_and_hold_modifier_keys_layer(cls, context, font_id):
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        drawing = False     # TODO: Need to check if drawing is now on progress.
+        modifier_keys_box_margin = cls.calc_draw_text_area_height(font_id) * cls.MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX
+
+        # Setup hold modifier keys text
+        modifier_keys_text = ""
+        if cls.hold_modifier_keys or drawing:
+            mod_keys = cls.sorted_modifier_keys(cls.hold_modifier_keys)
+            if drawing:
+                modifier_keys_text = ""
+            else:
+                modifier_keys_text = " + ".join(mod_keys)
+
+        mouse_width = 0.0
+        mouse_height = 0.0
+        hold_modifier_keys_width = 0.0
+        hold_modifier_keys_height = 0.0
+        separator_width = 0.0
+        if show_mouse_hold_status(prefs):
+            mouse_width = prefs.mouse_size
+            mouse_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
+        if cls.hold_modifier_keys:
+            if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
+                separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+            hold_modifier_keys_width = cls.calc_draw_text_area_width(modifier_keys_text, font_id) + modifier_keys_box_margin * 2
+            hold_modifier_keys_height = cls.calc_draw_text_area_height(font_id) + modifier_keys_box_margin * 2
+
+        layer_width = mouse_width + separator_width + hold_modifier_keys_width + prefs.margin * 2
+        layer_height = max(mouse_height, hold_modifier_keys_height) + prefs.margin * 2
+
+        return layer_width, layer_height
+
+    @classmethod
+    def _calc_draw_area_size_event_history_layer(cls, context, font_id):
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        sh = cls.calc_draw_text_area_height(font_id) + prefs.margin * 2
+
+        layer_width = 0.0
+        layer_height = 0.0
+
+        event_history = cls.removed_old_event_history()
+        layer_height += cls.calc_draw_text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
+        for _, event_type, modifiers, repeat_count in event_history[::-1]:
+            text = get_display_event_text(event_type.name)
+            if modifiers:
+                mod_keys = cls.sorted_modifier_keys(modifiers)
+                text = "{} + {}".format(" + ".join(mod_keys), text)
+            if repeat_count > 1:
+                text += " x{}".format(repeat_count)
+
+            text_width = cls.calc_draw_text_area_width(text, font_id) + prefs.margin * 2
+            layer_width = max(text_width, layer_width)
+            layer_height += sh
+
+        return layer_width, layer_height
 
     @classmethod
     def calc_draw_area_size(cls, context):
@@ -804,64 +883,29 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         dpi = compat.get_user_preferences(context).system.dpi
         blf.size(font_id, font_size, dpi)
 
-        # Get string height in draw area.
-        sh = cls.calc_draw_text_area_height(context, font_id)
-
         # Calculate width/height of draw area.
         draw_area_width = 0
         draw_area_height = 0
 
         # Last operator.
         if prefs.show_last_operator:
-            operator_history = cls.removed_old_operator_history()
-            if operator_history:
-                _, name, idname_py, _ = operator_history[-1]
-                text = bpy.app.translations.pgettext(name, "Operator")
-                text += " ('{}')".format(idname_py)
-
-                sw = cls.calc_draw_text_area_width(context, text, font_id)
-                draw_area_width = max(draw_area_width, sw)
-            draw_area_height += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+            w, h = cls._calc_draw_area_size_last_operator_layer(context, font_id)
+            draw_area_width = max(w, draw_area_width)
+            draw_area_height += h
 
         # Hold mouse status / Hold modifier keys.
-        mouse_hold_status_width = 0.0
-        mouse_hold_status_height = 0.0
-        if show_mouse_hold_status(prefs):
-            mouse_hold_status_width = prefs.mouse_size
-            mouse_hold_status_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
-
-        margin = sh * cls.MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX
-        tw = mouse_hold_status_width
-        if cls.hold_modifier_keys:
-            mod_names = cls.sorted_modifier_keys(cls.hold_modifier_keys)
-            text = " + ".join(mod_names)
-            tw += blf.dimensions(font_id, text)[0] + margin * 2 + \
-                mouse_hold_status_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS
-
-        draw_area_width = max(draw_area_width, tw)
-        if mouse_hold_status_height > sh:
-            draw_area_height += mouse_hold_status_height + margin * 2
-        else:
-            draw_area_height += sh + margin * 2
+        w, h = cls._calc_draw_area_size_mouse_and_hold_modifier_keys_layer(context, font_id)
+        draw_area_width = max(w, draw_area_width)
+        draw_area_height += h
 
         # Event history.
-        event_history = cls.removed_old_event_history()
-        draw_area_height += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
-        for _, event_type, modifiers, repeat_count in event_history[::-1]:
-            text = get_display_event_text(event_type.name)
-            if modifiers:
-                mod_keys = cls.sorted_modifier_keys(modifiers)
-                text = "{} + {}".format(" + ".join(mod_keys), text)
-            if repeat_count > 1:
-                text += " x{}".format(repeat_count)
-
-            sw = cls.calc_draw_text_area_width(context, text, font_id)
-            draw_area_width = max(draw_area_width, sw)
-        draw_area_height += prefs.max_event_history * sh
+        w, h = cls._calc_draw_area_size_event_history_layer(context, font_id)
+        draw_area_width = max(w, draw_area_width)
+        draw_area_height += h
 
         # Add margin.
-        draw_area_width += cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT + prefs.background_margin * 2
-        draw_area_height += cls.DRAW_AREA_MARGIN_TOP + cls.DRAW_AREA_MARGIN_BOTTOM + prefs.background_margin * 2
+        draw_area_width += cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
+        draw_area_height += cls.DRAW_AREA_MARGIN_TOP + cls.DRAW_AREA_MARGIN_BOTTOM
 
         return draw_area_width, draw_area_height
 
@@ -938,6 +982,224 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return regions
 
     @classmethod
+    def _draw_last_operator_layer(cls, context, font_id, x, y):
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        operator_history = cls.removed_old_operator_history()
+        sh = cls.calc_draw_text_area_height(font_id) + prefs.margin * 2
+
+        if not operator_history:
+            layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+            return 0, layer_height, False
+
+        current_time = time.time()
+        time_, bl_label, idname_py, _ = operator_history[-1]
+        if current_time - time_ > prefs.display_time:
+            layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+            return 0, layer_height, False
+
+        compat.set_blf_font_color(font_id, *prefs.color, 1.0)
+
+        # Setup operator text.
+        operator_text = ""
+        if prefs.last_operator_show_mode == 'LABEL':
+            operator_text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+        elif prefs.last_operator_show_mode == 'IDNAME':
+            operator_text += "{}".format(idname_py)
+        elif prefs.last_operator_show_mode == 'LABEL_AND_IDNAME':
+            operator_text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+            operator_text += " ('{}')".format(idname_py)
+
+        # Setup draw target position
+        operator_start_x = x
+        operator_start_y = y
+        operator_width = cls.calc_draw_text_area_width(operator_text, font_id) + prefs.margin * 2
+        operator_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
+        separator_start_x = operator_start_x
+        separator_start_y = operator_start_y + operator_height
+        separator_line_width = blf.dimensions(font_id, "Left Mouse")[0]
+        separator_width = separator_line_width + prefs.margin * 2
+        separator_height = sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.8
+
+        layer_width = max(operator_width, separator_width)
+        layer_height = operator_height + separator_height
+
+        operator_offset_x, operator_offset_y = cls.get_offset_for_alignment(context, operator_width, prefs.margin)
+        separator_offset_x, separator_offset_y = cls.get_offset_for_alignment(context, separator_width, prefs.margin)
+        operator_start_x += operator_offset_x
+        operator_start_y += operator_offset_y
+        separator_start_x += separator_offset_x
+        separator_start_y += separator_offset_y
+
+        # Draw operator history.
+        blf.position(font_id, operator_start_x, operator_start_y, 0)
+        if show_text_background(prefs):
+            draw_text_background(operator_text, font_id,
+                                 operator_start_x,
+                                 operator_start_y,
+                                 prefs.background_color, prefs.margin,
+                                 prefs.background_rounded_corner_radius)
+        draw_text(operator_text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
+
+        # Draw separator.
+        draw_line([separator_start_x, separator_start_y],
+                  [separator_start_x + separator_line_width, separator_start_y],
+                  prefs.color, prefs.shadow, prefs.shadow_color,
+                  prefs.line_thickness)
+
+        return layer_width, layer_height, True
+
+    @classmethod
+    def _draw_mouse_and_hold_modifier_keys_layer(cls, context, font_id, x, y):
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        drawing = False     # TODO: Need to check if drawing is now on progress.
+        compat.set_blf_font_color(font_id, *prefs.color, 1.0)
+        modifier_keys_box_margin = cls.calc_draw_text_area_height(font_id) * cls.MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX
+        region_redraw = False
+
+        # Setup hold modifier keys text
+        modifier_keys_text = ""
+        if cls.hold_modifier_keys or drawing:
+            mod_keys = cls.sorted_modifier_keys(cls.hold_modifier_keys)
+            if drawing:
+                modifier_keys_text = ""
+            else:
+                modifier_keys_text = " + ".join(mod_keys)
+
+        # Setup draw target position
+        mouse_start_x = 0.0
+        mouse_start_y = 0.0
+        mouse_icon_width = 0.0
+        mouse_icon_height = 0.0
+        mouse_width = 0.0
+        mouse_height = 0.0
+        hold_modifier_keys_start_x = 0.0
+        hold_modifier_keys_start_y = 0.0
+        hold_modifier_keys_width = 0.0
+        hold_modifier_keys_height = 0.0
+        separator_width = 0.0
+        if show_mouse_hold_status(prefs):
+            mouse_start_x = x
+            mouse_start_y = y
+            mouse_icon_width = prefs.mouse_size
+            mouse_icon_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
+            mouse_width = mouse_icon_width
+            mouse_height = mouse_icon_height
+        if cls.hold_modifier_keys:
+            if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
+                separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+            hold_modifier_keys_start_x = x + mouse_icon_width + separator_width
+            hold_modifier_keys_start_y = y
+            hold_modifier_keys_text_width = cls.calc_draw_text_area_width(modifier_keys_text, font_id) + modifier_keys_box_margin * 2
+            hold_modifier_keys_text_height = cls.calc_draw_text_area_height(font_id) + modifier_keys_box_margin * 2
+            hold_modifier_keys_width = hold_modifier_keys_text_width
+            hold_modifier_keys_height = hold_modifier_keys_text_height
+
+        layer_width = mouse_width + separator_width + hold_modifier_keys_width + prefs.margin * 2
+        layer_height = max(mouse_height, hold_modifier_keys_height) + prefs.margin * 2
+
+        offset_x, offset_y = cls.get_offset_for_alignment(context, layer_width, prefs.margin)
+        mouse_start_x += offset_x
+        mouse_start_y += offset_y
+        hold_modifier_keys_start_x += offset_x
+        hold_modifier_keys_start_y += offset_y
+
+        if mouse_height > hold_modifier_keys_height:
+            hold_modifier_keys_start_y += (mouse_height - hold_modifier_keys_height) / 2
+        else:
+            mouse_start_y += (hold_modifier_keys_height - mouse_height) / 2
+
+        # Draw hold mouse status.
+        if show_mouse_hold_status(prefs):
+            draw_mouse(mouse_start_x, mouse_start_y,
+                       mouse_icon_width, mouse_icon_height,
+                       cls.hold_mouse_buttons['LEFTMOUSE'],
+                       cls.hold_mouse_buttons['RIGHTMOUSE'],
+                       cls.hold_mouse_buttons['MIDDLEMOUSE'],
+                       prefs.color,
+                       prefs.mouse_size * 0.5,
+                       fill=prefs.background,
+                       fill_color=prefs.background_color,
+                       line_thickness=prefs.line_thickness)
+
+        # Draw hold modifier keys.
+        if cls.hold_modifier_keys or drawing:
+            hold_modifier_keys_text_start_x = hold_modifier_keys_start_x + modifier_keys_box_margin
+            hold_modifier_keys_text_start_y = hold_modifier_keys_start_y + modifier_keys_box_margin
+
+            if show_text_background(prefs):
+                draw_text_background(modifier_keys_text, font_id,
+                                     hold_modifier_keys_text_start_x,
+                                     hold_modifier_keys_text_start_y + modifier_keys_box_margin,
+                                     prefs.background_color, prefs.margin,
+                                     prefs.background_rounded_corner_radius)
+            else:
+                # Draw rounded box.
+                draw_rounded_box(hold_modifier_keys_start_x, hold_modifier_keys_start_y,
+                                 hold_modifier_keys_text_width, hold_modifier_keys_text_height,
+                                 hold_modifier_keys_text_height * 0.2,
+                                 show_text_background(prefs),
+                                 prefs.background_color if show_text_background(prefs) else prefs.color,
+                                 line_thickness=prefs.line_thickness)
+
+            # Draw modifier key text.
+            blf.position(font_id,
+                         hold_modifier_keys_text_start_x,
+                         hold_modifier_keys_text_start_y + modifier_keys_box_margin,
+                         0)
+            draw_text(modifier_keys_text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
+            bgl.glColor4f(*prefs.color, 1.0)
+
+            region_redraw = True
+
+        return layer_width, layer_height, region_redraw
+
+    @classmethod
+    def _draw_event_history_layer(cls, context, font_id, x, y):
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        sh = cls.calc_draw_text_area_height(font_id) + prefs.margin * 2
+        region_drawn = False
+        color = prefs.color
+        compat.set_blf_font_color(font_id, *color, 1.0)
+
+        layer_width = 0.0
+        layer_height = 0.0
+        event_start_x = x
+        event_start_y = y
+
+        event_history = cls.removed_old_event_history()
+        layer_height += cls.calc_draw_text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
+        event_start_y += cls.calc_draw_text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
+        for _, event_type, modifiers, repeat_count in event_history[::-1]:
+            text = get_display_event_text(event_type.name)
+            if modifiers:
+                mod_keys = cls.sorted_modifier_keys(modifiers)
+                text = "{} + {}".format(" + ".join(mod_keys), text)
+            if repeat_count > 1:
+                text += " x{}".format(repeat_count)
+
+            text_width = cls.calc_draw_text_area_width(text, font_id) + prefs.margin * 2
+            offset_x, offset_y = cls.get_offset_for_alignment(context, text_width, prefs.margin)
+            blf.position(font_id, event_start_x + offset_x, event_start_y + offset_y, 0)
+            if show_text_background(prefs):
+                draw_text_background(text, font_id,
+                                     event_start_x + offset_x,
+                                     event_start_y + offset_y,
+                                     prefs.background_color, prefs.margin,
+                                     prefs.background_rounded_corner_radius)
+            draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
+
+            layer_width = max(text_width, layer_width)
+            layer_height += sh
+            event_start_y += sh
+
+            region_drawn = True
+
+        return layer_width, layer_height, region_drawn
+
+    @classmethod
     def draw_callback(cls, context):
         prefs = compat.get_user_preferences(context).addons[__package__].preferences
 
@@ -970,7 +1232,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             # We don't need to draw if draw area is not overlapped with region.
             return
 
-        current_time = time.time()
         region_drawn = False
 
         font_size = prefs.font_size
@@ -987,8 +1248,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             x_min, y_min, x_max, y_max = get_region_rect_on_v3d(context)
             bgl.glScissor(x_min, y_min, x_max - x_min + 1, y_max - y_min + 1)
 
-        # Get string height in draw area.
-        sh = cls.calc_draw_text_area_height(context, font_id)
+        # Get start position to render.
         x = origin_x - region.x
         y = origin_y - region.y
 
@@ -1006,148 +1266,45 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                              True,
                              prefs.background_color)
 
+        def check_draw_status(cls, context, font_id, layer_name, calc_fn,
+                              draw_x, draw_y, draw_w, draw_h):
+            prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+            if prefs.display_draw_area:
+                offset_x, offset_y = cls.get_offset_for_alignment(context, draw_w)
+                draw_rounded_box(draw_x + offset_x,
+                                 draw_y + offset_y,
+                                 draw_w, draw_h, 0, color=[1.0, 0.0, 0.0])
+            if output_debug_log():
+                calc_w, calc_h = calc_fn(context, font_id)
+                if (abs(draw_w - calc_w) >= 0.0001) or (abs(draw_h - calc_h) >= 0.0001):
+                    debug_print("Draw area size mismatch. "
+                                "[Layer: {} -> (w, h) = ({}, {}), (calc_w, calc_h) = ({}, {})]"
+                                .format(layer_name, draw_w, draw_h, calc_w, calc_h))
+
         # Draw last operator.
-        operator_history = cls.removed_old_operator_history()
         if prefs.show_last_operator:
-            if operator_history:
-                time_, bl_label, idname_py, _ = operator_history[-1]
-                if current_time - time_ <= prefs.display_time:
-                    compat.set_blf_font_color(font_id, *prefs.color, 1.0)
+            w, h, rd = cls._draw_last_operator_layer(context, font_id, x, y)
+            check_draw_status(cls, context, font_id, "Last Operator",
+                              cls._calc_draw_area_size_last_operator_layer,
+                              x, y, w, h)
+            y += h
+            region_drawn = region_drawn if region_drawn else rd
 
-                    # Draw operator text.
-                    text = ""
-                    if prefs.last_operator_show_mode == 'LABEL':
-                        text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
-                    elif prefs.last_operator_show_mode == 'IDNAME':
-                        text += "{}".format(idname_py)
-                    elif prefs.last_operator_show_mode == 'LABEL_AND_IDNAME':
-                        text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
-                        text += " ('{}')".format(idname_py)
-                    offset_x, offset_y = cls.get_text_offset_for_alignment(font_id, text, context)
-                    blf.position(font_id, x + offset_x, y + offset_y, 0)
-                    if show_text_background(prefs):
-                        draw_text_background(text, font_id,
-                                             x + offset_x,
-                                             y + offset_y,
-                                             prefs.background_color, prefs.background_margin,
-                                             prefs.background_rounded_corner_radius)
-                    draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
-                    y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
-
-                    # Draw separator.
-                    sw = blf.dimensions(font_id, "Left Mouse")[0]
-                    offset_x, offset_y = cls.get_offset_for_alignment(sw, context)
-                    draw_line([x + offset_x, y + offset_y],
-                              [x + sw + offset_x, y + offset_y],
-                              prefs.color, prefs.shadow, prefs.shadow_color,
-                              prefs.line_thickness)
-                    y += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.8
-
-                    region_drawn = True
-                else:   # if current_time - time_ <= prefs.display_time:
-                    y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
-            else:   # if operator_history:
-                y += sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
-
-        # Draw hold modifier keys.
-        drawing = False     # TODO: Need to check if drawing is now on progress.
-        compat.set_blf_font_color(font_id, *prefs.color, 1.0)
-        margin = sh * cls.MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX
-
-        # Calculate width which includes mouse size
-        text_and_mouse_width = 0
-        modifier_keys_text = ""
-        if cls.hold_modifier_keys or drawing:
-            mod_keys = cls.sorted_modifier_keys(cls.hold_modifier_keys)
-            if drawing:
-                modifier_keys_text = ""
-            else:
-                modifier_keys_text = " + ".join(mod_keys)
-            text_and_mouse_width = blf.dimensions(font_id, modifier_keys_text)[0] + margin * 2
-
-        mouse_hold_status_width = 0.0
-        mouse_hold_status_height = 0.0
-        offset_x_for_hold_modifier_keys = 0
-        offset_y_for_hold_modifier_keys = 0
-        if show_mouse_hold_status(prefs):
-            mouse_hold_status_width = prefs.mouse_size
-            mouse_hold_status_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
-            offset_x_for_hold_modifier_keys = mouse_hold_status_width + \
-                mouse_hold_status_width * \
-                    cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS
-            offset_y_for_hold_modifier_keys = (mouse_hold_status_height - sh) / 2
-            text_and_mouse_width += mouse_hold_status_width
-            if cls.hold_modifier_keys:
-                text_and_mouse_width += mouse_hold_status_width * \
-                    cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS
-        offset_x, offset_y = cls.get_offset_for_alignment(text_and_mouse_width, context)
-
-        # Draw hold mouse status.
-        if show_mouse_hold_status(prefs):
-            draw_mouse(x + offset_x, y + offset_y,
-                       mouse_hold_status_width, mouse_hold_status_height,
-                       cls.hold_mouse_buttons['LEFTMOUSE'],
-                       cls.hold_mouse_buttons['RIGHTMOUSE'],
-                       cls.hold_mouse_buttons['MIDDLEMOUSE'],
-                       prefs.color,
-                       prefs.mouse_size * 0.5,
-                       fill=prefs.background,
-                       fill_color=prefs.background_color,
-                       line_thickness=prefs.line_thickness)
-
-        # Draw hold modifier keys.
-        if cls.hold_modifier_keys or drawing:
-            # Draw rounded box.
-            box_height = sh + margin * 2
-            box_width = blf.dimensions(font_id, modifier_keys_text)[0] + margin * 2
-            draw_rounded_box(x + offset_x + offset_x_for_hold_modifier_keys,
-                             y + offset_y - margin + offset_y_for_hold_modifier_keys,
-                             box_width, box_height, box_height * 0.2,
-                             show_text_background(prefs),
-                             prefs.background_color if show_text_background(prefs) else prefs.color,
-                             line_thickness=prefs.line_thickness)
-
-            # Draw modifier key text.
-            blf.position(font_id,
-                         x + margin + offset_x + offset_x_for_hold_modifier_keys,
-                         y + margin + offset_y + offset_y_for_hold_modifier_keys, 0)
-            draw_text(modifier_keys_text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
-            bgl.glColor4f(*prefs.color, 1.0)
-
-            region_drawn = True
-
-        if mouse_hold_status_height > sh:
-            y += mouse_hold_status_height + margin * 2
-        else:
-            y += sh + margin * 2
+        # Draw mouse and hold modifier keys
+        w, h, rd = cls._draw_mouse_and_hold_modifier_keys_layer(context, font_id, x, y)
+        check_draw_status(cls, context, font_id, "Mouse and Hold Modifier Keys",
+                          cls._calc_draw_area_size_mouse_and_hold_modifier_keys_layer,
+                          x, y, w, h)
+        y += h
+        region_drawn = region_drawn if region_drawn else rd
 
         # Draw event history.
-        event_history = cls.removed_old_event_history()
-        y += sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
-        for _, event_type, modifiers, repeat_count in event_history[::-1]:
-            color = prefs.color
-            compat.set_blf_font_color(font_id, *color, 1.0)
-
-            text = get_display_event_text(event_type.name)
-            if modifiers:
-                mod_keys = cls.sorted_modifier_keys(modifiers)
-                text = "{} + {}".format(" + ".join(mod_keys), text)
-            if repeat_count > 1:
-                text += " x{}".format(repeat_count)
-
-            offset_x, offset_y = cls.get_text_offset_for_alignment(font_id, text, context)
-            blf.position(font_id, x + offset_x, y + offset_y, 0)
-            if show_text_background(prefs):
-                draw_text_background(text, font_id,
-                                     x + offset_x,
-                                     y + offset_y,
-                                     prefs.background_color, prefs.background_margin,
-                                     prefs.background_rounded_corner_radius)
-            draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
-
-            y += sh
-
-            region_drawn = True
+        w, h, rd = cls._draw_event_history_layer(context, font_id, x, y)
+        check_draw_status(cls, context, font_id, "Event History",
+                          cls._calc_draw_area_size_event_history_layer,
+                          x, y, w, h)
+        y += h
+        region_drawn = region_drawn if region_drawn else rd
 
         bgl.glDisable(bgl.GL_BLEND)
         bgl.glScissor(*scissor_box)

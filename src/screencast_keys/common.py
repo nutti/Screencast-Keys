@@ -29,10 +29,10 @@ if compat.check_version(2, 80, 0) >= 0:
     import gpu
 
 
-def is_debug_mode():
+def output_debug_log():
     prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
 
-    return prefs.debug_mode
+    return prefs.output_debug_log
 
 
 def debug_print(s):
@@ -40,7 +40,7 @@ def debug_print(s):
     Print message to console in debugging mode
     """
 
-    if is_debug_mode():
+    if output_debug_log():
         print(s)
 
 
