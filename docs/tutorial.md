@@ -38,15 +38,20 @@ You can also change shadow color.
 ### Backgroud
 
 If **Background** option is enabled, colored planes will be displayed behind texts and figures.  
-Two background options are available.  
-You can also change backgroud color.
+Background color is changeable.  
+**Background Mode** changes the display style for the background.
 
 |||
 |---|---|
 |**Text**|Display colored plane behind texts and figures.|
 |**Draw Area**|Display a color plane on the draw area rectangle.|
 
-![Option (Background)](images/tutorial/option_background.png)
+![Option (Background Mode)](images/tutorial/option_background_mode.png)
+
+The background will have rounded corners with **Corner Radius** value.  
+If this value is 0, the rounded corners are disabled.
+
+![Option (Corner Radius)](images/tutorial/option_background_corner_radius.png)
 
 
 ### Font Size
@@ -56,10 +61,24 @@ You can also change backgroud color.
 ![Option (Font Size)](images/tutorial/option_font_size.png)
 
 
+### Margin
+
+**Margin** option makes the spaces around the texts.  
+
+![Option (Margin)](images/tutorial/option_margin.png)
+
+
+### Line Thickness
+
+**Line Thickness** option specifies the thickness of lines.
+
+![Option (Line Thickness)](images/tutorial/option_line_thickness.png)
+
+
 ### Mouse Size
 
 **Mouse Size** option specifies the size of figure which displays hold mouse status.  
-This option is only availabe when **Mouse Events** option is **Hold Status** or **Event History + Hold Status** while **Show Mouse Events** is enabled.
+This option is only availabe when **Show Mouse Events** option's mode is **Hold Status** or **Event History + Hold Status**.
 
 ![Option (Mouse Size)](images/tutorial/option_mouse_size.png)
 
@@ -107,18 +126,17 @@ If you change **Max Event History** option to 1, show only last key event.
 ![Option (Max Event History)](images/tutorial/option_max_event_history.png)
 
 
-### Show Mouse Event
+### Repeat Count
 
-If **Show Mouse Event** option is enabled, events from mouse will be displayed.  
-You can also display mouse button hold status as figure.  
-See **Mouse Event** option if you want to change how to display the mouse status.
+Repeated key will be displayed as the single string. (eg: Tab x5)
 
-![Option (Mouse Event)](images/tutorial/option_mouse_event.png)
+![Option (Repeat Count)](images/tutorial/option_repeat_count.png)
 
 
-### Mouse Event
+### Show Mouse Events
 
-**Mouse Event** option specifies how to display the mouse status.
+If **Show Mouse Events** option is enabled, events from mouse will be displayed.  
+You can change the display mode from **Mode** option.  
 
 |||
 |---|---|
@@ -127,23 +145,22 @@ See **Mouse Event** option if you want to change how to display the mouse status
 |**Event History + Hold Status**|Both **Event History** and **Hold Status**.|
 
 
-### Show Last Operator
-
-If **Show Last Operator** option is enabled, the last executed operator will be displayed.  
-See **Last Operator** option if you want to change how to display the last operator.
-
-![Option (Last Operator)](images/tutorial/option_last_operator.png)
+![Option (Show Mouse Events)](images/tutorial/option_show_mouse_events.png)
 
 
-### Last Operator
+### Show Last Operators
 
-**Last Operator** option specifies how to display the last operator.
+If **Show Last Operators** option is enabled, the last executed operator will be displayed.  
+You can change the display mode from **Mode** option.  
 
 |||
 |---|---|
 |**Label**|Label (`bl_label`) of operator will be displayed.|
 |**ID Name**|ID Name (`bl_idname`) of operator will be displayed.|
 |**Label + ID Name**|Both **Label** and **ID Name**.|
+
+
+![Option (Show Last Operators)](images/tutorial/option_show_last_operators.png)
 
 
 ### Get Event Aggressively
@@ -161,21 +178,45 @@ In addition to the above options, some options are located on Preferences.
 You can update this add-on from Preferences.
 
 
-### Panel Location
+### Enable On Startup
 
-The location of the Panel can be changed.
+If this option is enabled, Screencast Keys will be enabled automatically when blender will startup up.
+
+
+### UI
+
+#### Sidebar
+
+If this option is enabled, the Screencast Key's menu will be added to the sidebar.
+The location of the Panel can be changed by using **Space** option and **Category** option.
 
 |||
 |---|---|
 |**Space**|Space which this panel is placed on.|
 |**Category**|The category name of this panel.|
 
+![Preferences (Sidebar)](images/tutorial/preferences_sidebar.png)
 
-### Debug Mode
 
-*NOTE: This option is for the development purpose. If this option is enabled, the performance issue may be raised.*
+#### Overlay
+
+If this option is enabled, the Screencast Key's menu will be added to the **Viewport Overlays**.
+
+![Preferences (Overlay)](images/tutorial/preferences_overlay.png)
+
+
+### Development
+
+*NOTE: These options are for the development purpose. If these options are enabled, the performance issue may be raised.*
+
+#### Output Debug Log
 
 Output logs for the analysis of bugs and so on.
+
+
+#### Display Draw Area
+
+Display 'Draw Area' where Screencast Keys UI will be rendered.
 
 
 ### Enable Display Event Text Aliases
@@ -183,7 +224,7 @@ Output logs for the analysis of bugs and so on.
 If this options is enabled, you can display own customized strings for events instead of default key name.  
 This can be useful when you want to display events from special input devices.
 
-![Preference (Text Aliases)](images/tutorial/preference_text_aliases.png)
+![Preference (Enable Display Event Text Aliases)](images/tutorial/preferences_enable_display_event_text_aliases.png)
 
 
 ## Shortcut Keys

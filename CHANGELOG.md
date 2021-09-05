@@ -1,7 +1,34 @@
 # Change Log
 
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.5...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.6...master)
+
+
+## [Version 3.6](https://github.com/nutti/Screencast-Keys/compare/v3.5...v3.6) - 2021.X.X
+
+### Updated Features
+
+* Blender 2.93 support about the option "Get Event Aggressively"
+* Added options
+  * Specify the displayed line's thickness
+  * Add spaces around the texts
+  * Show the backround with the rounded corners
+* Added preferences
+  * Enable Screencast Keys automatically when Blender is starting up
+* UI on Sidebar
+
+
+### Other Updates
+
+* Show platform specific keys by default
+* Fix bugs
+
+
+### Contributors
+
+* [**@kant**](https://github.com/kant)
+* [**@CheeryLee**](https://github.com/CheeryLee)
+* [**@Kureii**](https://github.com/Kureii)
 
 
 ## [Version 3.5](https://github.com/nutti/Screencast-Keys/compare/v3.4...v3.5) - 2021.3.5
