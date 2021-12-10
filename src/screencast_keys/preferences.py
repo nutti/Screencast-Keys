@@ -30,7 +30,6 @@ from .ui import SK_PT_ScreencastKeys, SK_PT_ScreencastKeys_Overlay
 from .utils.addon_updater import AddonUpdaterManager
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
-from .utils import c_structures
 
 
 @BlClassRegistry()
@@ -447,7 +446,6 @@ class SK_Preferences(bpy.types.AddonPreferences):
             layout.label(text="Experimental:")
             col = layout.column()
             col.prop(self, "get_event_aggressively")
-            col.enabled = False if c_structures.NOT_SUPPORTED else True
 
             layout.separator()
 

@@ -24,7 +24,6 @@ import bpy
 from .ops import SK_OT_ScreencastKeys, show_mouse_hold_status
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
-from .utils import c_structures
 
 
 class SK_PT_ScreencastKeys(bpy.types.Panel):
@@ -126,7 +125,6 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         sp = compat.layout_split(sp, factor=1.0)
         c = sp.column()
         c.prop(prefs, "get_event_aggressively")
-        c.enabled = False if c_structures.NOT_SUPPORTED else True
 
 
 class SK_PT_ScreencastKeys_Overlay(bpy.types.Panel):
