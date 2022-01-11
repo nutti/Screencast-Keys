@@ -1,5 +1,6 @@
 from threading import Lock
 
+import bpy
 import bgl
 from bgl import Buffer as Buffer
 import gpu
@@ -11,6 +12,20 @@ GL_LINE_LOOP = 2
 GL_TRIANGLES = 5
 GL_TRIANGLE_FAN = 6
 GL_QUADS = 4
+
+
+def check_version(major, minor, _):
+    """
+    Check blender version
+    """
+
+    if bpy.app.version[0] == major and bpy.app.version[1] == minor:
+        return 0
+    if bpy.app.version[0] > major:
+        return 1
+    if bpy.app.version[1] > minor:
+        return 1
+    return -1
 
 
 def primitive_mode_is_line(mode):
@@ -241,6 +256,9 @@ def glEnd():
         shader.uniform_int("image", 0)
     if use_3d_polyline:
         shader.uniform_float("lineWidth", inst.get_line_width())
+        if check_version(2, 92, 0) >= 1:
+            region = bpy.context.region
+            shader.uniform_float("viewportSize", (region.width, region.height))
     shader.uniform_float("color", color)
     batch.draw(shader)
 
