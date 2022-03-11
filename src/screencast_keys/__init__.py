@@ -179,8 +179,17 @@ def register():
         else:
             item.default_text = ops.EventType.names[event.name]
 
+    try:
+        preferences.reload_custom_mouse_image(prefs, context)
+    except:
+        pass
+
 
 def unregister():
+    context = bpy.context
+    prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
+    preferences.remove_custom_mouse_image(prefs, context)
+
     bpy.app.handlers.load_post.remove(load_post_handler)
     unregister_shortcut_key()
     # TODO: Unregister by BlClassRegistry

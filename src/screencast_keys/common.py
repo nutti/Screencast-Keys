@@ -29,6 +29,12 @@ if compat.check_version(2, 80, 0) >= 0:
     import gpu
 
 
+CUSTOM_MOUSE_IMAGE_BASE_NAME = "[Screencast Keys] Custom Mouse Image Base"
+CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME = "[Screencast Keys] Custom Mouse Image Overlay Left Mouse"
+CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME = "[Screencast Keys] Custom Mouse Image Overlay Right Mouse"
+CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME = "[Screencast Keys] Custom Mouse Image Overlay Middle Mouse"
+
+
 def output_debug_log():
     prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
 
@@ -42,6 +48,21 @@ def debug_print(s):
 
     if output_debug_log():
         print(s)
+
+
+def ensure_custom_mouse_images():
+    image_names = [
+        CUSTOM_MOUSE_IMAGE_BASE_NAME,
+        CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME,
+        CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME,
+        CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME,
+    ]
+
+    for name in image_names:
+        if name in bpy.data.images:
+            image = bpy.data.images[name]
+            image.preview_ensure()
+            image.gl_load()
 
 
 def fix_modifier_display_text(name):

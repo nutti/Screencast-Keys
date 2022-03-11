@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+from ctypes import alignment
+import os
 
 import bpy
 from bpy.props import (
@@ -25,11 +27,12 @@ from bpy.props import (
     EnumProperty,
 )
 
-from .ops import EventType, show_mouse_hold_status
+from .ops import show_mouse_hold_status
 from .ui import SK_PT_ScreencastKeys, SK_PT_ScreencastKeys_Overlay
 from .utils.addon_updater import AddonUpdaterManager
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
+from . import common
 
 
 @BlClassRegistry()
@@ -67,6 +70,51 @@ class SK_OT_UpdateAddon(bpy.types.Operator):
         return {'FINISHED'}
 
 
+@BlClassRegistry()
+@compat.make_annotations
+class SK_OT_SelectCustomMouseImage(bpy.types.Operator):
+    bl_idname = "wm.sk_select_custom_mouse_image"
+    bl_label = "Select Custom Mouse Image"
+    bl_description = "Select custom mouse image"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    target = bpy.props.EnumProperty(
+        name="Target",
+        description="Target for opening image file",
+        items=[
+            ('BASE', "Base", "Base image for custom mouse image"),
+            ('OVERLAY_LEFT_MOUSE', "Overlay Left Mouse", "Overlay left mouse for custom mouse image"),
+            ('OVERLAY_RIGHT_MOUSE', "Overlay Right Mouse", "Overlay right mouse for custom mouse image"),
+            ('OVERLAY_MIDDLE_MOUSE', "Overlay Middle Mouse", "Overlay middle mouse for custom mouse image"),
+        ],
+        default='BASE',
+    )
+
+    filepath = bpy.props.StringProperty(
+        subtype="FILE_PATH"
+    )
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+
+        if self.target == 'BASE':
+            prefs.custom_mouse_image_base = self.filepath
+        elif self.target == 'OVERLAY_LEFT_MOUSE':
+            prefs.custom_mouse_image_overlay_left_mouse = self.filepath
+        elif self.target == 'OVERLAY_RIGHT_MOUSE':
+            prefs.custom_mouse_image_overlay_right_mouse = self.filepath
+        elif self.target == 'OVERLAY_MIDDLE_MOUSE':
+            prefs.custom_mouse_image_overlay_middle_mouse = self.filepath
+
+        return {'FINISHED'}
+
+
 def get_update_candidate_branches(_, __):
     updater = AddonUpdaterManager.get_instance()
     if not updater.candidate_checked():
@@ -80,6 +128,49 @@ class DisplayEventTextAliasProperties(bpy.types.PropertyGroup):
     alias_text = bpy.props.StringProperty(name="Alias Text", default="")
     default_text = bpy.props.StringProperty(options={'HIDDEN'})
     event_id = bpy.props.StringProperty(options={'HIDDEN'})
+
+
+def remove_custom_mouse_image(prefs, context):
+    def remove_image(image_name):
+        if image_name in bpy.data.images:
+            image = bpy.data.images[image_name]
+            bpy.data.images.remove(image)
+
+    remove_image(common.CUSTOM_MOUSE_IMAGE_BASE_NAME)
+    remove_image(common.CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME)
+    remove_image(common.CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME)
+    remove_image(common.CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME)
+
+
+def reload_custom_mouse_image(prefs, context):
+    def reload_image(filepath, image_name):
+        if os.path.exists(filepath):
+            if image_name in bpy.data.images:
+                image = bpy.data.images[image_name]
+                bpy.data.images.remove(image)
+            image = bpy.data.images.load(filepath)
+            image.name = image_name
+            image.use_fake_user = True
+            image.preview_ensure()
+            image.gl_load()
+
+    if "custom_mouse_image_base" in prefs:
+        reload_image(prefs["custom_mouse_image_base"], common.CUSTOM_MOUSE_IMAGE_BASE_NAME)
+    if "custom_mouse_image_overlay_left_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_overlay_left_mouse"], common.CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME)
+    if "custom_mouse_image_overlay_right_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_overlay_right_mouse"], common.CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME)
+    if "custom_mouse_image_overlay_middle_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_overlay_middle_mouse"], common.CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME)
+
+    common.ensure_custom_mouse_images()
+
+
+def update_custom_mouse_size(self, context):
+    if ("use_custom_mouse_image_size" in self) and self["use_custom_mouse_image_size"]:
+        if common.CUSTOM_MOUSE_IMAGE_BASE_NAME in bpy.data.images:
+            image = bpy.data.images[common.CUSTOM_MOUSE_IMAGE_BASE_NAME]
+            self["custom_mouse_size"] = image.size
 
 
 @BlClassRegistry()
@@ -247,6 +338,58 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default='HOLD_STATUS',
     )
 
+    use_custom_mouse_image = bpy.props.BoolProperty(
+        name="Use Custom Mouse Image",
+        default=False,
+        update=reload_custom_mouse_image,
+    )
+
+    custom_mouse_image_base = bpy.props.StringProperty(
+        name="Custom Mouse Image (Base)",
+        description="Custom mouse image which is always rendered",
+        default="",
+        update=reload_custom_mouse_image,
+    )
+
+    custom_mouse_image_overlay_left_mouse = bpy.props.StringProperty(
+        name="Custom Mouse Image (Overlay - Left Mouse)",
+        description="Custom mouse image which is rendered when the left button is clicked",
+        default="",
+        update=reload_custom_mouse_image,
+    )
+
+    custom_mouse_image_overlay_right_mouse = bpy.props.StringProperty(
+        name="Custom Mouse Image (Overlay - Right Mouse)",
+        description="Custom mouse image which is rendered when the right button is clicked",
+        default="",
+        update=reload_custom_mouse_image,
+    )
+
+    custom_mouse_image_overlay_middle_mouse = bpy.props.StringProperty(
+        name="Custom Mouse Image (Overlay - Middle Mouse)",
+        description="Custom mouse image which is rendered when the middle button is clicked",
+        default="",
+        update=reload_custom_mouse_image,
+    )
+
+    use_custom_mouse_image_size = bpy.props.BoolProperty(
+        name="Use Custom Mouse Image Size",
+        description="Use custom mouse image size",
+        default=False,
+        update=update_custom_mouse_size,
+    )
+
+    custom_mouse_size = bpy.props.IntVectorProperty(
+        name="Custom Mouse Image Size",
+        description="Custom mouse image size",
+        default=(int(compat.get_user_preferences(bpy.context).ui_styles[0].widget.points*3),
+                 int(compat.get_user_preferences(bpy.context).ui_styles[0].widget.points*3)),
+        min=18,
+        max=1000,
+        size=2,
+        subtype='XYZ',
+    )
+
     show_last_operator = bpy.props.BoolProperty(
         name="Show Last Operator",
         default=False,
@@ -398,8 +541,6 @@ class SK_Preferences(bpy.types.AddonPreferences):
             col.prop(self, "font_size")
             col.prop(self, "margin")
             col.prop(self, "line_thickness")
-            if show_mouse_hold_status(self):
-                col.prop(self, "mouse_size")
 
             col = split.column()
             col.prop(self, "origin")
@@ -423,6 +564,63 @@ class SK_Preferences(bpy.types.AddonPreferences):
             col.prop(self, "show_last_operator")
             if self.show_last_operator:
                 col.prop(self, "last_operator_show_mode")
+
+            layout.prop(self, "use_custom_mouse_image")
+            if show_mouse_hold_status(self):
+                if self.use_custom_mouse_image:
+                    row = layout.row()
+                    r = row.row()
+                    r.prop(self, "use_custom_mouse_image_size", text="Use Image Size")
+                    r = row.row()
+                    r.prop(self, "custom_mouse_size", text="Size")
+                    r.enabled = not self.use_custom_mouse_image_size
+
+                    column = layout.column()
+                    split = column.split()
+
+                    col = split.column()
+                    col.label(text="Base:")
+                    r = col.row(align=True)
+                    r.prop(self, "custom_mouse_image_base", text="")
+                    ops = r.operator(SK_OT_SelectCustomMouseImage.bl_idname, text="", icon='FILEBROWSER')
+                    ops.target = 'BASE'
+                    if common.CUSTOM_MOUSE_IMAGE_BASE_NAME in bpy.data.images:
+                        image = bpy.data.images[common.CUSTOM_MOUSE_IMAGE_BASE_NAME]
+                        col.template_icon(image.preview.icon_id, scale=2.0)
+
+                    col = split.column()
+                    col.label(text="Overlay (Left)")
+                    r = col.row(align=True)
+                    r.prop(self, "custom_mouse_image_overlay_left_mouse", text="")
+                    ops = r.operator(SK_OT_SelectCustomMouseImage.bl_idname, text="", icon='FILEBROWSER')
+                    ops.target = 'OVERLAY_LEFT_MOUSE'
+                    if common.CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME in bpy.data.images:
+                        image = bpy.data.images[common.CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME]
+                        col.template_icon(image.preview.icon_id, scale=2.0)
+
+                    col = split.column()
+                    col.label(text="Overlay (Right)")
+                    r = col.row(align=True)
+                    r.prop(self, "custom_mouse_image_overlay_right_mouse", text="")
+                    ops = r.operator(SK_OT_SelectCustomMouseImage.bl_idname, text="", icon='FILEBROWSER')
+                    ops.target = 'OVERLAY_RIGHT_MOUSE'
+                    if common.CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME in bpy.data.images:
+                        image = bpy.data.images[common.CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME]
+                        col.template_icon(image.preview.icon_id, scale=2.0)
+
+                    col = split.column()
+                    col.label(text="Overlay (Middle)")
+                    r = col.row(align=True)
+                    r.prop(self, "custom_mouse_image_overlay_middle_mouse", text="")
+                    ops = r.operator(SK_OT_SelectCustomMouseImage.bl_idname, text="", icon='FILEBROWSER')
+                    ops.target = 'OVERLAY_MIDDLE_MOUSE'
+                    if common.CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME in bpy.data.images:
+                        image = bpy.data.images[common.CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME]
+                        col.template_icon(image.preview.icon_id, scale=2.0)
+                else:
+                    column = layout.split(factor=0.5)
+                    row = column.row()
+                    row.prop(self, "mouse_size")
 
             # Panel location is only available in >= 2.80
             if compat.check_version(2, 80, 0) >= 0:

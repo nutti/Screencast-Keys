@@ -162,6 +162,7 @@ def _get_transparency_shader():
     fragment_shader = '''
     uniform sampler2D image;
     uniform vec4 color;
+    uniform bool useTextureAlpha;
     
     in vec2 uvInterp;
     out vec4 fragColor;
@@ -169,7 +170,7 @@ def _get_transparency_shader():
     void main()
     {
         fragColor = texture(image, uvInterp);
-        fragColor.a = color.a;
+        fragColor.a = useTextureAlpha ? fragColor.a : color.a;
     }
     '''
 
@@ -183,12 +184,14 @@ def glEnd():
     coords = inst.get_verts()
     tex_coords = inst.get_tex_coords()
     use_3d_polyline = False
+    use_texture_alpha = False
     if inst.get_dims() == 2:
         if len(tex_coords) == 0:
             shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
         else:
             vert_shader, frag_shader = _get_transparency_shader()
             shader = gpu.types.GPUShader(vert_shader, frag_shader)
+            use_texture_alpha = True
     elif inst.get_dims() == 3:
         if len(tex_coords) == 0:
             if primitive_mode_is_line(inst.get_prim_mode()):
@@ -260,6 +263,8 @@ def glEnd():
             region = bpy.context.region
             shader.uniform_float("viewportSize", (region.width, region.height))
     shader.uniform_float("color", color)
+    if use_texture_alpha:
+        shader.uniform_bool("useTextureAlpha", (use_texture_alpha, ))
     batch.draw(shader)
 
     inst.clear()
@@ -286,6 +291,16 @@ GL_BLEND = bgl.GL_BLEND
 GL_LINE_SMOOTH = bgl.GL_LINE_SMOOTH
 GL_INT = bgl.GL_INT
 GL_SCISSOR_BOX = bgl.GL_SCISSOR_BOX
+GL_TEXTURE_2D = bgl.GL_TEXTURE_2D
+GL_TEXTURE0 = bgl.GL_TEXTURE0
+GL_DEPTH_TEST = bgl.GL_DEPTH_TEST
+
+GL_TEXTURE_MIN_FILTER = 0
+GL_TEXTURE_MAG_FILTER = 0
+GL_LINEAR = 0
+GL_TEXTURE_ENV = 0
+GL_TEXTURE_ENV_MODE = 0
+GL_MODULATE = 0
 
 
 def glEnable(cap):
@@ -302,3 +317,19 @@ def glScissor(x, y, width, height):
 
 def glGetIntegerv(pname, params):
     bgl.glGetIntegerv(pname, params)
+
+
+def glActiveTexture(texture):
+    bgl.glActiveTexture(texture)
+
+
+def glBindTexture(target, texture):
+    bgl.glBindTexture(target, texture)
+
+
+def glTexParameteri(target, pname, param):
+    pass
+
+
+def glTexEnvi(target, pname, param):
+    pass

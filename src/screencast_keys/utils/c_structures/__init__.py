@@ -42,7 +42,7 @@ if "bpy" in locals():
     elif compat.check_version(2, 93, 0) == 0:
         importlib.reload(v293)
     elif compat.check_version(3, 0, 0) == 0:
-        importlib.realod(v30)
+        importlib.reload(v30)
     else:
         NOT_SUPPORTED = True
 else:

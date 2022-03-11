@@ -34,6 +34,7 @@ import blf
 import bpy
 import bpy.props
 
+from . import common
 from .common import debug_print, fix_modifier_display_text, output_debug_log, use_3d_polyline
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
@@ -53,9 +54,8 @@ EventType = enum.IntEnum(
 EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
-def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
-               round_radius, fill=False, fill_color=None, line_thickness=1):
-
+def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
+                       round_radius, fill=False, fill_color=None, line_thickness=1):
     mouse_body = [x, y, w, h/2]
     left_mouse_button = [x, y + h/2, w/3, h/2]
     middle_mouse_button = [x + w/3, y + h/2, w/3, h/2]
@@ -141,6 +141,60 @@ def draw_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
                         fill=True, color=color,
                         round_corner=[False, False, True, False],
                         line_thickness=line_thickness)
+
+
+def draw_custom_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
+                      image_name_base, image_name_overlay_left_mouse, image_name_overlay_right_mouse, image_name_overlay_middle_mouse):
+    def draw_image(img, positions, tex_coords):
+        if compat.check_version(2, 80, 0) >= 0:
+            bgl.glEnable(bgl.GL_BLEND)
+            bgl.glEnable(bgl.GL_TEXTURE_2D)
+            bgl.glActiveTexture(bgl.GL_TEXTURE0)
+            if img.bindcode:
+                bind = img.bindcode
+                bgl.glBindTexture(bgl.GL_TEXTURE_2D, bind)
+        else:
+            bgl.glEnable(bgl.GL_BLEND)
+            bgl.glEnable(bgl.GL_TEXTURE_2D)
+            if img.bindcode:
+                bind = img.bindcode[0]
+                bgl.glBindTexture(bgl.GL_TEXTURE_2D, bind)
+                bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
+                                    bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+                bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
+                                    bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
+                bgl.glTexEnvi(
+                    bgl.GL_TEXTURE_ENV, bgl.GL_TEXTURE_ENV_MODE,
+                    bgl.GL_MODULATE)
+
+        bgl.glBegin(bgl.GL_QUADS)
+        bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
+        for (v1, v2), (u, v) in zip(positions, tex_coords):
+            bgl.glTexCoord2f(u, v)
+            bgl.glVertex2f(v1, v2)
+        bgl.glEnd()
+
+    positions = [
+        [x, y],
+        [x, y+h],
+        [x+w, y+h],
+        [x+w, y],
+    ]
+    tex_coords = [
+        [0.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 1.0],
+        [1.0, 0.0],
+    ]
+
+    if image_name_base in bpy.data.images:
+        draw_image(bpy.data.images[image_name_base], positions, tex_coords)
+    if left_pressed and (image_name_overlay_left_mouse in bpy.data.images):
+        draw_image(bpy.data.images[image_name_overlay_left_mouse], positions, tex_coords)
+    if right_pressed and (image_name_overlay_right_mouse in bpy.data.images):
+        draw_image(bpy.data.images[image_name_overlay_right_mouse], positions, tex_coords)
+    if middle_pressed and (image_name_overlay_middle_mouse in bpy.data.images):
+        draw_image(bpy.data.images[image_name_overlay_middle_mouse], positions, tex_coords)
 
 
 def draw_rounded_box(x, y, w, h, round_radius, fill=False, color=[1.0, 1.0, 1.0],
@@ -812,8 +866,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         hold_modifier_keys_height = 0.0
         separator_width = 0.0
         if show_mouse_hold_status(prefs):
-            mouse_width = prefs.mouse_size
-            mouse_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
+            if prefs.use_custom_mouse_image:
+                mouse_width = prefs.custom_mouse_size[0]
+                mouse_height = prefs.custom_mouse_size[1]
+            else:
+                mouse_width = prefs.mouse_size
+                mouse_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
         if cls.hold_modifier_keys:
             if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
                 separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
@@ -1082,8 +1140,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if show_mouse_hold_status(prefs):
             mouse_start_x = x
             mouse_start_y = y
-            mouse_icon_width = prefs.mouse_size
-            mouse_icon_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
+            if prefs.use_custom_mouse_image:
+                mouse_icon_width = prefs.custom_mouse_size[0]
+                mouse_icon_height = prefs.custom_mouse_size[1]
+            else:
+                mouse_icon_width = prefs.mouse_size
+                mouse_icon_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
             mouse_width = mouse_icon_width
             mouse_height = mouse_icon_height
         if cls.hold_modifier_keys:
@@ -1112,16 +1174,27 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Draw hold mouse status.
         if show_mouse_hold_status(prefs):
-            draw_mouse(mouse_start_x, mouse_start_y,
-                       mouse_icon_width, mouse_icon_height,
-                       cls.hold_mouse_buttons['LEFTMOUSE'],
-                       cls.hold_mouse_buttons['RIGHTMOUSE'],
-                       cls.hold_mouse_buttons['MIDDLEMOUSE'],
-                       prefs.color,
-                       prefs.mouse_size * 0.5,
-                       fill=prefs.background,
-                       fill_color=prefs.background_color,
-                       line_thickness=prefs.line_thickness)
+            if prefs.use_custom_mouse_image:
+                draw_custom_mouse(mouse_start_x, mouse_start_y,
+                                  mouse_icon_width, mouse_icon_height,
+                                  cls.hold_mouse_buttons['LEFTMOUSE'],
+                                  cls.hold_mouse_buttons['RIGHTMOUSE'],
+                                  cls.hold_mouse_buttons['MIDDLEMOUSE'],
+                                  common.CUSTOM_MOUSE_IMAGE_BASE_NAME,
+                                  common.CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME,
+                                  common.CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME,
+                                  common.CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME)
+            else:
+                draw_default_mouse(mouse_start_x, mouse_start_y,
+                                   mouse_icon_width, mouse_icon_height,
+                                   cls.hold_mouse_buttons['LEFTMOUSE'],
+                                   cls.hold_mouse_buttons['RIGHTMOUSE'],
+                                   cls.hold_mouse_buttons['MIDDLEMOUSE'],
+                                   prefs.color,
+                                   prefs.mouse_size * 0.5,
+                                   fill=prefs.background,
+                                   fill_color=prefs.background_color,
+                                   line_thickness=prefs.line_thickness)
 
         # Draw hold modifier keys.
         if cls.hold_modifier_keys or drawing:
@@ -1750,3 +1823,5 @@ class SK_OT_WaitBlenderInitializedAndStartScreencastKeys(bpy.types.Operator):
         if bpy.context.area is not None:
             bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN', restart=True)
             bpy.types.SpaceView3D.draw_handler_remove(cls.initialization_handler, 'WINDOW')
+
+            common.ensure_custom_mouse_images()

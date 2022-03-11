@@ -21,8 +21,7 @@
 
 import bpy
 
-from .ops import SK_OT_ScreencastKeys, show_mouse_hold_status
-from .utils.bl_class_registry import BlClassRegistry
+from .ops import show_mouse_hold_status
 from .utils import compatibility as compat
 
 
@@ -67,7 +66,13 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column.prop(prefs, "margin")
         column.prop(prefs, "line_thickness")
         if show_mouse_hold_status(prefs):
-            column.prop(prefs, "mouse_size")
+            if prefs.use_custom_mouse_image:
+                column.label(text="Mouse Size:")
+                r = column.row()
+                r.prop(prefs, "custom_mouse_size", text="")
+                r.enabled = not prefs.use_custom_mouse_image_size
+            else:
+                column.prop(prefs, "mouse_size")
 
         column.separator()
 
