@@ -412,6 +412,13 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default=True,
     )
 
+    auto_save = bpy.props.BoolProperty(
+        name="Auto Save",
+        description="""(Experimental) Enable custom auto save while modal operator is running.
+                       This may make blender unstable""",
+        default=False,
+    )
+
     output_debug_log = bpy.props.BoolProperty(
         name="Output Debug Log",
         description="(Debug) Output log messages",
@@ -644,6 +651,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
             layout.label(text="Experimental:")
             col = layout.column()
             col.prop(self, "get_event_aggressively")
+            col.prop(self, "auto_save")
 
             layout.separator()
 

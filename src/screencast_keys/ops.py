@@ -19,6 +19,8 @@
 # <pep8 compliant>
 
 
+import os
+import platform
 import math
 import collections
 import enum
@@ -488,6 +490,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     bl_label = "Screencast Keys"
     bl_description = "Display keys pressed"
     bl_options = {'REGISTER'}
+
+    # Last save time by auto save.
+    last_auto_saved_time = 0
+    # Flag for exclusive execution of auto save.
+    auto_saving = False
 
     # Hold modifier keys.
     hold_modifier_keys = []
@@ -1388,20 +1395,128 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @staticmethod
     @bpy.app.handlers.persistent
+    def auto_save(scene):
+        cls = SK_OT_ScreencastKeys
+        context = bpy.context
+        prefs = context.preferences
+
+        if not prefs.filepaths.use_auto_save_temporary_files:
+            return
+
+        current_time = time.time()
+        save_interval = prefs.filepaths.auto_save_time * 60
+        if current_time - cls.last_auto_saved_time < save_interval:
+            elapsed_time = current_time - cls.last_auto_saved_time
+            debug_print(f"Does not reached save interval (Save interval is {save_interval}, but elapsed time is {elapsed_time})")
+            return
+        
+        # Perform auto save only if the modal operator is executed from Screencast Keys.
+        do_auto_save = False
+        for w in bpy.context.window_manager.windows:
+            window = cast(c_void_p(w.as_pointer()), POINTER(c_structures.wmWindow)).contents
+            handler_ptr = cast(window.modalhandlers.first, POINTER(c_structures.wmEventHandler))
+            while handler_ptr:
+                handler = handler_ptr.contents
+                if compat.check_version(2, 80, 0) >= 0:
+                    if handler.type == c_structures.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
+                        do_auto_save = True
+                        op = handler.op.contents
+                        idname = op.idname.decode()
+                        op_prefix, op_name = idname.split("_OT_")
+                        idname_py = "{}.{}".format(op_prefix.lower(), op_name)
+                        if idname_py != SK_OT_ScreencastKeys.bl_idname:
+                            debug_print(f"Modal operator '{idname_py}' is running. Skip auto save")
+                            return
+                else:
+                    if handler.op:
+                        op = handler.op.contents
+                        idname = op.idname.decode()
+                        op_prefix, op_name = idname.split("_OT_")
+                        idname_py = "{}.{}".format(op_prefix.lower(), op_name)
+                        if idname_py != SK_OT_ScreencastKeys.bl_idname:
+                            debug_print(f"Modal operator '{idname_py}' is running. Skip auto save")
+                            return
+                handler_ptr = cast(handler.next, POINTER(c_structures.wmEventHandler))
+
+        if not do_auto_save:
+            debug_print(f"No modal operator is running. Skip auto save")
+            return
+        
+        if bpy.data.is_saved:
+            filename = os.path.basename(bpy.data.filepath)
+            save_basename = os.path.splitext(filename)[0] + ".blend"
+        else:
+            pid = os.getpid()
+            save_basename = f"{pid}.blend"
+
+        save_dir = os.path.normpath(os.path.join(bpy.app.tempdir, os.path.pardir))
+        if platform.system() == 'Windows' and not os.path.exists(save_dir):
+            save_dir = bpy.utils.user_resource('AUTOSAVE')
+        save_path = os.path.join(save_dir, save_basename)
+
+        # If .blend file is updated from other methods, update last_auto_saved_time.
+        if os.path.exists(save_path):
+            stat = os.stat(save_path)
+            if cls.last_auto_saved_time < stat.st_mtime:
+                cls.last_auto_saved_time = stat.st_mtime
+                debug_print(f"Auto saved file '{save_path}'is updated")
+            if current_time - cls.last_auto_saved_time < save_interval:
+                elapsed_time = current_time - cls.last_auto_saved_time
+                debug_print(f"Does not reached save interval (Save interval is {save_interval}, but elapsed time is {elapsed_time})")
+                return
+
+        # Create directory to store auto save .blend file.
+        if not os.path.exists(save_dir):
+            try:
+                os.makedirs(save_dir)
+            except:
+                debug_print(f"Unable to create directory '{save_dir}'")
+                return
+
+        # auto_save function can be called from multiple threads.
+        # auto_saving variable makes sure that saving mainfile is called from only 1 thread.
+        if cls.auto_saving:
+           return
+        cls.auto_saving = True
+
+        # Check again if the current time overs save interval.
+        if current_time - cls.last_auto_saved_time < save_interval:
+            elapsed_time = current_time - cls.last_auto_saved_time
+            debug_print(f"Does not reached save interval (Save interval is {save_interval}, but elapsed time is {elapsed_time})")
+            cls.auto_saving = False
+            return
+
+        # Save .blend file.
+        try:
+            bpy.ops.wm.save_as_mainfile(filepath=save_path, copy=True)
+        except Exception as e:
+            debug_print(f"Unable to save '{save_path}' (Reason: {e})")
+            cls.auto_saving = False
+            return
+
+        debug_print(f"Auto saved '{save_path}'")
+        cls.last_auto_saved_time = os.stat(save_path).st_mtime
+        prefs.filepaths.auto_save_time = prefs.filepaths.auto_save_time
+        cls.auto_saving = False
+
+    @staticmethod
+    @bpy.app.handlers.persistent
     def sort_modalhandlers(scene):
         """Sort modalhandlers registered on wmWindow.
            This makes SK_OT_ScreencastKeys.model method enable to get events
            consumed by other modalhandlers."""
 
-        prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+        user_preferences = compat.get_user_preferences(bpy.context)
+        if user_preferences is None:
+            return
+
+        prefs = user_preferences.addons[__package__].preferences
         if not prefs.get_event_aggressively:
             return
 
         for w in bpy.context.window_manager.windows:
-            window = cast(c_void_p(w.as_pointer()),
-                    POINTER(c_structures.wmWindow)).contents
-            handler_ptr = cast(window.modalhandlers.first,
-                            POINTER(c_structures.wmEventHandler))
+            window = cast(c_void_p(w.as_pointer()), POINTER(c_structures.wmWindow)).contents
+            handler_ptr = cast(window.modalhandlers.first, POINTER(c_structures.wmEventHandler))
             indices = []
             i = 0
             debug_print("====== HANDLER_LIST ======")
@@ -1663,6 +1778,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 bpy.app.handlers.depsgraph_update_pre.append(cls.sort_modalhandlers)
             else:
                 bpy.app.handlers.scene_update_pre.append(cls.sort_modalhandlers)
+        if prefs.auto_save:
+            if compat.check_version(2, 80, 0) >= 0:
+                bpy.app.handlers.depsgraph_update_pre.append(cls.auto_save)
+            else:
+                bpy.app.handlers.scene_update_pre.append(cls.auto_save)
 
         cls.running = True
 
@@ -1671,9 +1791,13 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if compat.check_version(2, 80, 0) >= 0:
             if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
                 bpy.app.handlers.depsgraph_update_pre.remove(cls.sort_modalhandlers)
+            if cls.auto_save in bpy.app.handlers.depsgraph_update_pre:
+                bpy.app.handlers.depsgraph_update_pre.remove(cls.auto_save)
         else:
             if cls.sort_modalhandlers in bpy.app.handlers.scene_update_pre:
                 bpy.app.handlers.scene_update_pre.remove(cls.sort_modalhandlers)
+            if cls.auto_save in bpy.app.handlers.depsgraph_update_pre:
+                bpy.app.handlers.scene_update_pre.remove(cls.auto_save)
         self.event_timer_remove(context)
         self.draw_handler_remove_all()
         self.hold_modifier_keys.clear()
