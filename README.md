@@ -26,12 +26,7 @@ The features of this add-on are as follows.
 
 ## Tutorials
 
-Introduction video is available on [YouTube](https://www.youtube.com/watch?v=mWkkPCp7RSI).
-
-*Note: This introduction video is created for v3.0. UI and features introduced in this video will be changed in the later release.*
-
-This document is updated to the newest release.  
-So, it is recommended to see [Document](docs/tutorial.md) to know details of this add-on.
+See [Document](docs/tutorial.md) to know the details of this add-on.
 
 
 ## Change Log
