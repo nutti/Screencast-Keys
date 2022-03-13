@@ -4,7 +4,7 @@
 ## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.7...master)
 
 
-## [Version 3.7](https://github.com/nutti/Screencast-Keys/compare/v3.6...v3.7) - 20XX.X.XX
+## [Version 3.7](https://github.com/nutti/Screencast-Keys/compare/v3.6...v3.7) - 2022.3.13
 
 ### Updated Features
 
