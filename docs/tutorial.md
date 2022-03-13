@@ -82,6 +82,8 @@ This option is only availabe when **Show Mouse Events** option's mode is **Hold 
 
 ![Option (Mouse Size)](images/tutorial/option_mouse_size.png)
 
+When **Use Custom Mouse Image** option is enabled, **Use Image Size** option helps you to set the mouse size same as the base image size.
+
 
 ### Origin
 
@@ -167,15 +169,40 @@ You can change the display mode from **Mode** option.
 
 *NOTE: This is an experimental option. If this option is enabled, Blender may be crashed in the specific environment.*
 
-*NOTE: This option is only supported in the specific Blender version. If you want this add-on to support other version, consider to [make a Issue](https://github.com/nutti/Screencast-Keys/issues)*
-
 If **Get Event Aggressively** option is enabled, the events raised in the modal status will also be displayed.
+
+
+### Auto Save
+
+*NOTE: This is an experimental option. If this option is enabled, Blender may be crashed in the specific environment.*
+
+If **Auto Save** option is enabled, the add-on simulates Blender's auto saving (.blend file) feature.
 
 
 ## Preferences
 
 In addition to the above options, some options are located on Preferences.  
 You can update this add-on from Preferences.
+
+
+### Use Custom Mouse Image
+
+**Use Custom Mouse Image** option enables to show custom mouse image.
+You can choose the images following case.
+
+* Base
+  * This image is always displayed.
+* Overlay (Left)
+  * This image is displayed when a left mouse button is clicked.
+  * This image is overlaid on the base image.
+* Overlay (Right)
+  * This image is displayed when a right mouse button is clicked.
+  * This image is overlaid on the base image.
+* Overlay (Middle)
+  * This image is displayed when a middle mouse button is clicked.
+  * This image is overlaid on the base image.
+
+![Preferences (Use Custom Mouse Image)](images/tutorial/preferences_use_custom_mouse_image.png)
 
 
 ### Enable On Startup

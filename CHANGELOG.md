@@ -1,7 +1,22 @@
 # Change Log
 
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.6...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.7...master)
+
+
+## [Version 3.7](https://github.com/nutti/Screencast-Keys/compare/v3.6...v3.7) - 20XX.X.XX
+
+### Updated Features
+
+* Blender 3.0/3.1 support about the option "Get Event Aggressively"
+* Added preferences
+  * Show mouse with custom images
+  * Enable simulated auto saving while Screencast Keys is running
+
+### Other Updates
+
+* Enable to turn on the option "Get Event Aggressively" by default even in non-supported Blender version
+* Fix bugs
 
 
 ## [Version 3.6](https://github.com/nutti/Screencast-Keys/compare/v3.5...v3.6) - 2021.9.5
