@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+import os
 import re
 import platform
 
@@ -63,6 +64,30 @@ def ensure_custom_mouse_images():
             image = bpy.data.images[name]
             image.preview_ensure()
             image.gl_load()
+
+
+def reload_custom_mouse_image(prefs, context):
+    def reload_image(filepath, image_name):
+        if os.path.exists(filepath):
+            if image_name in bpy.data.images:
+                image = bpy.data.images[image_name]
+                bpy.data.images.remove(image)
+            image = bpy.data.images.load(filepath)
+            image.name = image_name
+            image.use_fake_user = True
+            image.preview_ensure()
+            image.gl_load()
+
+    if "custom_mouse_image_base" in prefs:
+        reload_image(prefs["custom_mouse_image_base"], CUSTOM_MOUSE_IMAGE_BASE_NAME)
+    if "custom_mouse_image_overlay_left_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_overlay_left_mouse"], CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME)
+    if "custom_mouse_image_overlay_right_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_overlay_right_mouse"], CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME)
+    if "custom_mouse_image_overlay_middle_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_overlay_middle_mouse"], CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME)
+
+    ensure_custom_mouse_images()
 
 
 def fix_modifier_display_text(name):

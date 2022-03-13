@@ -1939,9 +1939,14 @@ class SK_OT_WaitBlenderInitializedAndStartScreencastKeys(bpy.types.Operator):
         return {'FINISHED'}
 
     @classmethod
-    def intialization_callback(cls, self, cotext):
+    def intialization_callback(cls, self, context):
+        user_preferences = compat.get_user_preferences(bpy.context)
+        if not user_preferences:
+            return
+        prefs = user_preferences.addons[__package__].preferences
+
         if bpy.context.area is not None:
             bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN', restart=True)
             bpy.types.SpaceView3D.draw_handler_remove(cls.initialization_handler, 'WINDOW')
 
-            common.ensure_custom_mouse_images()
+            common.reload_custom_mouse_image(prefs, context)

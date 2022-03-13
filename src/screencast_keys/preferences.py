@@ -18,8 +18,6 @@
 
 # <pep8 compliant>
 
-from ctypes import alignment
-import os
 
 import bpy
 from bpy.props import (
@@ -140,30 +138,6 @@ def remove_custom_mouse_image(prefs, context):
     remove_image(common.CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME)
     remove_image(common.CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME)
     remove_image(common.CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME)
-
-
-def reload_custom_mouse_image(prefs, context):
-    def reload_image(filepath, image_name):
-        if os.path.exists(filepath):
-            if image_name in bpy.data.images:
-                image = bpy.data.images[image_name]
-                bpy.data.images.remove(image)
-            image = bpy.data.images.load(filepath)
-            image.name = image_name
-            image.use_fake_user = True
-            image.preview_ensure()
-            image.gl_load()
-
-    if "custom_mouse_image_base" in prefs:
-        reload_image(prefs["custom_mouse_image_base"], common.CUSTOM_MOUSE_IMAGE_BASE_NAME)
-    if "custom_mouse_image_overlay_left_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_left_mouse"], common.CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME)
-    if "custom_mouse_image_overlay_right_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_right_mouse"], common.CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME)
-    if "custom_mouse_image_overlay_middle_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_middle_mouse"], common.CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME)
-
-    common.ensure_custom_mouse_images()
 
 
 def update_custom_mouse_size(self, context):
@@ -341,35 +315,35 @@ class SK_Preferences(bpy.types.AddonPreferences):
     use_custom_mouse_image = bpy.props.BoolProperty(
         name="Use Custom Mouse Image",
         default=False,
-        update=reload_custom_mouse_image,
+        update=common.reload_custom_mouse_image,
     )
 
     custom_mouse_image_base = bpy.props.StringProperty(
         name="Custom Mouse Image (Base)",
         description="Custom mouse image which is always rendered",
         default="",
-        update=reload_custom_mouse_image,
+        update=common.reload_custom_mouse_image,
     )
 
     custom_mouse_image_overlay_left_mouse = bpy.props.StringProperty(
         name="Custom Mouse Image (Overlay - Left Mouse)",
         description="Custom mouse image which is rendered when the left button is clicked",
         default="",
-        update=reload_custom_mouse_image,
+        update=common.reload_custom_mouse_image,
     )
 
     custom_mouse_image_overlay_right_mouse = bpy.props.StringProperty(
         name="Custom Mouse Image (Overlay - Right Mouse)",
         description="Custom mouse image which is rendered when the right button is clicked",
         default="",
-        update=reload_custom_mouse_image,
+        update=common.reload_custom_mouse_image,
     )
 
     custom_mouse_image_overlay_middle_mouse = bpy.props.StringProperty(
         name="Custom Mouse Image (Overlay - Middle Mouse)",
         description="Custom mouse image which is rendered when the middle button is clicked",
         default="",
-        update=reload_custom_mouse_image,
+        update=common.reload_custom_mouse_image,
     )
 
     use_custom_mouse_image_size = bpy.props.BoolProperty(

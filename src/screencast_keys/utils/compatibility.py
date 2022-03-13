@@ -91,7 +91,10 @@ def get_user_preferences(context):
     if hasattr(context, "user_preferences"):
         return context.user_preferences
 
-    return context.preferences
+    if hasattr(context, "preferences"):
+        return context.preferences
+
+    return None
 
 
 def get_object_select(obj):

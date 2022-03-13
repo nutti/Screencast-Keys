@@ -180,7 +180,7 @@ def register():
             item.default_text = ops.EventType.names[event.name]
 
     try:
-        preferences.reload_custom_mouse_image(prefs, context)
+        common.reload_custom_mouse_image(prefs, context)
     except:
         pass
 
