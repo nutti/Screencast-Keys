@@ -78,6 +78,11 @@ def reload_custom_mouse_image(prefs, context):
             image.preview_ensure()
             image.gl_load()
 
+    if "use_custom_mouse_image" not in prefs:
+        return
+    if not prefs["use_custom_mouse_image"]:
+        return
+
     if "custom_mouse_image_base" in prefs:
         reload_image(prefs["custom_mouse_image_base"], CUSTOM_MOUSE_IMAGE_BASE_NAME)
     if "custom_mouse_image_overlay_left_mouse" in prefs:

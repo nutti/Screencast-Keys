@@ -189,6 +189,8 @@ def draw_custom_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
         [1.0, 0.0],
     ]
 
+    common.ensure_custom_mouse_images()
+
     if image_name_base in bpy.data.images:
         draw_image(bpy.data.images[image_name_base], positions, tex_coords)
     if left_pressed and (image_name_overlay_left_mouse in bpy.data.images):
@@ -1765,6 +1767,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def start(cls, self, context, event, prefs):
+        common.reload_custom_mouse_image(prefs, context)
         self.update_hold_modifier_keys(event)
         self.event_timer_add(context)
         context.window_manager.modal_handler_add(self)
@@ -1948,5 +1951,3 @@ class SK_OT_WaitBlenderInitializedAndStartScreencastKeys(bpy.types.Operator):
         if bpy.context.area is not None:
             bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN', restart=True)
             bpy.types.SpaceView3D.draw_handler_remove(cls.initialization_handler, 'WINDOW')
-
-            common.reload_custom_mouse_image(prefs, context)
