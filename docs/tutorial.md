@@ -1,6 +1,7 @@
 # Tutorial
 
 * [Introduction (Video)](#introduction-video)
+* [Screenshots](#screenshots)
 * [Options](#options)
 * [Preferences](#preferences)
 * [Shortcut Keys](#shortcut-keys)
@@ -13,6 +14,17 @@ This video is created for v3.0.
 *NOTE: UI and features introduced in this video will be changed in the future release.*
 
 [![](https://img.youtube.com/vi/mWkkPCp7RSI/0.jpg)](https://www.youtube.com/watch?v=mWkkPCp7RSI)
+
+
+## Screenshots
+
+![Screencast Keys Screnshot 1](images/screenshots/screencast_key_screenshot_1.png)
+
+![Screencast Keys Screnshot 2](images/screenshots/screencast_key_screenshot_2.png)
+
+![Screencast Keys Screnshot 3](images/screenshots/screencast_key_screenshot_3.png)
+
+![Screencast Keys Screnshot 4](images/screenshots/screencast_key_screenshot_4.png)
 
 
 ## Options
