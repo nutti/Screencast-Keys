@@ -882,10 +882,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 mouse_width = prefs.mouse_size
                 mouse_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
         if cls.hold_modifier_keys:
-            if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
-                separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
             hold_modifier_keys_width = cls.calc_draw_text_area_width(modifier_keys_text, font_id) + modifier_keys_box_margin * 2
             hold_modifier_keys_height = cls.calc_draw_text_area_height(font_id) + modifier_keys_box_margin * 2
+
+        if prefs.align == 'CENTER':
+            hold_modifier_keys_width = max(hold_modifier_keys_width, prefs.font_size * 8)
+            separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+        if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
+            separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
 
         layer_width = mouse_width + separator_width + hold_modifier_keys_width + prefs.margin * 2
         layer_height = max(mouse_height, hold_modifier_keys_height) + prefs.margin * 2
@@ -1158,14 +1162,22 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             mouse_width = mouse_icon_width
             mouse_height = mouse_icon_height
         if cls.hold_modifier_keys:
-            if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
-                separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
-            hold_modifier_keys_start_x = x + mouse_icon_width + separator_width
+            hold_modifier_keys_start_x = x
             hold_modifier_keys_start_y = y
             hold_modifier_keys_text_width = cls.calc_draw_text_area_width(modifier_keys_text, font_id) + modifier_keys_box_margin * 2
             hold_modifier_keys_text_height = cls.calc_draw_text_area_height(font_id) + modifier_keys_box_margin * 2
             hold_modifier_keys_width = hold_modifier_keys_text_width
             hold_modifier_keys_height = hold_modifier_keys_text_height
+
+        if prefs.align == 'CENTER':
+            hold_modifier_keys_width = max(hold_modifier_keys_width, prefs.font_size * 8)
+            separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+        if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
+            separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+            if prefs.align == 'RIGHT':
+                mouse_start_x += hold_modifier_keys_width + separator_width
+            elif prefs.align == 'LEFT' or prefs.align == 'CENTER':
+                hold_modifier_keys_start_x += mouse_icon_width + separator_width
 
         layer_width = mouse_width + separator_width + hold_modifier_keys_width + prefs.margin * 2
         layer_height = max(mouse_height, hold_modifier_keys_height) + prefs.margin * 2
