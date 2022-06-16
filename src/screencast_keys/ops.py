@@ -1603,13 +1603,23 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if (event.type != 'MOUSEMOVE') and (event.type not in self.hold_mouse_buttons.keys()):
             return
 
+        # Note: This is not complete solution.
+        # Release event is not fired in specific cases (ex. open context menu, mouse drag, ...).
+        # To solve this issue, use 'MOUSEMOVE' event which will not be fired when
+        # some mouse key is not pressed.
         if event.type == 'MOUSEMOVE':
-            if event.value == 'RELEASE':
+            reset = False
+            if compat.check_version(3, 2, 0) < 0:
+                if event.value == 'RELEASE':
+                    reset = True
+            else:
+                reset = True
+
+            if reset:
                 for k in self.hold_mouse_buttons.keys():
                     self.hold_mouse_buttons[k] = False
-                return
 
-        if event.value == 'PRESS':
+        if event.value == 'PRESS' or event.value == 'CLICK_DRAG':
             self.hold_mouse_buttons[event.type] = True
         elif event.value == 'RELEASE':
             self.hold_mouse_buttons[event.type] = False
