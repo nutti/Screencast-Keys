@@ -24,6 +24,8 @@ __version__ = "5.2"
 __date__ = "17 Nov 2018"
 
 
+import sys
+
 import bpy
 import bgl
 import blf
@@ -153,42 +155,32 @@ def set_blf_blur(font_id, radius):
 
 
 def get_all_space_types():
-    if check_version(2, 80, 0) >= 0:
-        return {
-            'VIEW_3D': bpy.types.SpaceView3D,
-            'CLIP_EDITOR': bpy.types.SpaceClipEditor,
-            'CONSOLE': bpy.types.SpaceConsole,
-            'DOPESHEET_EDITOR': bpy.types.SpaceDopeSheetEditor,
-            'FILE_BROWSER': bpy.types.SpaceFileBrowser,
-            'GRAPH_EDITOR': bpy.types.SpaceGraphEditor,
-            'IMAGE_EDITOR': bpy.types.SpaceImageEditor,
-            'INFO': bpy.types.SpaceInfo,
-            'NLA_EDITOR': bpy.types.SpaceNLA,
-            'NODE_EDITOR': bpy.types.SpaceNodeEditor,
-            'OUTLINER': bpy.types.SpaceOutliner,
-            'PREFERENCES': bpy.types.SpacePreferences,
-            'PROPERTIES': bpy.types.SpaceProperties,
-            'SEQUENCE_EDITOR': bpy.types.SpaceSequenceEditor,
-            'SPREADSHEET': bpy.types.SpaceSpreadsheet,
-            'TEXT_EDITOR': bpy.types.SpaceTextEditor,
-        }
-    else:
-        return {
-            'VIEW_3D': bpy.types.SpaceView3D,
-            'CLIP_EDITOR': bpy.types.SpaceClipEditor,
-            'CONSOLE': bpy.types.SpaceConsole,
-            'DOPESHEET_EDITOR': bpy.types.SpaceDopeSheetEditor,
-            'FILE_BROWSER': bpy.types.SpaceFileBrowser,
-            'GRAPH_EDITOR': bpy.types.SpaceGraphEditor,
-            'IMAGE_EDITOR': bpy.types.SpaceImageEditor,
-            'INFO': bpy.types.SpaceInfo,
-            'LOGIC_EDITOR': bpy.types.SpaceLogicEditor,
-            'NLA_EDITOR': bpy.types.SpaceNLA,
-            'NODE_EDITOR': bpy.types.SpaceNodeEditor,
-            'OUTLINER': bpy.types.SpaceOutliner,
-            'PREFERENCES': bpy.types.SpaceUserPreferences,
-            'PROPERTIES': bpy.types.SpaceProperties,
-            'SEQUENCE_EDITOR': bpy.types.SpaceSequenceEditor,
-            'TEXT_EDITOR': bpy.types.SpaceTextEditor,
-            'TIMELINE': bpy.types.SpaceTimeline,
-        }
+    def check_exist_and_add(cls_name, space_name, space_types):
+        try:
+            cls = getattr(sys.modules["bpy.types"], cls_name)
+            space_types[space_name] = cls
+        except AttributeError as e:
+            pass
+
+    space_types = {}
+    check_exist_and_add("SpaceView3D", 'VIEW_3D', space_types)
+    check_exist_and_add("SpaceClipEditor", 'CLIP_EDITOR', space_types)
+    check_exist_and_add("SpaceConsole", 'CONSOLE', space_types)
+    check_exist_and_add("SpaceDopeSheetEditor", 'DOPESHEET_EDITOR', space_types)
+    check_exist_and_add("SpaceFileBrowser", 'FILE_BROWSER', space_types)
+    check_exist_and_add("SpaceGraphEditor", 'GRAPH_EDITOR', space_types) 
+    check_exist_and_add("SpaceImageEditor", 'IMAGE_EDITOR', space_types)
+    check_exist_and_add("SpaceInfo", 'INFO', space_types)
+    check_exist_and_add("SpaceLogicEditor", 'LOGIC_EDITOR', space_types)
+    check_exist_and_add("SpaceNLA", 'NLA_EDITOR', space_types)
+    check_exist_and_add("SpaceNodeEditor", 'NODE_EDITOR', space_types)
+    check_exist_and_add("SpaceOutliner", 'OUTLINER', space_types)
+    check_exist_and_add("SpacePreferences", 'PREFERENCES', space_types)
+    check_exist_and_add("SpaceUserPreferences", 'PREFERENCES', space_types)
+    check_exist_and_add("SpaceProperties", 'PROPERTIES', space_types)
+    check_exist_and_add("SpaceSequenceEditor", 'SEQUENCE_EDITOR', space_types)
+    check_exist_and_add("SpaceSpreadsheet", 'SPREADSHEET', space_types)
+    check_exist_and_add("SpaceTextEditor", 'TEXT_EDITOR', space_types)
+    check_exist_and_add("SpaceTimeline", 'TIMELINE', space_types)
+
+    return space_types
