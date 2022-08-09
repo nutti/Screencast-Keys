@@ -65,7 +65,16 @@ Support via [GitHub Sponsors](https://github.com/sponsors/nutti)
 
 ### Contributors
 
+Thanks for the contribution to this project.
+
 * [**@Hawkpath**](https://github.com/Hawkpath)
 * [**@kant**](https://github.com/kant)
 * [**@CheeryLee**](https://github.com/CheeryLee)
 * [**@Kureii**](https://github.com/Kureii)
+
+
+### Sponsors
+
+Thanks for the sponsoring this project.
+
+* Joel E White
