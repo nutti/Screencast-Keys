@@ -54,8 +54,6 @@ else:
 
 import os
 
-import bpy
-
 
 addon_keymaps = []
 startup = True
@@ -164,8 +162,6 @@ def register():
         prefs.panel_category = "Screencast Key"
         prefs.show_ui_in_sidebar = True
         prefs.show_ui_in_overlay = False
-    if utils.c_structures.NOT_SUPPORTED:
-        prefs.get_event_aggressively = False
     preferences.SK_Preferences.ui_in_sidebar_update_fn(prefs, context)
     preferences.SK_Preferences.ui_in_overlay_update_fn(prefs, context)
 

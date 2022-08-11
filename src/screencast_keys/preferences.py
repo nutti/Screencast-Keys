@@ -31,7 +31,7 @@ from .utils.addon_updater import AddonUpdaterManager
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 from . import common
-
+from . import utils
 
 @BlClassRegistry()
 class SK_OT_CheckAddonUpdate(bpy.types.Operator):
@@ -383,7 +383,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Get Event Aggressively",
         description="""(Experimental) Get events which will be dropped by the
                        other modalhandlers. This may make blender unstable""",
-        default=True,
+        default=False if utils.c_structures.NOT_SUPPORTED else True,
     )
 
     auto_save = bpy.props.BoolProperty(
