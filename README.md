@@ -4,6 +4,10 @@ This is a blender add-on **Screencast Keys** to display the Keyboard/Mouse and O
 
 ![Screencast Keys Thumbnail](docs/images/screencast-keys_thumbnail.png)
 
+*To realize the long support of this add-on, your support is helpful.*  
+*You can support the development of this add-on via **[GitHub Sponsors](https://github.com/sponsors/nutti)** or **[Blender Market](https://blendermarket.com/products/screencast-keys)**.*  
+*See [the contribution document](CONTRIBUTING.md) for the detail of the support.*
+
 
 ## Download / Installation
 
@@ -22,6 +26,7 @@ The features of this add-on are as follows.
 * Display Keyboard/Mouse status
 * Display Operation executed last time
 * Change area/region/window to display status
+* Customize UIs
 
 
 ## Tutorials
@@ -42,9 +47,9 @@ We provide [the answers](docs/faq.md) for the frequently asked questions.
 See these answers before making bug reports
 
 
-## Contribution
+## Contribution / Support
 
-If you want to contribute to this project, see [CONTRIBUTING.md](CONTRIBUTING.md).
+If you want to contribute to or support this project, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 
 ## Project Authors
