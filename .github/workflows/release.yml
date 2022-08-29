@@ -1,4 +1,4 @@
-name: Screencast-Keys CI
+name: Release
 
 on:
   push:
@@ -10,20 +10,21 @@ on:
   pull_request:
 
 jobs:
-  build:
-    name: Build add-on
-    runs-on: ubuntu-18.04
+  pack:
+    name: Pack add-on's sources
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Compress add-on
+      - name: Compress add-on's sources
         run: |
           mkdir release
           cd src
           zip -r screencast_keys.zip screencast_keys
           cd ..
           mv src/screencast_keys.zip release
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
@@ -31,10 +32,10 @@ jobs:
           path: "release"
 
   publish:
-    name: Publish Add-on
-    needs: build
+    name: Publish
+    needs: pack
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Fetch Artifacts
         uses: actions/download-artifact@v2
