@@ -31,7 +31,7 @@ jobs:
         run: pip3 install -r requirements.txt
 
       - name: pycodestyle test
-        run: bash tests/lint/pycodestyle.sh src/screencast_keys
+        run: bash tests/lint/pycodestyle/run.sh .
 
   pylint:
     name: pylint
@@ -54,4 +54,4 @@ jobs:
         run: pip3 install -r requirements.txt
 
       - name: pylint test
-        run: bash tests/lint/pylint.sh src/screencast_keys
+        run: bash tests/lint/pylint/run.sh .
