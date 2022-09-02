@@ -23,6 +23,8 @@ NOT_SUPPORTED = False
 
 if "bpy" in locals():
     import importlib
+    # pylint: disable=E0601
+    # pylint: disable=E0602
     if compat.check_version(2, 79, 0) == 0:
         importlib.reload(v279)
     elif compat.check_version(2, 80, 0) == 0:

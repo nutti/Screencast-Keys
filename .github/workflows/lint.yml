@@ -1,0 +1,57 @@
+name: Lint
+
+on:
+  push:
+    branches:
+      - master
+      - ci_testing
+    tags:
+      - 'v*'
+  pull_request:
+
+jobs:
+  pycodestyle:
+    name: pycodestyle
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+
+      - name: Install required packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y python3 python3-pip
+
+      - name: Install required pip packages
+        run: pip3 install -r requirements.txt
+
+      - name: pycodestyle test
+        run: bash tests/lint/pycodestyle.sh src/screencast_keys
+
+  pylint:
+    name: pylint
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+
+      - name: Get required packages for Blender
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y python3 python3-pip
+
+      - name: Get required pip packages
+        run: pip3 install -r requirements.txt
+
+      - name: pylint test
+        run: bash tests/lint/pylint.sh src/screencast_keys

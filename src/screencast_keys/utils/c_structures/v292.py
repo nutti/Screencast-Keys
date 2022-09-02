@@ -6,6 +6,7 @@ from ctypes import (
 )
 
 
+# pylint: disable=C0103
 class eWM_EventHandlerType:
     WM_HANDLER_TYPE_UI = 2
     WM_HANDLER_TYPE_OP = 3
@@ -14,6 +15,8 @@ class eWM_EventHandlerType:
 class Link(Structure):
     """Defined in source/blender/makesdna/DNA_listBase.h"""
 
+
+# pylint: disable=W0212
 Link._fields_ = [
     ("next", POINTER(Link)),      # struct Link
     ("prev", POINTER(Link)),      # struct Link
@@ -21,6 +24,7 @@ Link._fields_ = [
 
 
 class ListBase(Structure):
+    # pylint: disable=W0201
     """Defined in source/blender/makesdna/DNA_listBase.h"""
 
     def remove(self, vlink):
@@ -86,6 +90,8 @@ class ListBase(Structure):
         if newlink.next:
             newlink.next.prev = gen_ptr(newlink)
 
+
+# pylint: disable=W0212
 ListBase._fields_ = [
     ("first", c_void_p),
     ("last", c_void_p),
@@ -95,6 +101,8 @@ ListBase._fields_ = [
 class ScrAreaMap(Structure):
     """Defined in source/blender/makesdna/DNA_screen_types.h"""
 
+
+# pylint: disable=W0212
 ScrAreaMap._fields_ = [
     ("vertbase", ListBase),
     ("edgebase", ListBase),
@@ -102,9 +110,12 @@ ScrAreaMap._fields_ = [
 ]
 
 
+# pylint: disable=C0103
 class wmWindow(Structure):
     """Defined in source/blender/makesdna/DNA_windowmanager_types.h"""
 
+
+# pylint: disable=W0212
 wmWindow._fields_ = [
     ("next", POINTER(wmWindow)),
     ("prev", POINTER(wmWindow)),
@@ -116,7 +127,7 @@ wmWindow._fields_ = [
 
     ("scene", c_void_p),                    # struct Scene
     ("new_scene", c_void_p),                # struct Scene
-    ("view_layer_name", c_char*64),
+    ("view_layer_name", c_char * 64),
 
     ("workspace_hook", c_void_p),           # struct WorkSpaceInstanceHook
 
@@ -130,7 +141,7 @@ wmWindow._fields_ = [
     ("sizey", c_short),
     ("windowstate", c_char),
     ("active", c_char),
-    ("_pad0", c_char*4),
+    ("_pad0", c_char * 4),
     ("cursor", c_short),
     ("lastcursor", c_short),
     ("modalcursor", c_short),
@@ -162,14 +173,17 @@ wmWindow._fields_ = [
 ]
 
 
+# pylint: disable=C0103
 class wmOperator(Structure):
     """Defined in source/blender/makesdna/DNA_windowmanager_types.h"""
 
+
+# pylint: disable=W0212
 wmOperator._fields_ = [
     ("next", POINTER(wmOperator)),
     ("prev", POINTER(wmOperator)),
 
-    ("idname", c_char*64),
+    ("idname", c_char * 64),
     ("properties", c_void_p),               # IDProperty
 
     ("type", c_void_p),                     # struct wmOperatorType
@@ -183,13 +197,16 @@ wmOperator._fields_ = [
     ("opm", POINTER(wmOperator)),
     ("layout", c_void_p),                   # struct uiLayout
     ("flag", c_short),
-    ("_pad", c_char*6),
+    ("_pad", c_char * 6),
 ]
 
 
+# pylint: disable=C0103
 class wmEventHandler(Structure):
     """Defined in source/blender/windowmanager/wm_event_system.h"""
 
+
+# pylint: disable=W0212
 wmEventHandler._fields_ = [
     # from struct wmEventHandler
     ("next", POINTER(wmEventHandler)),

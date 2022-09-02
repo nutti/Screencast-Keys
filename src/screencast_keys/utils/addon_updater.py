@@ -42,21 +42,19 @@ def _request(url, json_decode=True):
     req = urllib.request.Request(url)
 
     try:
-        result = urllib.request.urlopen(req)
+        with urllib.request.urlopen(req) as result:
+            data = result.read()
     except urllib.error.HTTPError as e:
-        raise RuntimeError("HTTP error ({})".format(str(e.code)))
+        raise RuntimeError("HTTP error ({})".format(str(e.code))) from e
     except urllib.error.URLError as e:
-        raise RuntimeError("URL error ({})".format(str(e.reason)))
-
-    data = result.read()
-    result.close()
+        raise RuntimeError("URL error ({})".format(str(e.reason))) from e
 
     if json_decode:
         try:
             return json.JSONDecoder().decode(data.decode())
         except Exception as e:
             raise RuntimeError("API response has invalid JSON format ({})"
-                               .format(str(e)))
+                               .format(str(e))) from e
 
     return data.decode()
 
@@ -65,9 +63,9 @@ def _download(url, path):
     try:
         urllib.request.urlretrieve(url, path)
     except urllib.error.HTTPError as e:
-        raise RuntimeError("HTTP error ({})".format(str(e.code)))
+        raise RuntimeError("HTTP error ({})".format(str(e.code))) from e
     except urllib.error.URLError as e:
-        raise RuntimeError("URL error ({})".format(str(e.reason)))
+        raise RuntimeError("URL error ({})".format(str(e.reason))) from e
 
 
 def _make_workspace_path(addon_dir):
@@ -202,7 +200,6 @@ class AddonUpdaterManager:
     __lock = Lock()
 
     __initialized = False
-    __bl_info = None
     __config = None
     __update_candidate = []
     __candidate_checked = False
@@ -225,8 +222,7 @@ class AddonUpdaterManager:
 
         return cls.__inst
 
-    def init(self, bl_info, config):
-        self.__bl_info = bl_info
+    def init(self, config):
         self.__config = config
         self.__update_candidate = []
         self.__candidate_checked = False

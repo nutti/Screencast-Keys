@@ -30,14 +30,18 @@ if compat.check_version(2, 80, 0) >= 0:
     import gpu
 
 
-CUSTOM_MOUSE_IMAGE_BASE_NAME = "[Screencast Keys] Custom Mouse Image Base"
-CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME = "[Screencast Keys] Custom Mouse Image Overlay Left Mouse"
-CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME = "[Screencast Keys] Custom Mouse Image Overlay Right Mouse"
-CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME = "[Screencast Keys] Custom Mouse Image Overlay Middle Mouse"
+CUSTOM_MOUSE_IMG_BASE_NAME = "[Screencast Keys] Custom Mouse Image Base"
+CUSTOM_MOUSE_IMG_LMOUSE_NAME = \
+    "[Screencast Keys] Custom Mouse Image Overlay Left Mouse"
+CUSTOM_MOUSE_IMG_RMOUSE_NAME = \
+    "[Screencast Keys] Custom Mouse Image Overlay Right Mouse"
+CUSTOM_MOUSE_IMG_MMOUSE_NAME = \
+    "[Screencast Keys] Custom Mouse Image Overlay Middle Mouse"
 
 
 def output_debug_log():
-    prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+    user_prefs = compat.get_user_preferences(bpy.context)
+    prefs = user_prefs.addons[__package__].preferences
 
     return prefs.output_debug_log
 
@@ -53,10 +57,10 @@ def debug_print(s):
 
 def ensure_custom_mouse_images():
     image_names = [
-        CUSTOM_MOUSE_IMAGE_BASE_NAME,
-        CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME,
-        CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME,
-        CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME,
+        CUSTOM_MOUSE_IMG_BASE_NAME,
+        CUSTOM_MOUSE_IMG_LMOUSE_NAME,
+        CUSTOM_MOUSE_IMG_RMOUSE_NAME,
+        CUSTOM_MOUSE_IMG_MMOUSE_NAME,
     ]
 
     for name in image_names:
@@ -66,7 +70,7 @@ def ensure_custom_mouse_images():
             image.gl_load()
 
 
-def reload_custom_mouse_image(prefs, context):
+def reload_custom_mouse_image(prefs, _):
     def reload_image(filepath, image_name):
         if os.path.exists(filepath):
             if image_name in bpy.data.images:
@@ -84,13 +88,17 @@ def reload_custom_mouse_image(prefs, context):
         return
 
     if "custom_mouse_image_base" in prefs:
-        reload_image(prefs["custom_mouse_image_base"], CUSTOM_MOUSE_IMAGE_BASE_NAME)
+        reload_image(prefs["custom_mouse_image_base"],
+                     CUSTOM_MOUSE_IMG_BASE_NAME)
     if "custom_mouse_image_overlay_left_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_left_mouse"], CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME)
+        reload_image(prefs["custom_mouse_image_overlay_left_mouse"],
+                     CUSTOM_MOUSE_IMG_LMOUSE_NAME)
     if "custom_mouse_image_overlay_right_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_right_mouse"], CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME)
+        reload_image(prefs["custom_mouse_image_overlay_right_mouse"],
+                     CUSTOM_MOUSE_IMG_RMOUSE_NAME)
     if "custom_mouse_image_overlay_middle_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_middle_mouse"], CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME)
+        reload_image(prefs["custom_mouse_image_overlay_middle_mouse"],
+                     CUSTOM_MOUSE_IMG_MMOUSE_NAME)
 
     ensure_custom_mouse_images()
 

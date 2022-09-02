@@ -38,6 +38,7 @@ bl_info = {
 
 if "bpy" in locals():
     import importlib
+    # pylint: disable=E0601
     importlib.reload(utils)
     utils.bl_class_registry.BlClassRegistry.cleanup()
     importlib.reload(preferences)
@@ -52,42 +53,51 @@ else:
     from . import ui
     from . import common
 
+# pylint: disable=C0413
+from cgitb import enable
 import os
 
 
 addon_keymaps = []
-startup = True
+# pylint: disable=C0103
+is_startup = True
 
 
 @bpy.app.handlers.persistent
-def load_post_handler(scene):
-    global startup
+def load_post_handler(_):
+    # pylint: disable=W0603
+    global is_startup
 
     context = bpy.context
-    prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
+    user_prefs = utils.compatibility.get_user_preferences(context)
+    prefs = user_prefs.addons[__package__].preferences
 
-    if (prefs.enable_on_startup and startup) or (not startup and ops.SK_OT_ScreencastKeys.is_running()):
+    enable_on_startup = prefs.enable_on_startup and is_startup
+    is_running = not is_startup and ops.SK_OT_ScreencastKeys.is_running()
+    if enable_on_startup or is_running:
         bpy.ops.wm.sk_wait_blender_initialized_and_start_screencast_keys()
 
-    startup = False
+    is_startup = False
 
 
-def register_updater(bl_info):
+def register_updater(info):
     config = utils.addon_updater.AddonUpdaterConfig()
     config.owner = "nutti"
     config.repository = "Screencast-Keys"
     config.current_addon_path = os.path.dirname(os.path.realpath(__file__))
     config.branches = ["master", "develop"]
-    config.addon_directory = \
-        config.current_addon_path[:config.current_addon_path.rfind(utils.addon_updater.get_separator())]
-    config.min_release_version = bl_info["version"]
+    ridx = config.current_addon_path.rfind(utils.addon_updater.get_separator())
+    config.addon_directory = config.current_addon_path[:ridx]
+    config.min_release_version = info["version"]
     config.default_target_addon_path = "screencast_keys"
     config.target_addon_path = {
-        "master": "src{}screencast_keys".format(utils.addon_updater.get_separator()),
-        "develop": "src{}screencast_keys".format(utils.addon_updater.get_separator()),
+        "master": "src{}screencast_keys".format(
+            utils.addon_updater.get_separator()),
+        "develop": "src{}screencast_keys".format(
+            utils.addon_updater.get_separator()),
     }
     updater = utils.addon_updater.AddonUpdaterManager.get_instance()
-    updater.init(bl_info, config)
+    updater.init(config)
 
 
 def register_shortcut_key():
@@ -109,18 +119,19 @@ def unregister_shortcut_key():
 def call_silently(fn, *args):
     try:
         fn(*args)
-    except:
+    # pylint: disable=W0702
+    except:     # noqa
         pass
 
 
-def register_screencast_keys_enable_property():
-    def get_func(self):
+def register_addon_enable_property():
+    def get_func(_):
         return ops.SK_OT_ScreencastKeys.is_running()
 
-    def set_func(self, value):
+    def set_func(_, __):
         pass
 
-    def update_func(self, context):
+    def update_func(_, __):
         bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN')
 
     if not hasattr(bpy.types.WindowManager, "enable_screencast_keys"):
@@ -133,7 +144,7 @@ def register_screencast_keys_enable_property():
             )
 
 
-def unregister_screencast_keys_enable_property():
+def unregister_addon_enable_property():
     if hasattr(bpy.types.WindowManager, "enable_screencast_keys"):
         del bpy.types.WindowManager.enable_screencast_keys
 
@@ -144,7 +155,7 @@ def register():
     # both SK_PT_ScreencastKeys Panel and SK_PT_ScreencastKeys_Overlay Panel.
     # TODO: This registration should be handled by BlClassRegistry to add
     #       the priority feature.
-    register_screencast_keys_enable_property()
+    register_addon_enable_property()
     # TODO: Register by BlClassRegistry
     bpy.utils.register_class(preferences.DisplayEventTextAliasProperties)
     bpy.utils.register_class(ui.SK_PT_ScreencastKeys)
@@ -155,7 +166,8 @@ def register():
 
     # Apply preferences of UI.
     context = bpy.context
-    prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
+    user_prefs = utils.compatibility.get_user_preferences(context)
+    prefs = user_prefs.addons[__package__].preferences
     # Only default panel location is available in < 2.80
     if utils.compatibility.check_version(2, 80, 0) < 0:
         prefs.panel_space_type = 'VIEW_3D'
@@ -177,13 +189,15 @@ def register():
 
     try:
         common.reload_custom_mouse_image(prefs, context)
-    except:
+    # pylint: disable=W0702
+    except:     # noqa
         pass
 
 
 def unregister():
     context = bpy.context
-    prefs = utils.compatibility.get_user_preferences(context).addons[__package__].preferences
+    user_prefs = utils.compatibility.get_user_preferences(context)
+    prefs = user_prefs.addons[__package__].preferences
     preferences.remove_custom_mouse_image(prefs, context)
 
     bpy.app.handlers.load_post.remove(load_post_handler)
@@ -193,7 +207,7 @@ def unregister():
     call_silently(bpy.utils.unregister_class, ui.SK_PT_ScreencastKeys_Overlay)
     call_silently(bpy.utils.unregister_class, ui.SK_PT_ScreencastKeys)
     bpy.utils.unregister_class(preferences.DisplayEventTextAliasProperties)
-    unregister_screencast_keys_enable_property()
+    unregister_addon_enable_property()
 
 
 if __name__ == "__main__":

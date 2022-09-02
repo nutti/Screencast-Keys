@@ -36,9 +36,10 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         layout = self.layout
         layout.prop(context.window_manager, "enable_screencast_keys", text="")
 
-    def draw(self, context):
+    def draw(self, _):
         layout = self.layout
-        prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(bpy.context)
+        prefs = user_prefs.addons[__package__].preferences
 
         column = layout.column()
 
@@ -58,7 +59,8 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
             sp.prop(prefs, "background_mode", text="")
             sp = compat.layout_split(sp, factor=1.0)
             sp.prop(prefs, "background_color", text="")
-            column.prop(prefs, "background_rounded_corner_radius", text="Corner Radius")
+            column.prop(prefs, "background_rounded_corner_radius",
+                        text="Corner Radius")
 
         column.separator()
 
@@ -124,7 +126,7 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column.separator()
 
         column.label(text="Experimental:")
-        col = column.column()
+        column.column()
         sp = compat.layout_split(column, factor=0.05)
         _ = sp.column()     # spacer.
         sp = compat.layout_split(sp, factor=1.0)
@@ -141,4 +143,5 @@ class SK_PT_ScreencastKeys_Overlay(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(context.window_manager, "enable_screencast_keys", text="Screencast Keys")
+        layout.prop(context.window_manager, "enable_screencast_keys",
+                    text="Screencast Keys")

@@ -50,7 +50,9 @@ def make_annotations(cls):
         return cls
 
     # make annotation from attributes
-    props = {k: v for k, v in cls.__dict__.items() if isinstance(v, getattr(bpy.props, '_PropertyDeferred', tuple))}
+    props = {k: v
+             for k, v in cls.__dict__.items()
+             if isinstance(v, getattr(bpy.props, '_PropertyDeferred', tuple))}
     if props:
         if '__annotations__' not in cls.__dict__:
             setattr(cls, '__annotations__', {})
@@ -134,12 +136,12 @@ def get_object_uv_layers(obj):
         return obj.data.uv_layers
 
 
-def icon(icon):
-    if icon == 'IMAGE':
+def icon(icon_name):
+    if icon_name == 'IMAGE':
         if check_version(2, 80, 0) < 0:
             return 'IMAGE_COL'
 
-    return icon
+    return icon_name
 
 
 def set_blf_font_color(font_id, r, g, b, a):
@@ -155,32 +157,32 @@ def set_blf_blur(font_id, radius):
 
 
 def get_all_space_types():
-    def check_exist_and_add(cls_name, space_name, space_types):
+    def add_if_exist(cls_name, space_name, space_types):
         try:
             cls = getattr(sys.modules["bpy.types"], cls_name)
             space_types[space_name] = cls
-        except AttributeError as e:
+        except AttributeError as _:
             pass
 
     space_types = {}
-    check_exist_and_add("SpaceView3D", 'VIEW_3D', space_types)
-    check_exist_and_add("SpaceClipEditor", 'CLIP_EDITOR', space_types)
-    check_exist_and_add("SpaceConsole", 'CONSOLE', space_types)
-    check_exist_and_add("SpaceDopeSheetEditor", 'DOPESHEET_EDITOR', space_types)
-    check_exist_and_add("SpaceFileBrowser", 'FILE_BROWSER', space_types)
-    check_exist_and_add("SpaceGraphEditor", 'GRAPH_EDITOR', space_types) 
-    check_exist_and_add("SpaceImageEditor", 'IMAGE_EDITOR', space_types)
-    check_exist_and_add("SpaceInfo", 'INFO', space_types)
-    check_exist_and_add("SpaceLogicEditor", 'LOGIC_EDITOR', space_types)
-    check_exist_and_add("SpaceNLA", 'NLA_EDITOR', space_types)
-    check_exist_and_add("SpaceNodeEditor", 'NODE_EDITOR', space_types)
-    check_exist_and_add("SpaceOutliner", 'OUTLINER', space_types)
-    check_exist_and_add("SpacePreferences", 'PREFERENCES', space_types)
-    check_exist_and_add("SpaceUserPreferences", 'PREFERENCES', space_types)
-    check_exist_and_add("SpaceProperties", 'PROPERTIES', space_types)
-    check_exist_and_add("SpaceSequenceEditor", 'SEQUENCE_EDITOR', space_types)
-    check_exist_and_add("SpaceSpreadsheet", 'SPREADSHEET', space_types)
-    check_exist_and_add("SpaceTextEditor", 'TEXT_EDITOR', space_types)
-    check_exist_and_add("SpaceTimeline", 'TIMELINE', space_types)
+    add_if_exist("SpaceView3D", 'VIEW_3D', space_types)
+    add_if_exist("SpaceClipEditor", 'CLIP_EDITOR', space_types)
+    add_if_exist("SpaceConsole", 'CONSOLE', space_types)
+    add_if_exist("SpaceDopeSheetEditor", 'DOPESHEET_EDITOR', space_types)
+    add_if_exist("SpaceFileBrowser", 'FILE_BROWSER', space_types)
+    add_if_exist("SpaceGraphEditor", 'GRAPH_EDITOR', space_types)
+    add_if_exist("SpaceImageEditor", 'IMAGE_EDITOR', space_types)
+    add_if_exist("SpaceInfo", 'INFO', space_types)
+    add_if_exist("SpaceLogicEditor", 'LOGIC_EDITOR', space_types)
+    add_if_exist("SpaceNLA", 'NLA_EDITOR', space_types)
+    add_if_exist("SpaceNodeEditor", 'NODE_EDITOR', space_types)
+    add_if_exist("SpaceOutliner", 'OUTLINER', space_types)
+    add_if_exist("SpacePreferences", 'PREFERENCES', space_types)
+    add_if_exist("SpaceUserPreferences", 'PREFERENCES', space_types)
+    add_if_exist("SpaceProperties", 'PROPERTIES', space_types)
+    add_if_exist("SpaceSequenceEditor", 'SEQUENCE_EDITOR', space_types)
+    add_if_exist("SpaceSpreadsheet", 'SPREADSHEET', space_types)
+    add_if_exist("SpaceTextEditor", 'TEXT_EDITOR', space_types)
+    add_if_exist("SpaceTimeline", 'TIMELINE', space_types)
 
     return space_types

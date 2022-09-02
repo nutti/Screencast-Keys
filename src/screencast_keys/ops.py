@@ -37,10 +37,11 @@ import bpy
 import bpy.props
 
 from . import common
-from .common import debug_print, fix_modifier_display_text, output_debug_log, use_3d_polyline
+from .common import (debug_print, fix_modifier_display_text,
+                     output_debug_log, use_3d_polyline)
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
-from .utils import c_structures
+from .utils import c_structures as cstruct
 
 if compat.check_version(2, 80, 0) >= 0:
     from .compat import bglx as bgl
@@ -56,12 +57,13 @@ EventType = enum.IntEnum(
 EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
-def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, color,
-                       round_radius, fill=False, fill_color=None, line_thickness=1):
-    mouse_body = [x, y, w, h/2]
-    left_mouse_button = [x, y + h/2, w/3, h/2]
-    middle_mouse_button = [x + w/3, y + h/2, w/3, h/2]
-    right_mouse_button = [x + 2*w/3, y + h/2, w/3, h/2]
+def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
+                       color, round_radius, fill=False, fill_color=None,
+                       line_thickness=1):
+    mouse_body = [x, y, w, h / 2]
+    left_mouse_button = [x, y + h / 2, w / 3, h / 2]
+    middle_mouse_button = [x + w / 3, y + h / 2, w / 3, h / 2]
+    right_mouse_button = [x + 2 * w / 3, y + h / 2, w / 3, h / 2]
 
     # Mouse body.
     if fill:
@@ -80,73 +82,84 @@ def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed, 
 
     # Left button.
     if fill:
-        draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
-                         left_mouse_button[2], left_mouse_button[3],
-                         round_radius / 2,
-                         fill=True, color=fill_color,
-                         round_corner=[False, False, False, True],
-                         line_thickness=line_thickness)
-    draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
-                     left_mouse_button[2], left_mouse_button[3],
-                     round_radius / 2,
-                     fill=False, color=color,
-                     round_corner=[False, False, False, True],
-                     line_thickness=line_thickness)
+        draw_rounded_box(
+            left_mouse_button[0], left_mouse_button[1],
+            left_mouse_button[2], left_mouse_button[3],
+            round_radius / 2,
+            fill=True, color=fill_color,
+            round_corner=[False, False, False, True],
+            line_thickness=line_thickness)
+    draw_rounded_box(
+        left_mouse_button[0], left_mouse_button[1],
+        left_mouse_button[2], left_mouse_button[3],
+        round_radius / 2,
+        fill=False, color=color,
+        round_corner=[False, False, False, True],
+        line_thickness=line_thickness)
     if left_pressed:
-        draw_rounded_box(left_mouse_button[0], left_mouse_button[1],
-                        left_mouse_button[2], left_mouse_button[3],
-                        round_radius / 2,
-                        fill=True, color=color,
-                        round_corner=[False, False, False, True],
-                        line_thickness=line_thickness)
+        draw_rounded_box(
+            left_mouse_button[0], left_mouse_button[1],
+            left_mouse_button[2], left_mouse_button[3],
+            round_radius / 2,
+            fill=True, color=color,
+            round_corner=[False, False, False, True],
+            line_thickness=line_thickness)
 
     # Middle button.
     if fill:
-        draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
-                         middle_mouse_button[2], middle_mouse_button[3],
-                         round_radius / 2,
-                         fill=True, color=fill_color,
-                         round_corner=[False, False, False, False],
-                         line_thickness=line_thickness)
-    draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
-                     middle_mouse_button[2], middle_mouse_button[3],
-                     round_radius / 2,
-                     fill=False, color=color,
-                     round_corner=[False, False, False, False],
-                     line_thickness=line_thickness)
+        draw_rounded_box(
+            middle_mouse_button[0], middle_mouse_button[1],
+            middle_mouse_button[2], middle_mouse_button[3],
+            round_radius / 2,
+            fill=True, color=fill_color,
+            round_corner=[False, False, False, False],
+            line_thickness=line_thickness)
+    draw_rounded_box(
+        middle_mouse_button[0], middle_mouse_button[1],
+        middle_mouse_button[2], middle_mouse_button[3],
+        round_radius / 2,
+        fill=False, color=color,
+        round_corner=[False, False, False, False],
+        line_thickness=line_thickness)
     if middle_pressed:
-        draw_rounded_box(middle_mouse_button[0], middle_mouse_button[1],
-                        middle_mouse_button[2], middle_mouse_button[3],
-                        round_radius / 2,
-                        fill=True, color=color,
-                        round_corner=[False, False, False, False],
-                        line_thickness=line_thickness)
+        draw_rounded_box(
+            middle_mouse_button[0], middle_mouse_button[1],
+            middle_mouse_button[2], middle_mouse_button[3],
+            round_radius / 2,
+            fill=True, color=color,
+            round_corner=[False, False, False, False],
+            line_thickness=line_thickness)
 
     # Right button.
     if fill:
-        draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
-                         right_mouse_button[2], right_mouse_button[3],
-                         round_radius / 2,
-                         fill=True, color=fill_color,
-                         round_corner=[False, False, True, False],
-                         line_thickness=line_thickness)
-    draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
-                     right_mouse_button[2], right_mouse_button[3],
-                     round_radius / 2,
-                     fill=False, color=color,
-                     round_corner=[False, False, True, False],
-                     line_thickness=line_thickness)
+        draw_rounded_box(
+            right_mouse_button[0], right_mouse_button[1],
+            right_mouse_button[2], right_mouse_button[3],
+            round_radius / 2,
+            fill=True, color=fill_color,
+            round_corner=[False, False, True, False],
+            line_thickness=line_thickness)
+    draw_rounded_box(
+        right_mouse_button[0], right_mouse_button[1],
+        right_mouse_button[2], right_mouse_button[3],
+        round_radius / 2,
+        fill=False, color=color,
+        round_corner=[False, False, True, False],
+        line_thickness=line_thickness)
     if right_pressed:
-        draw_rounded_box(right_mouse_button[0], right_mouse_button[1],
-                        right_mouse_button[2], right_mouse_button[3],
-                        round_radius / 2,
-                        fill=True, color=color,
-                        round_corner=[False, False, True, False],
-                        line_thickness=line_thickness)
+        draw_rounded_box(
+            right_mouse_button[0], right_mouse_button[1],
+            right_mouse_button[2], right_mouse_button[3],
+            round_radius / 2,
+            fill=True, color=color,
+            round_corner=[False, False, True, False],
+            line_thickness=line_thickness)
 
 
 def draw_custom_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
-                      image_name_base, image_name_overlay_left_mouse, image_name_overlay_right_mouse, image_name_overlay_middle_mouse):
+                      image_name_base, image_name_overlay_lmouse,
+                      image_name_overlay_rmouse,
+                      image_name_overlay_mmouse):
     def draw_image(img, positions, tex_coords):
         if compat.check_version(2, 80, 0) >= 0:
             bgl.glEnable(bgl.GL_BLEND)
@@ -178,9 +191,9 @@ def draw_custom_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
 
     positions = [
         [x, y],
-        [x, y+h],
-        [x+w, y+h],
-        [x+w, y],
+        [x, y + h],
+        [x + w, y + h],
+        [x + w, y],
     ]
     tex_coords = [
         [0.0, 0.0],
@@ -193,17 +206,25 @@ def draw_custom_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
 
     if image_name_base in bpy.data.images:
         draw_image(bpy.data.images[image_name_base], positions, tex_coords)
-    if left_pressed and (image_name_overlay_left_mouse in bpy.data.images):
-        draw_image(bpy.data.images[image_name_overlay_left_mouse], positions, tex_coords)
-    if right_pressed and (image_name_overlay_right_mouse in bpy.data.images):
-        draw_image(bpy.data.images[image_name_overlay_right_mouse], positions, tex_coords)
-    if middle_pressed and (image_name_overlay_middle_mouse in bpy.data.images):
-        draw_image(bpy.data.images[image_name_overlay_middle_mouse], positions, tex_coords)
+    if left_pressed and (image_name_overlay_lmouse in bpy.data.images):
+        draw_image(bpy.data.images[image_name_overlay_lmouse], positions,
+                   tex_coords)
+    if right_pressed and (image_name_overlay_rmouse in bpy.data.images):
+        draw_image(bpy.data.images[image_name_overlay_rmouse], positions,
+                   tex_coords)
+    if middle_pressed and (image_name_overlay_mmouse in bpy.data.images):
+        draw_image(bpy.data.images[image_name_overlay_mmouse], positions,
+                   tex_coords)
 
 
-def draw_rounded_box(x, y, w, h, round_radius, fill=False, color=[1.0, 1.0, 1.0],
-                     round_corner=[True, True, True, True], line_thickness=1):
+def draw_rounded_box(x, y, w, h, round_radius, fill=False,
+                     color=None, round_corner=None, line_thickness=1):
     """round_corner: [Right Bottom, Left Bottom, Right Top, Left Top]"""
+
+    if color is None:
+        color = [1.0, 1.0, 1.0]
+    if round_corner is None:
+        round_corner = [True, True, True, True]
 
     def circle_verts_num(r):
         """Get number of verticies for circle optimized for drawing."""
@@ -308,7 +329,8 @@ def draw_text(text, font_id, color, shadow=False, shadow_color=None):
     blf.disable(font_id, blf.SHADOW)
 
 
-def draw_line(p1, p2, color, shadow=False, shadow_color=None, line_thickness=1):
+def draw_line(p1, p2, color, shadow=False, shadow_color=None,
+              line_thickness=1):
     bgl.glEnable(bgl.GL_BLEND)
 
     # Draw shadow.
@@ -345,8 +367,8 @@ def draw_line(p1, p2, color, shadow=False, shadow_color=None, line_thickness=1):
 def intersect_aabb(min1, max1, min2, max2):
     """Check intersection using AABB method."""
 
-    for i in range(len(min1)):
-        if (max1[i] < min2[i]) or (max2[i] < min1[i]):
+    for mi1, ma1, mi2, ma2 in zip(min1, max1, min2, max2):
+        if (ma1 < mi2) or (ma2 < mi1):
             return False
 
     return True
@@ -443,7 +465,8 @@ def get_region_rect_on_v3d(context, area=None, region=None):
 
 
 def get_display_event_text(event_id):
-    prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+    user_prefs = compat.get_user_preferences(bpy.context)
+    prefs = user_prefs.addons[__package__].preferences
 
     if not prefs.enable_display_event_text_aliases:
         if EventType[event_id] in SK_OT_ScreencastKeys.MODIFIER_EVENT_TYPES:
@@ -464,13 +487,15 @@ def get_display_event_text(event_id):
 def show_mouse_hold_status(prefs):
     if not prefs.show_mouse_events:
         return False
-    return prefs.mouse_events_show_mode in ['HOLD_STATUS', 'EVENT_HISTORY_AND_HOLD_STATUS']
+    return prefs.mouse_events_show_mode in ['HOLD_STATUS',
+                                            'EVENT_HISTORY_AND_HOLD_STATUS']
 
 
 def show_mouse_event_history(prefs):
     if not prefs.show_mouse_events:
         return False
-    return prefs.mouse_events_show_mode in ['EVENT_HISTORY', 'EVENT_HISTORY_AND_HOLD_STATUS']
+    return prefs.mouse_events_show_mode in ['EVENT_HISTORY',
+                                            'EVENT_HISTORY_AND_HOLD_STATUS']
 
 
 def show_text_background(prefs):
@@ -488,6 +513,7 @@ def show_draw_area_background(prefs):
 @BlClassRegistry()
 @compat.make_annotations
 class SK_OT_ScreencastKeys(bpy.types.Operator):
+    # pylint: disable=R0904
     bl_idname = "wm.sk_screencast_keys"
     bl_label = "Screencast Keys"
     bl_description = "Display keys pressed"
@@ -549,11 +575,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS = 1.3
 
     # Margin ratio for hold modifier keys box (against text height).
-    MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX = 0.2
+    MARGIN_RATIO_FOR_MODIFIER_KEYS_BOX = 0.2
 
     # Width ratio for separator between hold mouse status and
     # hold modifier keys (against mouse width).
-    WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS = 0.4
+    WIDTH_RATIO_FOR_SEPARATOR = 0.4
 
     # Draw area margin.
     DRAW_AREA_MARGIN_LEFT = 15
@@ -565,7 +591,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     TIMER_STEP = 0.1
 
     # Maximum interval for ignoring same event.
-    INTERVAL_FOR_IGNORE_SAME_EVENT = 0.05
+    INTERVAL_FOR_IGNORE_EVENT = 0.05
 
     # Previous redraw time.
     prev_time = 0.0
@@ -633,7 +659,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         for mod in modifiers:
             name = get_display_event_text(mod.name)
             assert mod in cls.MODIFIER_EVENT_TYPES, \
-                   "{} must be modifier types".format(name)
+                "{} must be modifier types".format(name)
 
             # Unique.
             if name not in names:
@@ -645,7 +671,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def removed_old_event_history(cls):
         """Return event history whose old events are removed."""
 
-        prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(bpy.context)
+        prefs = user_prefs.addons[__package__].preferences
         current_time = time.time()
 
         event_history = []
@@ -668,10 +695,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return cls.operator_history[-32:]
 
     @classmethod
-    def get_offset_for_alignment(cls, context, width, margin=0):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+    def get_alignment_offset(cls, context, width, margin=0):
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
-        dw, _ = cls.calc_draw_area_size(context)
+        dw, _ = cls.draw_area_size(context)
         dw -= cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
 
         offset_x = cls.DRAW_AREA_MARGIN_LEFT
@@ -689,7 +717,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def get_text_offset_for_alignment(cls, context, font_id, text, margin=0):
         tw = blf.dimensions(font_id, text)[0]
 
-        return cls.get_offset_for_alignment(context, tw, margin)
+        return cls.get_alignment_offset(context, tw, margin)
 
     @classmethod
     def get_origin(cls, context):
@@ -697,16 +725,19 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
            Retrun value: (Window, Area, Region, x, y)
         """
 
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
         def is_window_match(window):
             return window.as_pointer() == cls.origin["window"]
 
         def is_area_match(area):
             if area.as_pointer() == cls.origin["area"]:
-                return True     # Area is just same as user specified area.
+                # Area is just same as user specified area.
+                return True
             elif area.spaces.active.as_pointer() == cls.origin["space"]:
-                return True     # Area is not same, but active space information is same.
+                # Area is not same, but active space information is same.
+                return True
             else:
                 area_p = area.as_pointer()
                 if area_p in cls.area_spaces:
@@ -716,9 +747,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                         return True
             return False
 
-        def is_region_match(area):
+        def is_region_match(region):
             return region.type == cls.origin["region_type"]
 
+        window = None
         for window in context.window_manager.windows:
             if is_window_match(window):
                 break
@@ -726,7 +758,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             return None, None, None, 0, 0
 
         # Calculate draw offset
-        draw_area_width, draw_area_height = cls.calc_draw_area_size(context)
+        draw_area_width, draw_area_height = cls.draw_area_size(context)
         if prefs.align == 'LEFT':
             x, y = prefs.offset
             if prefs.origin == 'CURSOR':
@@ -749,15 +781,16 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     if not is_area_match(area):
                         continue
                     for region in area.regions:
-                        if found:
-                            break
-                        if is_region_match(region):
-                            if area.type == 'VIEW_3D':
-                                rect = get_region_rect_on_v3d(context, area, region)
-                                x += (rect[2] - rect[0] - draw_area_width) / 2
-                            else:
-                                x += (region.width - draw_area_width) / 2
-                            found = True
+                        if not is_region_match(region):
+                            continue
+                        if area.type == 'VIEW_3D':
+                            rect = get_region_rect_on_v3d(
+                                context, area, region)
+                            x += (rect[2] - rect[0] - draw_area_width) / 2
+                        else:
+                            x += (region.width - draw_area_width) / 2
+                        found = True
+                        break
             elif prefs.origin == 'CURSOR':
                 x += cls.current_mouse_co[0] - draw_area_width / 2
                 y += cls.current_mouse_co[1] - draw_area_height
@@ -778,20 +811,21 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     if not is_area_match(area):
                         continue
                     for region in area.regions:
-                        if found:
-                            break
-                        if is_region_match(region):
-                            if area.type == 'VIEW_3D':
-                                rect = get_region_rect_on_v3d(context, area, region)
-                                x += rect[2] - rect[0] - draw_area_width
-                            else:
-                                x += region.width - draw_area_width
-                            found = True
+                        if not is_region_match(region):
+                            continue
+                        if area.type == 'VIEW_3D':
+                            rect = get_region_rect_on_v3d(
+                                context, area, region)
+                            x += rect[2] - rect[0] - draw_area_width
+                        else:
+                            x += region.width - draw_area_width
+                        found = True
+                        break
             elif prefs.origin == 'CURSOR':
                 x += cls.current_mouse_co[0] - draw_area_width / 2
                 y += cls.current_mouse_co[1] - draw_area_height
 
-        if (prefs.origin == 'WINDOW') or (prefs.origin == 'CURSOR'):
+        if prefs.origin in ('WINDOW', 'CURSOR'):
             return window, None, None, x, y
         elif prefs.origin == 'AREA':
             for area in window.screen.areas:
@@ -804,7 +838,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 for region in area.regions:
                     if is_region_match(region):
                         if area.type == 'VIEW_3D':
-                            rect = get_region_rect_on_v3d(context, area, region)
+                            rect = get_region_rect_on_v3d(
+                                context, area, region)
                             x += rect[0]
                             y += rect[1]
                         else:
@@ -815,19 +850,20 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return None, None, None, 0, 0
 
     @classmethod
-    def calc_draw_text_area_width(cls, text, font_id):
+    def text_area_width(cls, text, font_id):
         return blf.dimensions(font_id, text)[0]
 
     @classmethod
-    def calc_draw_text_area_height(cls, font_id):
+    def text_area_height(cls, font_id):
         return blf.dimensions(font_id, string.printable)[1]
 
     @classmethod
-    def _calc_draw_area_size_last_operator_layer(cls, context, font_id):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+    def _area_size_last_operator_layer(cls, context, font_id):
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
         operator_history = cls.removed_old_operator_history()
-        sh = cls.calc_draw_text_area_height(font_id) + prefs.margin * 2
+        sh = cls.text_area_height(font_id) + prefs.margin * 2
 
         if not operator_history:
             layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
@@ -841,24 +877,30 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         operator_text = ""
         if prefs.last_operator_show_mode == 'LABEL':
-            operator_text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+            operator_text += bpy.app.translations.pgettext_iface(
+                bl_label, "Operator")
         elif prefs.last_operator_show_mode == 'IDNAME':
             operator_text += "{}".format(idname_py)
         elif prefs.last_operator_show_mode == 'LABEL_AND_IDNAME':
-            operator_text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+            operator_text += bpy.app.translations.pgettext_iface(
+                bl_label, "Operator")
             operator_text += " ('{}')".format(idname_py)
 
-        layer_width = cls.calc_draw_text_area_width(operator_text, font_id) + prefs.margin * 2
+        layer_width = cls.text_area_width(operator_text, font_id) \
+            + prefs.margin * 2
         layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
 
         return layer_width, layer_height
 
     @classmethod
-    def _calc_draw_area_size_mouse_and_hold_modifier_keys_layer(cls, context, font_id):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+    def _area_size_mouse_and_modifier_keys_layer(
+            cls, context, font_id):
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
-        drawing = False     # TODO: Need to check if drawing is now on progress.
-        modifier_keys_box_margin = cls.calc_draw_text_area_height(font_id) * cls.MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX
+        drawing = False  # TODO: Need to check if drawing is now on progress.
+        modifier_keys_box_margin = cls.text_area_height(font_id) * \
+            cls.MARGIN_RATIO_FOR_MODIFIER_KEYS_BOX
 
         # Setup hold modifier keys text
         modifier_keys_text = ""
@@ -880,33 +922,44 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 mouse_height = prefs.custom_mouse_size[1]
             else:
                 mouse_width = prefs.mouse_size
-                mouse_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
+                mouse_height = \
+                    prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
         if cls.hold_modifier_keys:
-            hold_modifier_keys_width = cls.calc_draw_text_area_width(modifier_keys_text, font_id) + modifier_keys_box_margin * 2
-            hold_modifier_keys_height = cls.calc_draw_text_area_height(font_id) + modifier_keys_box_margin * 2
+            hold_modifier_keys_width = \
+                cls.text_area_width(modifier_keys_text, font_id) \
+                + modifier_keys_box_margin * 2
+            hold_modifier_keys_height = \
+                cls.text_area_height(font_id) + modifier_keys_box_margin * 2
 
         if prefs.align == 'CENTER':
-            hold_modifier_keys_width = max(hold_modifier_keys_width, prefs.font_size * 8)
-            separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+            hold_modifier_keys_width = max(
+                hold_modifier_keys_width, prefs.font_size * 8)
+            separator_width = \
+                mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR + prefs.margin
         if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
-            separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+            separator_width = \
+                mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR + prefs.margin
 
-        layer_width = mouse_width + separator_width + hold_modifier_keys_width + prefs.margin * 2
-        layer_height = max(mouse_height, hold_modifier_keys_height) + prefs.margin * 2
+        layer_width = mouse_width + separator_width + \
+            hold_modifier_keys_width + prefs.margin * 2
+        layer_height = \
+            max(mouse_height, hold_modifier_keys_height) + prefs.margin * 2
 
         return layer_width, layer_height
 
     @classmethod
-    def _calc_draw_area_size_event_history_layer(cls, context, font_id):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+    def _area_size_event_history_layer(cls, context, font_id):
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
-        sh = cls.calc_draw_text_area_height(font_id) + prefs.margin * 2
+        sh = cls.text_area_height(font_id) + prefs.margin * 2
 
         layer_width = 0.0
         layer_height = 0.0
 
         event_history = cls.removed_old_event_history()
-        layer_height += cls.calc_draw_text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
+        layer_height += cls.text_area_height(font_id) * \
+            cls.HEIGHT_RATIO_FOR_SEPARATOR
         for _, event_type, modifiers, repeat_count in event_history[::-1]:
             text = get_display_event_text(event_type.name)
             if modifiers:
@@ -915,14 +968,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             if repeat_count > 1:
                 text += " x{}".format(repeat_count)
 
-            text_width = cls.calc_draw_text_area_width(text, font_id) + prefs.margin * 2
+            text_width = cls.text_area_width(text, font_id) + prefs.margin * 2
             layer_width = max(text_width, layer_width)
             layer_height += sh
 
         return layer_width, layer_height
 
     @classmethod
-    def calc_draw_area_size(cls, context):
+    def draw_area_size(cls, context):
         """Return draw area size.
 
         Draw format:
@@ -947,11 +1000,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                  --------------     --------------
         """
 
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
         font_size = prefs.font_size
         font_id = 0         # TODO: font_id should be constant.
-        dpi = compat.get_user_preferences(context).system.dpi
+        dpi = user_prefs.system.dpi
         blf.size(font_id, font_size, dpi)
 
         # Calculate width/height of draw area.
@@ -960,31 +1014,34 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Last operator.
         if prefs.show_last_operator:
-            w, h = cls._calc_draw_area_size_last_operator_layer(context, font_id)
+            w, h = cls._area_size_last_operator_layer(context, font_id)
             draw_area_width = max(w, draw_area_width)
             draw_area_height += h
 
         # Hold mouse status / Hold modifier keys.
-        w, h = cls._calc_draw_area_size_mouse_and_hold_modifier_keys_layer(context, font_id)
+        w, h = cls._area_size_mouse_and_modifier_keys_layer(context, font_id)
         draw_area_width = max(w, draw_area_width)
         draw_area_height += h
 
         # Event history.
-        w, h = cls._calc_draw_area_size_event_history_layer(context, font_id)
+        w, h = cls._area_size_event_history_layer(context, font_id)
         draw_area_width = max(w, draw_area_width)
         draw_area_height += h
 
         # Add margin.
-        draw_area_width += cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
-        draw_area_height += cls.DRAW_AREA_MARGIN_TOP + cls.DRAW_AREA_MARGIN_BOTTOM
+        draw_area_width += \
+            cls.DRAW_AREA_MARGIN_LEFT + cls.DRAW_AREA_MARGIN_RIGHT
+        draw_area_height += \
+            cls.DRAW_AREA_MARGIN_TOP + cls.DRAW_AREA_MARGIN_BOTTOM
 
         return draw_area_width, draw_area_height
 
     @classmethod
-    def calc_draw_area_rect(cls, context):
+    def draw_area_rect(cls, context):
         """Return draw area rectangle."""
 
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
         # Get draw target.
         window, area, region, x, y = cls.get_origin(context)
@@ -992,9 +1049,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             return None
 
         # Calculate width/height of draw area.
-        draw_area_width, draw_area_height = cls.calc_draw_area_size(context)
+        draw_area_width, draw_area_height = cls.draw_area_size(context)
 
-        if (prefs.origin == 'WINDOW') or (prefs.origin == 'CURSOR'):
+        if prefs.origin in ('WINDOW', 'CURSOR'):
             return (x,
                     y,
                     x + draw_area_width,
@@ -1017,23 +1074,25 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     max(y, ymin),
                     min(x + draw_area_width, xmax),
                     min(y + draw_area_height, ymax))
-        
-        assert False, "Value 'prefs.origin' is invalid (value={}).".format(prefs.origin)
+
+        assert False, "Invalid 'prefs.origin' (value={}).".format(prefs.origin)
+        return None
 
     @classmethod
     def find_redraw_regions(cls, context):
         """Find regions to redraw."""
 
-        rect = cls.calc_draw_area_rect(context)
+        rect = cls.draw_area_rect(context)
         if not rect:
             return []       # No draw target.
 
-        draw_area_min_x, draw_area_min_y, draw_area_max_x, draw_area_max_y = rect
+        draw_area_min_x, draw_area_min_y, draw_area_max_x, draw_area_max_y = \
+            rect
         width = draw_area_max_x - draw_area_min_x
         height = draw_area_max_y - draw_area_min_y
         if width == height == 0:
             return []       # Zero size region.
-        
+
         draw_area_min = [draw_area_min_x, draw_area_min_y]
         draw_area_max = [draw_area_max_x - 1, draw_area_max_y - 1]
 
@@ -1054,10 +1113,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def _draw_last_operator_layer(cls, context, font_id, x, y):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
         operator_history = cls.removed_old_operator_history()
-        sh = cls.calc_draw_text_area_height(font_id) + prefs.margin * 2
+        sh = cls.text_area_height(font_id) + prefs.margin * 2
 
         if not operator_history:
             layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
@@ -1074,17 +1134,20 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         # Setup operator text.
         operator_text = ""
         if prefs.last_operator_show_mode == 'LABEL':
-            operator_text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+            operator_text += bpy.app.translations.pgettext_iface(
+                bl_label, "Operator")
         elif prefs.last_operator_show_mode == 'IDNAME':
             operator_text += "{}".format(idname_py)
         elif prefs.last_operator_show_mode == 'LABEL_AND_IDNAME':
-            operator_text += bpy.app.translations.pgettext_iface(bl_label, "Operator")
+            operator_text += bpy.app.translations.pgettext_iface(
+                bl_label, "Operator")
             operator_text += " ('{}')".format(idname_py)
 
         # Setup draw target position
         operator_start_x = x
         operator_start_y = y
-        operator_width = cls.calc_draw_text_area_width(operator_text, font_id) + prefs.margin * 2
+        operator_width = \
+            cls.text_area_width(operator_text, font_id) + prefs.margin * 2
         operator_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR * 0.2
         separator_start_x = operator_start_x
         separator_start_y = operator_start_y + operator_height
@@ -1095,8 +1158,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         layer_width = max(operator_width, separator_width)
         layer_height = operator_height + separator_height
 
-        operator_offset_x, operator_offset_y = cls.get_offset_for_alignment(context, operator_width, prefs.margin)
-        separator_offset_x, separator_offset_y = cls.get_offset_for_alignment(context, separator_width, prefs.margin)
+        operator_offset_x, operator_offset_y = \
+            cls.get_alignment_offset(context, operator_width, prefs.margin)
+        separator_offset_x, separator_offset_y = \
+            cls.get_alignment_offset(context, separator_width, prefs.margin)
         operator_start_x += operator_offset_x
         operator_start_y += operator_offset_y
         separator_start_x += separator_offset_x
@@ -1110,23 +1175,27 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                                  operator_start_y,
                                  prefs.background_color, prefs.margin,
                                  prefs.background_rounded_corner_radius)
-        draw_text(operator_text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
+        draw_text(operator_text, font_id, prefs.color,
+                  prefs.shadow, prefs.shadow_color)
 
         # Draw separator.
-        draw_line([separator_start_x, separator_start_y],
-                  [separator_start_x + separator_line_width, separator_start_y],
-                  prefs.color, prefs.shadow, prefs.shadow_color,
-                  prefs.line_thickness)
+        draw_line(
+            [separator_start_x, separator_start_y],
+            [separator_start_x + separator_line_width, separator_start_y],
+            prefs.color, prefs.shadow, prefs.shadow_color,
+            prefs.line_thickness)
 
         return layer_width, layer_height, True
 
     @classmethod
-    def _draw_mouse_and_hold_modifier_keys_layer(cls, context, font_id, x, y):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+    def _draw_mouse_and_modifier_keys_layer(cls, context, font_id, x, y):
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
-        drawing = False     # TODO: Need to check if drawing is now on progress.
+        drawing = False  # TODO: Need to check if drawing is now on progress.
         compat.set_blf_font_color(font_id, *prefs.color, 1.0)
-        modifier_keys_box_margin = cls.calc_draw_text_area_height(font_id) * cls.MARGIN_RATIO_FOR_HOLD_MODIFIER_KEYS_BOX
+        modifier_keys_box_margin = cls.text_area_height(font_id) * \
+            cls.MARGIN_RATIO_FOR_MODIFIER_KEYS_BOX
         region_redraw = False
 
         # Setup hold modifier keys text
@@ -1158,38 +1227,50 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 mouse_icon_height = prefs.custom_mouse_size[1]
             else:
                 mouse_icon_width = prefs.mouse_size
-                mouse_icon_height = prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
+                mouse_icon_height = \
+                    prefs.mouse_size * cls.HEIGHT_RATIO_FOR_MOUSE_HOLD_STATUS
             mouse_width = mouse_icon_width
             mouse_height = mouse_icon_height
         if cls.hold_modifier_keys:
             hold_modifier_keys_start_x = x
             hold_modifier_keys_start_y = y
-            hold_modifier_keys_text_width = cls.calc_draw_text_area_width(modifier_keys_text, font_id) + modifier_keys_box_margin * 2
-            hold_modifier_keys_text_height = cls.calc_draw_text_area_height(font_id) + modifier_keys_box_margin * 2
+            hold_modifier_keys_text_width = \
+                cls.text_area_width(modifier_keys_text, font_id) + \
+                modifier_keys_box_margin * 2
+            hold_modifier_keys_text_height = \
+                cls.text_area_height(font_id) + modifier_keys_box_margin * 2
             hold_modifier_keys_width = hold_modifier_keys_text_width
             hold_modifier_keys_height = hold_modifier_keys_text_height
 
         if prefs.align == 'CENTER':
-            hold_modifier_keys_width = max(hold_modifier_keys_width, prefs.font_size * 8)
-            separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+            hold_modifier_keys_width = max(hold_modifier_keys_width,
+                                           prefs.font_size * 8)
+            separator_width = \
+                mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR + prefs.margin
         if show_mouse_hold_status(prefs) and cls.hold_modifier_keys:
-            separator_width = mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR_BETWEEN_MOUSE_AND_MODIFIER_KEYS + prefs.margin
+            separator_width = \
+                mouse_width * cls.WIDTH_RATIO_FOR_SEPARATOR + prefs.margin
             if prefs.align == 'RIGHT':
                 mouse_start_x += hold_modifier_keys_width + separator_width
-            elif prefs.align == 'LEFT' or prefs.align == 'CENTER':
-                hold_modifier_keys_start_x += mouse_icon_width + separator_width
+            elif prefs.align in ('LEFT', 'CENTER'):
+                hold_modifier_keys_start_x += \
+                    mouse_icon_width + separator_width
 
-        layer_width = mouse_width + separator_width + hold_modifier_keys_width + prefs.margin * 2
-        layer_height = max(mouse_height, hold_modifier_keys_height) + prefs.margin * 2
+        layer_width = mouse_width + separator_width + \
+            hold_modifier_keys_width + prefs.margin * 2
+        layer_height = max(mouse_height, hold_modifier_keys_height) + \
+            prefs.margin * 2
 
-        offset_x, offset_y = cls.get_offset_for_alignment(context, layer_width, prefs.margin)
+        offset_x, offset_y = cls.get_alignment_offset(
+            context, layer_width, prefs.margin)
         mouse_start_x += offset_x
         mouse_start_y += offset_y
         hold_modifier_keys_start_x += offset_x
         hold_modifier_keys_start_y += offset_y
 
         if mouse_height > hold_modifier_keys_height:
-            hold_modifier_keys_start_y += (mouse_height - hold_modifier_keys_height) / 2
+            hold_modifier_keys_start_y += \
+                (mouse_height - hold_modifier_keys_height) / 2
         else:
             mouse_start_y += (hold_modifier_keys_height - mouse_height) / 2
 
@@ -1201,10 +1282,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                                   cls.hold_mouse_buttons['LEFTMOUSE'],
                                   cls.hold_mouse_buttons['RIGHTMOUSE'],
                                   cls.hold_mouse_buttons['MIDDLEMOUSE'],
-                                  common.CUSTOM_MOUSE_IMAGE_BASE_NAME,
-                                  common.CUSTOM_MOUSE_IMAGE_OVERLAY_LEFT_MOUSE_NAME,
-                                  common.CUSTOM_MOUSE_IMAGE_OVERLAY_RIGHT_MOUSE_NAME,
-                                  common.CUSTOM_MOUSE_IMAGE_OVERLAY_MIDDLE_MOUSE_NAME)
+                                  common.CUSTOM_MOUSE_IMG_BASE_NAME,
+                                  common.CUSTOM_MOUSE_IMG_LMOUSE_NAME,
+                                  common.CUSTOM_MOUSE_IMG_RMOUSE_NAME,
+                                  common.CUSTOM_MOUSE_IMG_MMOUSE_NAME)
             else:
                 draw_default_mouse(mouse_start_x, mouse_start_y,
                                    mouse_icon_width, mouse_icon_height,
@@ -1219,30 +1300,41 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Draw hold modifier keys.
         if cls.hold_modifier_keys or drawing:
-            hold_modifier_keys_text_start_x = hold_modifier_keys_start_x + modifier_keys_box_margin
-            hold_modifier_keys_text_start_y = hold_modifier_keys_start_y + modifier_keys_box_margin
+            hold_modifier_keys_text_start_x = \
+                hold_modifier_keys_start_x + modifier_keys_box_margin
+            hold_modifier_keys_text_start_y = \
+                hold_modifier_keys_start_y + modifier_keys_box_margin
 
             if show_text_background(prefs):
-                draw_text_background(modifier_keys_text, font_id,
-                                     hold_modifier_keys_text_start_x,
-                                     hold_modifier_keys_text_start_y + modifier_keys_box_margin,
-                                     prefs.background_color, prefs.margin,
-                                     prefs.background_rounded_corner_radius)
+                draw_text_background(
+                    modifier_keys_text,
+                    font_id,
+                    hold_modifier_keys_text_start_x,
+                    hold_modifier_keys_text_start_y + modifier_keys_box_margin,
+                    prefs.background_color, prefs.margin,
+                    prefs.background_rounded_corner_radius)
             else:
                 # Draw rounded box.
-                draw_rounded_box(hold_modifier_keys_start_x, hold_modifier_keys_start_y,
-                                 hold_modifier_keys_text_width, hold_modifier_keys_text_height,
-                                 hold_modifier_keys_text_height * 0.2,
-                                 show_text_background(prefs),
-                                 prefs.background_color if show_text_background(prefs) else prefs.color,
-                                 line_thickness=prefs.line_thickness)
+                draw_rounded_box(
+                    hold_modifier_keys_start_x,
+                    hold_modifier_keys_start_y,
+                    hold_modifier_keys_text_width,
+                    hold_modifier_keys_text_height,
+                    hold_modifier_keys_text_height * 0.2,
+                    show_text_background(prefs),
+                    prefs.background_color if show_text_background(prefs)
+                    else prefs.color,
+                    line_thickness=prefs.line_thickness)
 
             # Draw modifier key text.
-            blf.position(font_id,
-                         hold_modifier_keys_text_start_x,
-                         hold_modifier_keys_text_start_y + modifier_keys_box_margin,
-                         0)
-            draw_text(modifier_keys_text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
+            blf.position(
+                font_id,
+                hold_modifier_keys_text_start_x,
+                hold_modifier_keys_text_start_y + modifier_keys_box_margin,
+                0)
+            draw_text(
+                modifier_keys_text, font_id, prefs.color,
+                prefs.shadow, prefs.shadow_color)
             bgl.glColor4f(*prefs.color, 1.0)
 
             region_redraw = True
@@ -1251,9 +1343,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def _draw_event_history_layer(cls, context, font_id, x, y):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
-        sh = cls.calc_draw_text_area_height(font_id) + prefs.margin * 2
+        sh = cls.text_area_height(font_id) + prefs.margin * 2
         region_drawn = False
         color = prefs.color
         compat.set_blf_font_color(font_id, *color, 1.0)
@@ -1264,8 +1357,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         event_start_y = y
 
         event_history = cls.removed_old_event_history()
-        layer_height += cls.calc_draw_text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
-        event_start_y += cls.calc_draw_text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
+        layer_height += \
+            cls.text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
+        event_start_y += \
+            cls.text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
         for _, event_type, modifiers, repeat_count in event_history[::-1]:
             text = get_display_event_text(event_type.name)
             if modifiers:
@@ -1274,16 +1369,20 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             if repeat_count > 1:
                 text += " x{}".format(repeat_count)
 
-            text_width = cls.calc_draw_text_area_width(text, font_id) + prefs.margin * 2
-            offset_x, offset_y = cls.get_offset_for_alignment(context, text_width, prefs.margin)
-            blf.position(font_id, event_start_x + offset_x, event_start_y + offset_y, 0)
+            text_width = \
+                cls.text_area_width(text, font_id) + prefs.margin * 2
+            offset_x, offset_y = cls.get_alignment_offset(
+                context, text_width, prefs.margin)
+            blf.position(font_id, event_start_x + offset_x,
+                         event_start_y + offset_y, 0)
             if show_text_background(prefs):
                 draw_text_background(text, font_id,
                                      event_start_x + offset_x,
                                      event_start_y + offset_y,
                                      prefs.background_color, prefs.margin,
                                      prefs.background_rounded_corner_radius)
-            draw_text(text, font_id, prefs.color, prefs.shadow, prefs.shadow_color)
+            draw_text(text, font_id, prefs.color, prefs.shadow,
+                      prefs.shadow_color)
 
             layer_width = max(text_width, layer_width)
             layer_height += sh
@@ -1295,16 +1394,18 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def draw_callback(cls, context):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
         if context.window.as_pointer() != cls.origin["window"]:
             return      # Not match target window.
 
-        rect = cls.calc_draw_area_rect(context)
+        rect = cls.draw_area_rect(context)
         if not rect:
             return      # No draw target.
 
-        draw_area_min_x, draw_area_min_y, draw_area_max_x, draw_area_max_y = rect
+        draw_area_min_x, draw_area_min_y, draw_area_max_x, draw_area_max_y = \
+            rect
         _, _, _, origin_x, origin_y = cls.get_origin(context)
         draw_area_width = draw_area_max_x - origin_x
         draw_area_height = draw_area_max_y - origin_y
@@ -1314,7 +1415,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         region = context.region
         area = context.area
         if region.type == 'WINDOW':
-            region_min_x, region_min_y, region_max_x, region_max_y = get_window_region_rect(area)
+            region_min_x, region_min_y, region_max_x, region_max_y = \
+                get_window_region_rect(area)
         else:
             region_min_x = region.x
             region_min_y = region.y
@@ -1322,7 +1424,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             region_max_y = region.y + region.height - 1
         if not intersect_aabb(
                 [region_min_x, region_min_y], [region_max_x, region_max_y],
-                [draw_area_min_x + 1, draw_area_min_y + 1], [draw_area_max_x - 1, draw_area_max_y - 1]):
+                [draw_area_min_x + 1, draw_area_min_y + 1],
+                [draw_area_max_x - 1, draw_area_max_y - 1]):
             # We don't need to draw if draw area is not overlapped with region.
             return
 
@@ -1347,7 +1450,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         y = origin_y - region.y
 
         # Warm up rendering.
-        # This is needed to render the line with more than 1.5 thickness properly.
+        # This is needed to render the line with more than 1.5 thickness
+        # properly.
         draw_rect(0, 0, 0, 0, [0.0, 0.0, 0.0])
 
         # Draw draw area based background.
@@ -1362,32 +1466,39 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         def check_draw_status(cls, context, font_id, layer_name, calc_fn,
                               draw_x, draw_y, draw_w, draw_h):
-            prefs = compat.get_user_preferences(bpy.context).addons[__package__].preferences
+            user_prefs = compat.get_user_preferences(bpy.context)
+            prefs = user_prefs.addons[__package__].preferences
             if prefs.display_draw_area:
-                offset_x, offset_y = cls.get_offset_for_alignment(context, draw_w)
+                offset_x, offset_y = cls.get_alignment_offset(context, draw_w)
                 draw_rounded_box(draw_x + offset_x,
                                  draw_y + offset_y,
                                  draw_w, draw_h, 0, color=[1.0, 0.0, 0.0])
             if output_debug_log():
                 calc_w, calc_h = calc_fn(context, font_id)
-                if (abs(draw_w - calc_w) >= 0.0001) or (abs(draw_h - calc_h) >= 0.0001):
+                mismatch_width = abs(draw_w - calc_w) >= 0.0001
+                mismatch_height = abs(draw_h - calc_h) >= 0.0001
+                if mismatch_width or mismatch_height:
                     debug_print("Draw area size mismatch. "
-                                "[Layer: {} -> (w, h) = ({}, {}), (calc_w, calc_h) = ({}, {})]"
-                                .format(layer_name, draw_w, draw_h, calc_w, calc_h))
+                                "[Layer: {} -> (w, h) = ({}, {}), "
+                                "(calc_w, calc_h) = ({}, {})]"
+                                .format(layer_name, draw_w, draw_h,
+                                        calc_w, calc_h))
 
         # Draw last operator.
         if prefs.show_last_operator:
             w, h, rd = cls._draw_last_operator_layer(context, font_id, x, y)
             check_draw_status(cls, context, font_id, "Last Operator",
-                              cls._calc_draw_area_size_last_operator_layer,
+                              cls._area_size_last_operator_layer,
                               x, y, w, h)
             y += h
             region_drawn = region_drawn if region_drawn else rd
 
         # Draw mouse and hold modifier keys
-        w, h, rd = cls._draw_mouse_and_hold_modifier_keys_layer(context, font_id, x, y)
-        check_draw_status(cls, context, font_id, "Mouse and Hold Modifier Keys",
-                          cls._calc_draw_area_size_mouse_and_hold_modifier_keys_layer,
+        w, h, rd = cls._draw_mouse_and_modifier_keys_layer(
+            context, font_id, x, y)
+        check_draw_status(cls, context, font_id,
+                          "Mouse and Hold Modifier Keys",
+                          cls._area_size_mouse_and_modifier_keys_layer,
                           x, y, w, h)
         y += h
         region_drawn = region_drawn if region_drawn else rd
@@ -1395,7 +1506,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         # Draw event history.
         w, h, rd = cls._draw_event_history_layer(context, font_id, x, y)
         check_draw_status(cls, context, font_id, "Event History",
-                          cls._calc_draw_area_size_event_history_layer,
+                          cls._area_size_event_history_layer,
                           x, y, w, h)
         y += h
         region_drawn = region_drawn if region_drawn else rd
@@ -1409,7 +1520,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @staticmethod
     @bpy.app.handlers.persistent
-    def auto_save(scene):
+    def auto_save(_):
         cls = SK_OT_ScreencastKeys
         context = bpy.context
         prefs = context.preferences
@@ -1421,25 +1532,32 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         save_interval = prefs.filepaths.auto_save_time * 60
         if current_time - cls.last_auto_saved_time < save_interval:
             elapsed_time = current_time - cls.last_auto_saved_time
-            debug_print(f"Does not reached save interval (Save interval is {save_interval}, but elapsed time is {elapsed_time})")
+            debug_print("Does not reached save interval (Save interval is "
+                        f"{save_interval}, but elapsed time is "
+                        f"{elapsed_time})")
             return
-        
-        # Perform auto save only if the modal operator is executed from Screencast Keys.
+
+        # Perform auto save only if the modal operator is executed from
+        # Screencast Keys.
         do_auto_save = False
         for w in bpy.context.window_manager.windows:
-            window = cast(c_void_p(w.as_pointer()), POINTER(c_structures.wmWindow)).contents
-            handler_ptr = cast(window.modalhandlers.first, POINTER(c_structures.wmEventHandler))
+            window = cast(
+                c_void_p(w.as_pointer()), POINTER(cstruct.wmWindow)).contents
+            handler_ptr = cast(
+                window.modalhandlers.first, POINTER(cstruct.wmEventHandler))
             while handler_ptr:
                 handler = handler_ptr.contents
                 if compat.check_version(2, 80, 0) >= 0:
-                    if handler.type == c_structures.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
+                    if handler.type == \
+                            cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
                         do_auto_save = True
                         op = handler.op.contents
                         idname = op.idname.decode()
                         op_prefix, op_name = idname.split("_OT_")
                         idname_py = "{}.{}".format(op_prefix.lower(), op_name)
                         if idname_py != SK_OT_ScreencastKeys.bl_idname:
-                            debug_print(f"Modal operator '{idname_py}' is running. Skip auto save")
+                            debug_print(f"Modal operator '{idname_py}' is "
+                                        "running. Skip auto save")
                             return
                 else:
                     if handler.op:
@@ -1448,14 +1566,16 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                         op_prefix, op_name = idname.split("_OT_")
                         idname_py = "{}.{}".format(op_prefix.lower(), op_name)
                         if idname_py != SK_OT_ScreencastKeys.bl_idname:
-                            debug_print(f"Modal operator '{idname_py}' is running. Skip auto save")
+                            debug_print(f"Modal operator '{idname_py}' is "
+                                        "running. Skip auto save")
                             return
-                handler_ptr = cast(handler.next, POINTER(c_structures.wmEventHandler))
+                handler_ptr = cast(
+                    handler.next, POINTER(cstruct.wmEventHandler))
 
         if not do_auto_save:
-            debug_print(f"No modal operator is running. Skip auto save")
+            debug_print("No modal operator is running. Skip auto save")
             return
-        
+
         if bpy.data.is_saved:
             filename = os.path.basename(bpy.data.filepath)
             save_basename = os.path.splitext(filename)[0] + ".blend"
@@ -1463,12 +1583,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             pid = os.getpid()
             save_basename = f"{pid}.blend"
 
-        save_dir = os.path.normpath(os.path.join(bpy.app.tempdir, os.path.pardir))
+        save_dir = os.path.normpath(
+            os.path.join(bpy.app.tempdir, os.path.pardir))
         if platform.system() == 'Windows' and not os.path.exists(save_dir):
             save_dir = bpy.utils.user_resource('AUTOSAVE')
         save_path = os.path.join(save_dir, save_basename)
 
-        # If .blend file is updated from other methods, update last_auto_saved_time.
+        # If .blend file is updated from other methods, update
+        # last_auto_saved_time.
         if os.path.exists(save_path):
             stat = os.stat(save_path)
             if cls.last_auto_saved_time < stat.st_mtime:
@@ -1476,33 +1598,40 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 debug_print(f"Auto saved file '{save_path}'is updated")
             if current_time - cls.last_auto_saved_time < save_interval:
                 elapsed_time = current_time - cls.last_auto_saved_time
-                debug_print(f"Does not reached save interval (Save interval is {save_interval}, but elapsed time is {elapsed_time})")
+                debug_print("Does not reached save interval (Save interval is "
+                            f"{save_interval}, but elapsed time is "
+                            f"{elapsed_time})")
                 return
 
         # Create directory to store auto save .blend file.
         if not os.path.exists(save_dir):
             try:
                 os.makedirs(save_dir)
-            except:
+            # pylint: disable=W0702
+            except:     # noqa
                 debug_print(f"Unable to create directory '{save_dir}'")
                 return
 
         # auto_save function can be called from multiple threads.
-        # auto_saving variable makes sure that saving mainfile is called from only 1 thread.
+        # auto_saving variable makes sure that saving mainfile is called from
+        # only 1 thread.
         if cls.auto_saving:
-           return
+            return
         cls.auto_saving = True
 
         # Check again if the current time overs save interval.
         if current_time - cls.last_auto_saved_time < save_interval:
             elapsed_time = current_time - cls.last_auto_saved_time
-            debug_print(f"Does not reached save interval (Save interval is {save_interval}, but elapsed time is {elapsed_time})")
+            debug_print("Does not reached save interval (Save interval is "
+                        f"{save_interval}, but elapsed time is "
+                        f"{elapsed_time})")
             cls.auto_saving = False
             return
 
         # Save .blend file.
         try:
             bpy.ops.wm.save_as_mainfile(filepath=save_path, copy=True)
+        # pylint: disable=W0703
         except Exception as e:
             debug_print(f"Unable to save '{save_path}' (Reason: {e})")
             cls.auto_saving = False
@@ -1515,7 +1644,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @staticmethod
     @bpy.app.handlers.persistent
-    def sort_modalhandlers(scene):
+    def sort_modalhandlers(_):
         """Sort modalhandlers registered on wmWindow.
            This makes SK_OT_ScreencastKeys.model method enable to get events
            consumed by other modalhandlers."""
@@ -1529,8 +1658,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             return
 
         for w in bpy.context.window_manager.windows:
-            window = cast(c_void_p(w.as_pointer()), POINTER(c_structures.wmWindow)).contents
-            handler_ptr = cast(window.modalhandlers.first, POINTER(c_structures.wmEventHandler))
+            window = cast(
+                c_void_p(w.as_pointer()), POINTER(cstruct.wmWindow)).contents
+            handler_ptr = cast(
+                window.modalhandlers.first, POINTER(cstruct.wmEventHandler))
             indices = []
             i = 0
             debug_print("====== HANDLER_LIST ======")
@@ -1538,15 +1669,19 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             while handler_ptr:
                 handler = handler_ptr.contents
                 if compat.check_version(2, 80, 0) >= 0:
-                    if handler.type == c_structures.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
+                    if handler.type == \
+                            cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
                         op = handler.op.contents
                         idname = op.idname.decode()
                         op_prefix, op_name = idname.split("_OT_")
                         idname_py = "{}.{}".format(op_prefix.lower(), op_name)
                         if idname_py == SK_OT_ScreencastKeys.bl_idname:
                             indices.append(i)
-                        debug_print("  TYPE: WM_HANDLER_TYPE_OP ({})".format(idname_py))
-                    elif handler.type == c_structures.eWM_EventHandlerType.WM_HANDLER_TYPE_UI:
+                        debug_print(
+                            "  TYPE: WM_HANDLER_TYPE_OP ({})"
+                            .format(idname_py))
+                    elif handler.type == \
+                            cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_UI:
                         has_ui_handler = True
                         debug_print("  TYPE: WM_HANDLER_TYPE_UI")
                     else:
@@ -1559,13 +1694,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                         idname_py = "{}.{}".format(op_prefix.lower(), op_name)
                         if idname_py == SK_OT_ScreencastKeys.bl_idname:
                             indices.append(i)
-                handler_ptr = cast(handler.next,
-                                POINTER(c_structures.wmEventHandler))
+                handler_ptr = cast(
+                    handler.next, POINTER(cstruct.wmEventHandler))
                 i += 1
             debug_print("==========================")
 
-            # Blender will crash when we change the space type while Screencast Key is running.
-            # This issue is caused by changing order of WM_HANDLER_TYPE_UI handler.
+            # Blender will crash when we change the space type while Screencast
+            # Key is running. This issue is caused by changing order of
+            # WM_HANDLER_TYPE_UI handler.
             # So, do nothing if there is a WM_HANDLER_TYPE_UI handler.
             # TODO: Sort only WM_HANDLER_TYPE_OP handlers.
             if has_ui_handler:
@@ -1600,13 +1736,15 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def update_hold_mouse_buttons(self, event):
         """Update hold mouse buttons."""
 
-        if (event.type != 'MOUSEMOVE') and (event.type not in self.hold_mouse_buttons.keys()):
+        is_hold_mouse_event = event.type in self.hold_mouse_buttons.keys()
+        if event.type != 'MOUSEMOVE' and not is_hold_mouse_event:
             return
 
         # Note: This is not complete solution.
-        # Release event is not fired in specific cases (ex. open context menu, mouse drag, ...).
-        # To solve this issue, use 'MOUSEMOVE' event which will not be fired when
-        # some mouse key is not pressed.
+        # Release event is not fired in specific cases (ex. open context menu,
+        # mouse drag, ...).
+        # To solve this issue, use 'MOUSEMOVE' event which will not be fired
+        # when some mouse key is not pressed.
         if event.type == 'MOUSEMOVE':
             reset = False
             if compat.check_version(3, 2, 0) < 0:
@@ -1619,7 +1757,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 for k in self.hold_mouse_buttons.keys():
                     self.hold_mouse_buttons[k] = False
 
-        if event.value == 'PRESS' or event.value == 'CLICK_DRAG':
+        if event.value in ('PRESS', 'CLICK_DRAG'):
             self.hold_mouse_buttons[event.type] = True
         elif event.value == 'RELEASE':
             self.hold_mouse_buttons[event.type] = False
@@ -1627,14 +1765,13 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def is_ignore_event(self, event, prefs=None):
         """Return True if event will not be shown."""
 
+        show_mouse_event = show_mouse_event_history(prefs) if prefs else False
         event_type = EventType[event.type]
         if event_type in {EventType.NONE, EventType.MOUSEMOVE,
                           EventType.INBETWEEN_MOUSEMOVE,
                           EventType.WINDOW_DEACTIVATE, EventType.TEXTINPUT}:
             return True
-        elif (prefs is not None
-              and not show_mouse_event_history(prefs)
-              and event_type in self.MOUSE_EVENT_TYPES):
+        elif show_mouse_event and (event_type in self.MOUSE_EVENT_TYPES):
             return True
         elif event_type.name.startswith("EVT_TWEAK"):
             return True
@@ -1644,7 +1781,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return False
 
     def modal(self, context, event):
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
         if not self.__class__.is_running():
             return {'FINISHED'}
@@ -1678,27 +1816,29 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         self.update_hold_mouse_buttons(event)
 
         # Update event history.
-        if (not self.is_ignore_event(event, prefs=prefs) and
-                not self.__class__.is_modifier_event(event) and
-                event.value == 'PRESS'):
-            last_event = self.event_history[-1] if self.event_history else None
+        if not self.is_ignore_event(event, prefs=prefs) and \
+                not self.__class__.is_modifier_event(event) and \
+                event.value == 'PRESS':
             current_event = [current_time, event_type, current_mod_keys, 1]
 
-            # If events are raised in short time (e.g. Double Click), the additional
-            # events will be raised from the Internal of Blender. This check avoids
-            # not to count such events.
-            if (last_event and
-                    last_event[1:-1] == current_event[1:-1] and
-                    current_time - last_event[0] < self.INTERVAL_FOR_IGNORE_SAME_EVENT):
-                pass
-            # If this event has same event_type and modifiers, we increment
-            # repeat_count. However, we reset repeat_count if event interval
-            # overs display time.
-            elif (prefs.repeat_count and last_event and
-                    last_event[1:-1] == current_event[1:-1] and
-                    current_time - last_event[0] < prefs.display_time):
-                last_event[0] = current_time
-                last_event[-1] += 1
+            if self.event_history:
+                last_event = self.event_history[-1]
+                delta_time = current_time - last_event[0]
+                is_same = last_event[1:-1] == current_event[1:-1]
+                # If events are raised in short time (e.g. Double Click), the
+                # additional events will be raised from the Internal of
+                # Blender. This check avoids not to count such events.
+                if is_same and delta_time < self.INTERVAL_FOR_IGNORE_EVENT:
+                    pass
+                # If this event has same event_type and modifiers, we increment
+                # repeat_count. However, we reset repeat_count if event
+                # interval overs display time.
+                elif prefs.repeat_count and is_same and \
+                        delta_time < prefs.display_time:
+                    last_event[0] = current_time
+                    last_event[-1] += 1
+                else:
+                    self.event_history.append(current_event)
             else:
                 self.event_history.append(current_event)
         self.event_history[:] = self.removed_old_event_history()
@@ -1716,7 +1856,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 if op.as_pointer() == addr:
                     prev_last_op_index = len(operators) - i
                     break
-            
+
             # Add operators to history.
             for op in operators[prev_last_op_index:]:
                 op_prefix, op_name = op.bl_idname.split("_OT_")
@@ -1727,8 +1867,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Redraw regions which we want.
         prev_time = self.prev_time
-        if (not self.is_ignore_event(event, prefs=prefs) or
-                prev_time and current_time - prev_time >= self.TIMER_STEP):
+        if not self.is_ignore_event(event, prefs=prefs) or \
+                prev_time and current_time - prev_time >= self.TIMER_STEP:
             regions = self.find_redraw_regions(context)
 
             # If regions which are drawn at previous time, is not draw target
@@ -1800,9 +1940,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         context.area.tag_redraw()
         if prefs.get_event_aggressively:
             if compat.check_version(2, 80, 0) >= 0:
-                bpy.app.handlers.depsgraph_update_pre.append(cls.sort_modalhandlers)
+                bpy.app.handlers.depsgraph_update_pre.append(
+                    cls.sort_modalhandlers)
             else:
-                bpy.app.handlers.scene_update_pre.append(cls.sort_modalhandlers)
+                bpy.app.handlers.scene_update_pre.append(
+                    cls.sort_modalhandlers)
         if prefs.auto_save:
             if compat.check_version(2, 80, 0) >= 0:
                 bpy.app.handlers.depsgraph_update_pre.append(cls.auto_save)
@@ -1812,15 +1954,17 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         cls.running = True
 
     @classmethod
-    def stop(cls, self, context, event, prefs):
+    def stop(cls, self, context):
         if compat.check_version(2, 80, 0) >= 0:
             if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
-                bpy.app.handlers.depsgraph_update_pre.remove(cls.sort_modalhandlers)
+                bpy.app.handlers.depsgraph_update_pre.remove(
+                    cls.sort_modalhandlers)
             if cls.auto_save in bpy.app.handlers.depsgraph_update_pre:
                 bpy.app.handlers.depsgraph_update_pre.remove(cls.auto_save)
         else:
             if cls.sort_modalhandlers in bpy.app.handlers.scene_update_pre:
-                bpy.app.handlers.scene_update_pre.remove(cls.sort_modalhandlers)
+                bpy.app.handlers.scene_update_pre.remove(
+                    cls.sort_modalhandlers)
             if cls.auto_save in bpy.app.handlers.depsgraph_update_pre:
                 bpy.app.handlers.scene_update_pre.remove(cls.auto_save)
         self.event_timer_remove(context)
@@ -1835,16 +1979,17 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     def invoke(self, context, event):
         cls = self.__class__
-        prefs = compat.get_user_preferences(context).addons[__package__].preferences
+        user_prefs = compat.get_user_preferences(context)
+        prefs = user_prefs.addons[__package__].preferences
 
-        if (self.restart == True):
-            self.stop(self, context, event, prefs)
+        if self.restart:
+            self.stop(self, context)
             self.start(self, context, event, prefs)
 
             return {'RUNNING_MODAL'}
         else:
             if cls.is_running():
-                self.stop(self, context, event, prefs)
+                self.stop(self, context)
                 return {'CANCELLED'}
             else:
                 self.start(self, context, event, prefs)
@@ -1903,8 +2048,9 @@ class SK_OT_SetOrigin(bpy.types.Operator):
             for region in area.regions:
                 if region.type == "":
                     continue
-                if ((region.x <= x < region.x + region.width) and
-                        (region.y <= y < region.y + region.height)):
+                within_x = region.x <= x < region.x + region.width
+                within_y = region.y <= y < region.y + region.height
+                if within_x and within_y:
                     return area, region
 
         return None, None
@@ -1939,7 +2085,7 @@ class SK_OT_SetOrigin(bpy.types.Operator):
 
         return {'RUNNING_MODAL'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _):
         self.area_prev = None
         self.mouseovered_region = None
         self.draw_handler_add(context)
@@ -1954,22 +2100,22 @@ class SK_OT_WaitBlenderInitializedAndStartScreencastKeys(bpy.types.Operator):
 
     initialization_handler = None
 
-    def execute(self, context):
+    def execute(self, _):
         cls = self.__class__
 
-        # If we call bpy.ops.wm.sk_screencast_keys directly, no changes are made because bpy.context.area is not loaded at that moment. 
-        # Therefore, we need to call bpy.ops.wm.sk_screencast_keys with delay via co-routine method.
-        cls.initialization_handler = bpy.types.SpaceView3D.draw_handler_add(cls.intialization_callback, (None, None), 'WINDOW', 'POST_PIXEL')
-        debug_print("SK_OT_WaitBlenderInitializedAndStartScreencastKeys handler address: " + str(cls.initialization_handler))
+        # If we call bpy.ops.wm.sk_screencast_keys directly, no changes are
+        # made because bpy.context.area is not loaded at that moment.
+        # Therefore, we need to call bpy.ops.wm.sk_screencast_keys with delay
+        # via co-routine method.
+        cls.initialization_handler = bpy.types.SpaceView3D.draw_handler_add(
+            cls.intialization_callback, (None, None), 'WINDOW', 'POST_PIXEL')
+        debug_print("SK_OT_WaitBlenderInitializedAndStartScreencastKeys "
+                    "handler address: " + str(cls.initialization_handler))
         return {'FINISHED'}
 
     @classmethod
-    def intialization_callback(cls, self, context):
-        user_preferences = compat.get_user_preferences(bpy.context)
-        if not user_preferences:
-            return
-        prefs = user_preferences.addons[__package__].preferences
-
+    def intialization_callback(cls, _, ___):
         if bpy.context.area is not None:
             bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN', restart=True)
-            bpy.types.SpaceView3D.draw_handler_remove(cls.initialization_handler, 'WINDOW')
+            bpy.types.SpaceView3D.draw_handler_remove(
+                cls.initialization_handler, 'WINDOW')

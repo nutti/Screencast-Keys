@@ -1,0 +1,2 @@
+pycodestyle==2.9.1
+pylint==2.15.0
