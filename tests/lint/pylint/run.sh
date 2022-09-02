@@ -14,7 +14,7 @@ error=0
 for file in `find ${PYTHON_SCRIPT_DIRECTORY} -name "*.py" | sort`; do
     echo "======= pylint "${file}" ======="
 
-    ${PYLINT_CMD} ${file}
+    ${PYLINT_CMD} --rcfile="${SCRIPT_DIR}/.pylintrc" ${file}
     ret=`echo $?`
     if [ $? -ne 0 ]; then
         ((error+=1))
