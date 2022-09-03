@@ -5,21 +5,24 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-readonly SCRIPT_DIR=$(cd $(dirname $0); pwd)
 readonly MARKDOWN_DIRECTORY=${1}
+# shellcheck disable=SC2155
+{
 readonly TMP_DIR=$(mktemp -d)
+}
 readonly MARKDOWN_CMD="markdownlint"
 
 error=0
-for file in `find ${MARKDOWN_DIRECTORY} -name "*.md" | sort`; do
+for file in $(find "${MARKDOWN_DIRECTORY}" -name "*.md" | sort); do
     MARKDOWN_INPUT_FILE="${TMP_DIR}/${file}"
-    mkdir -p $(dirname ${MARKDOWN_INPUT_FILE})
+    dir_name=$(dirname "${MARKDOWN_INPUT_FILE}")
+    mkdir -p "${dir_name}" 
 
     SKIP_FILES=()
 
     skip=0
     for f in "${SKIP_FILES[@]}"; do
-        if [[ ${file} =~ "${f}" ]]; then
+        if [[ ${file} =~ ${f} ]]; then
             skip=1
         fi
     done
@@ -28,16 +31,15 @@ for file in `find ${MARKDOWN_DIRECTORY} -name "*.md" | sort`; do
         continue
     fi
 
-    cat ${file} > ${MARKDOWN_INPUT_FILE}
+    cat "${file}" > "${MARKDOWN_INPUT_FILE}"
 
-    echo "======= markdownlint "${file}" ======="
+    echo "======= markdownlint ${file} ======="
 
-    ${MARKDOWN_CMD} ${MARKDOWN_INPUT_FILE}
-    if [ $? -ne 0 ]; then
+    if ! ${MARKDOWN_CMD} "${MARKDOWN_INPUT_FILE}"; then
         ((error+=1))
     fi
 
-    rm -rf ${TMP_DIR}
+    rm -rf "${TMP_DIR}"
 done
 
 if ((error > 0)); then

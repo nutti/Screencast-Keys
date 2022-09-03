@@ -6,14 +6,13 @@ if [ $# -ne 1 ]; then
 fi
 
 readonly PYTHON_SCRIPT_DIRECTORY=${1}
-readonly YAMLLINT_CMD="yamllint"
+readonly SHELLCHECK_CMD="shellcheck"
 
-# yamllint
 error=0
-for file in $(find "${PYTHON_SCRIPT_DIRECTORY}" -name "*.yml" | sort); do
-    echo "======= yamllint ${file} ======="
+for file in $(find "${PYTHON_SCRIPT_DIRECTORY}" -name "*.sh" | sort); do
+    echo "======= shellcheck ${file} ======="
 
-    if ! ${YAMLLINT_CMD} --strict "${file}"; then
+    if ! ${SHELLCHECK_CMD} "${file}"; then
         ((error+=1))
     fi
 done

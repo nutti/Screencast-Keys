@@ -46,12 +46,12 @@ jobs:
         with:
           python-version: "3.7"
 
-      - name: Get required packages for Blender
+      - name: Install required packages
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y python3 python3-pip
 
-      - name: Get required pip packages
+      - name: Install required pip packages
         run: pip3 install -r requirements.txt
 
       - name: pylint test
@@ -79,13 +79,28 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Get required packages for Blender
+      - name: Install required packages
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y python3 python3-pip
 
-      - name: Get required pip packages
+      - name: Install required pip packages
         run: pip3 install -r requirements.txt
 
       - name: yamllint test
         run: bash tests/lint/yamllint/run.sh .
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install required packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y shellcheck
+
+      - name: shellcheck test
+        run: bash tests/lint/shellcheck/run.sh .

@@ -5,17 +5,19 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-readonly SCRIPT_DIR=$(cd $(dirname $0); pwd)
+# shellcheck disable=SC2046,SC2155,SC2164
+{
+readonly SCRIPT_DIR=$(cd $(dirname "$0"); pwd)
+}
 readonly PYTHON_SCRIPT_DIRECTORY=${1}
 readonly PYCODESTYLE_CMD="pycodestyle"
 
 # pycodestyle
 error=0
-for file in `find ${PYTHON_SCRIPT_DIRECTORY} -name "*.py" | sort`; do
-    echo "======= pycodestyle "${file}" ======="
+for file in $(find "${PYTHON_SCRIPT_DIRECTORY}" -name "*.py" | sort); do
+    echo "======= pycodestyle ${file} ======="
 
-    ${PYCODESTYLE_CMD} --config="${SCRIPT_DIR}/.pycodestyle" ${file}
-    if [ $? -ne 0 ]; then
+    if ! ${PYCODESTYLE_CMD} --config="${SCRIPT_DIR}/.pycodestyle" "${file}"; then
         ((error+=1))
     fi
 done
