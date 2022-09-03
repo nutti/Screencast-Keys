@@ -7,14 +7,14 @@ fi
 
 readonly SCRIPT_DIR=$(cd $(dirname $0); pwd)
 readonly PYTHON_SCRIPT_DIRECTORY=${1}
-readonly PYLINT_CMD="pylint"
+readonly YAMLLINT_CMD="yamllint"
 
-# pylint
+# yamllint
 error=0
-for file in `find ${PYTHON_SCRIPT_DIRECTORY} -name "*.py" | sort`; do
-    echo "======= pylint "${file}" ======="
+for file in `find ${PYTHON_SCRIPT_DIRECTORY} -name "*.yml" | sort`; do
+    echo "======= yamllint "${file}" ======="
 
-    ${PYLINT_CMD} --rcfile="${SCRIPT_DIR}/.pylintrc" ${file}
+    ${YAMLLINT_CMD} --strict ${file}
     if [ $? -ne 0 ]; then
         ((error+=1))
     fi
