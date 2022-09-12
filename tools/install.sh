@@ -10,9 +10,13 @@ version=${2}
 target=""
 
 if [ "${os}" = "mac" ]; then
-    target="${HOME}/Library/Application Support/Blender/${version}/scripts/addons/screencast_keys"
+    addon_dir="${HOME}/Library/Application Support/Blender/${version}/scripts/addons"
+    mkdir -p "${addon_dir}"
+    target="${addon_dir}/screencast_keys"
 elif [ "${os}" = "linux" ]; then
-    target="${HOME}/.config/blender/${version}/scripts/addons/screencast_keys"
+    addon_dir="${HOME}/.config/blender/${version}/scripts/addons"
+    mkdir -p "${addon_dir}"
+    target="${addon_dir}/screencast_keys"
 else
     echo "Invalid operating system."
     exit 1
