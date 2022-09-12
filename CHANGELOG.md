@@ -2,7 +2,14 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.7...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.8...master)
+
+<!-- markdownlint-disable-next-line MD013 -->
+## [Version 3.8](https://github.com/nutti/Screencast-Keys/compare/v3.7...v3.8) - 2022.X.XX
+
+### Other Updates
+
+* Fix bugs
 
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 3.7](https://github.com/nutti/Screencast-Keys/compare/v3.6...v3.7) - 2022.3.13
