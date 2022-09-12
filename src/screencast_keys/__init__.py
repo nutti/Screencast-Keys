@@ -24,7 +24,7 @@ bl_info = {
     "author": "Paulo Gomes, Bart Crouch, John E. Herrenyo, "
               "Gaia Clary, Pablo Vazquez, chromoly, Nutti, Hawkpath, "
               "CheeryLee, Kureii",
-    "version": (3, 7, 0),
+    "version": (3, 8, 0),
     "blender": (2, 80, 0),
     "location": "3D View > Sidebar > Screencast Keys",
     "warning": "",
