@@ -1765,13 +1765,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def is_ignore_event(self, event, prefs=None):
         """Return True if event will not be shown."""
 
-        show_mouse_event = show_mouse_event_history(prefs) if prefs else False
         event_type = EventType[event.type]
         if event_type in {EventType.NONE, EventType.MOUSEMOVE,
                           EventType.INBETWEEN_MOUSEMOVE,
                           EventType.WINDOW_DEACTIVATE, EventType.TEXTINPUT}:
             return True
-        elif show_mouse_event and (event_type in self.MOUSE_EVENT_TYPES):
+        elif (prefs is not None) and \
+                (not show_mouse_event_history(prefs)) and \
+                (event_type in self.MOUSE_EVENT_TYPES):
             return True
         elif event_type.name.startswith("EVT_TWEAK"):
             return True
