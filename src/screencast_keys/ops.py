@@ -301,7 +301,7 @@ def draw_rect(x1, y1, x2, y2, color):
 def draw_text_background(text, font_id, x, y, background_color,
                          margin=0, round_radius=0):
     width = blf.dimensions(font_id, text)[0]
-    height = blf.dimensions(font_id, string.printable)[1]
+    height = blf.dimensions(font_id, "Hy|")[1]
     correction = height * 0.2
 
     if round_radius == 0:
@@ -855,7 +855,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def text_area_height(cls, font_id):
-        return blf.dimensions(font_id, string.printable)[1]
+        return blf.dimensions(font_id, "Hy|")[1]
 
     @classmethod
     def _area_size_last_operator_layer(cls, context, font_id):
