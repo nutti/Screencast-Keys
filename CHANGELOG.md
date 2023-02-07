@@ -2,7 +2,22 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.8...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.9...master)
+
+<!-- markdownlint-disable-next-line MD013 -->
+## [Version 3.9](https://github.com/nutti/Screencast-Keys/compare/v3.8...v3.9) - 2023.X.X
+
+### Notice
+
+Due to the deprecation of the bgl module, it is becoming difficult to maintain
+the add-on for Blender 2.7x.  
+To reduce maintainance costs and code complexity, the next version (Version
+3.10) will not support for Blender 2.7x.
+So, this is a final release that supports Blender 2.7x.
+
+### Other Updates
+
+* Fix bugs
 
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 3.8](https://github.com/nutti/Screencast-Keys/compare/v3.7...v3.8) - 2022.9.12

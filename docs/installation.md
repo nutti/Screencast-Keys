@@ -19,6 +19,7 @@ There are two ways to install Screencast Keys add-on.
 
 |Version|Download URL|
 |---|---|
+|3.9|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.9)|
 |3.8|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.8)|
 |3.7|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.7)|
 |3.6|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.6)|
@@ -51,6 +52,7 @@ The name of add-on displayed in Blender is **Screencast Keys**.
 |Version|Download URL|
 |---|---|
 |*unstable*|[Download](https://github.com/nutti/Screencast-Keys/archive/master.zip)|
+|3.9|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.9)|
 |3.8|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.8)|
 |3.7|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.7)|
 |3.6|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.6)|
@@ -71,7 +73,7 @@ Add-on sources are located on the different places depending on the add-on versi
 |Version|Sources|
 |---|---|
 |unstable|src/screencast_keys|
-|3.1 - 3.8|screencast_keys|
+|3.1 - 3.9|screencast_keys|
 |3.0|screencastkeys|
 
 #### 3. Copy add-on sources into your add-on folder
