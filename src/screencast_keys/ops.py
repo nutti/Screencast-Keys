@@ -24,7 +24,6 @@ import platform
 import math
 import collections
 import enum
-import string
 import time
 from ctypes import (
     c_void_p,
