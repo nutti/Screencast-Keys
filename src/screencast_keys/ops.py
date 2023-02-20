@@ -34,6 +34,7 @@ from ctypes import (
 import blf
 import bpy
 import bpy.props
+import gpu
 
 from . import common
 from .common import (debug_print, fix_modifier_display_text,
@@ -41,11 +42,7 @@ from .common import (debug_print, fix_modifier_display_text,
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 from .utils import c_structures as cstruct
-
-if compat.check_version(2, 80, 0) >= 0:
-    from .compat import bglx as bgl
-else:
-    import bgl
+from .gpu_utils import imm
 
 
 event_type_enum_items = bpy.types.Event.bl_rna.properties["type"].enum_items
@@ -160,33 +157,20 @@ def draw_custom_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
                       image_name_overlay_rmouse,
                       image_name_overlay_mmouse):
     def draw_image(img, positions, tex_coords):
-        if compat.check_version(2, 80, 0) >= 0:
-            bgl.glEnable(bgl.GL_BLEND)
-            bgl.glEnable(bgl.GL_TEXTURE_2D)
-            bgl.glActiveTexture(bgl.GL_TEXTURE0)
-            if img.bindcode:
-                bind = img.bindcode
-                bgl.glBindTexture(bgl.GL_TEXTURE_2D, bind)
-        else:
-            bgl.glEnable(bgl.GL_BLEND)
-            bgl.glEnable(bgl.GL_TEXTURE_2D)
-            if img.bindcode:
-                bind = img.bindcode[0]
-                bgl.glBindTexture(bgl.GL_TEXTURE_2D, bind)
-                bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                                    bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-                bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                                    bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
-                bgl.glTexEnvi(
-                    bgl.GL_TEXTURE_ENV, bgl.GL_TEXTURE_ENV_MODE,
-                    bgl.GL_MODULATE)
+        gpu_img = gpu.texture.from_image(img)
+        original_state = gpu.state.blend_get()
+        gpu.state.blend_set('ALPHA')
 
-        bgl.glBegin(bgl.GL_QUADS)
-        bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
+        imm.immSetTexture(gpu_img)
+        imm.immBegin(imm.GL_QUADS)
+        imm.immColor4f(1.0, 1.0, 1.0, 1.0)
         for (v1, v2), (u, v) in zip(positions, tex_coords):
-            bgl.glTexCoord2f(u, v)
-            bgl.glVertex2f(v1, v2)
-        bgl.glEnd()
+            imm.immTexCoord2f(u, v)
+            imm.immVertex2f(v1, v2)
+        imm.immEnd()
+        imm.immSetTexture(None)
+
+        gpu.state.blend_set(original_state)
 
     positions = [
         [x, y],
@@ -262,39 +246,39 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False,
         math.pi * 0.5,
     ]
 
-    bgl.glColor3f(*color)
-    bgl.glLineWidth(line_thickness)
+    imm.immColor3f(*color)
+    imm.immLineWidth(line_thickness)
 
     if fill:
-        bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+        imm.immBegin(imm.GL_TRIANGLE_FAN)
     else:
-        bgl.glBegin(bgl.GL_LINE_LOOP)
+        imm.immBegin(imm.GL_LINE_LOOP)
     for x0, y0, angle, r in zip(x_origin, y_origin, angle_start, radius):
         for _ in range(n):
             x = x0 + r * math.cos(angle)
             y = y0 + r * math.sin(angle)
             if use_3d_polyline(line_thickness):
-                bgl.glVertex3f(x, y, 0)
+                imm.immVertex3f(x, y, 0)
             else:
-                bgl.glVertex2f(x, y)
+                imm.immVertex2f(x, y)
             angle += dangle
-    bgl.glEnd()
+    imm.immEnd()
 
-    bgl.glLineWidth(1.0)
-    bgl.glColor3f(1.0, 1.0, 1.0)
+    imm.immLineWidth(1.0)
+    imm.immColor3f(1.0, 1.0, 1.0)
 
 
 def draw_rect(x1, y1, x2, y2, color):
-    bgl.glColor3f(*color)
+    imm.immColor3f(*color)
 
-    bgl.glBegin(bgl.GL_QUADS)
-    bgl.glVertex2f(x1, y1)
-    bgl.glVertex2f(x1, y2)
-    bgl.glVertex2f(x2, y2)
-    bgl.glVertex2f(x2, y1)
-    bgl.glEnd()
+    imm.immBegin(imm.GL_QUADS)
+    imm.immVertex2f(x1, y1)
+    imm.immVertex2f(x1, y2)
+    imm.immVertex2f(x2, y2)
+    imm.immVertex2f(x2, y1)
+    imm.immEnd()
 
-    bgl.glColor3f(1.0, 1.0, 1.0)
+    imm.immColor3f(1.0, 1.0, 1.0)
 
 
 def draw_text_background(text, font_id, x, y, background_color,
@@ -330,37 +314,34 @@ def draw_text(text, font_id, color, shadow=False, shadow_color=None):
 
 def draw_line(p1, p2, color, shadow=False, shadow_color=None,
               line_thickness=1):
-    bgl.glEnable(bgl.GL_BLEND)
-
     # Draw shadow.
     if shadow:
-        bgl.glLineWidth(line_thickness + 3.0)
-        bgl.glColor4f(*shadow_color, 1.0)
-        bgl.glBegin(bgl.GL_LINES)
+        imm.immLineWidth(line_thickness + 3.0)
+        imm.immColor4f(*shadow_color, 1.0)
+        imm.immBegin(imm.GL_LINES)
         if use_3d_polyline(line_thickness):
-            bgl.glVertex3f(p1[0], p1[1], 0.0)
-            bgl.glVertex3f(p2[0], p2[1], 0.0)
+            imm.immVertex3f(p1[0], p1[1], 0.0)
+            imm.immVertex3f(p2[0], p2[1], 0.0)
         else:
-            bgl.glVertex2f(*p1)
-            bgl.glVertex2f(*p2)
-        bgl.glEnd()
+            imm.immVertex2f(*p1)
+            imm.immVertex2f(*p2)
+        imm.immEnd()
 
     # Draw line.
-    bgl.glLineWidth(line_thickness + 2.0 if shadow else line_thickness)
-    bgl.glColor3f(*color)
+    imm.immLineWidth(line_thickness + 2.0 if shadow else line_thickness)
+    imm.immColor3f(*color)
 
-    bgl.glBegin(bgl.GL_LINES)
+    imm.immBegin(imm.GL_LINES)
     if use_3d_polyline(line_thickness):
-        bgl.glVertex3f(p1[0], p1[1], 0.0)
-        bgl.glVertex3f(p2[0], p2[1], 0.0)
+        imm.immVertex3f(p1[0], p1[1], 0.0)
+        imm.immVertex3f(p2[0], p2[1], 0.0)
     else:
-        bgl.glVertex2f(*p1)
-        bgl.glVertex2f(*p2)
-    bgl.glEnd()
+        imm.immVertex2f(*p1)
+        imm.immVertex2f(*p2)
+    imm.immEnd()
 
-    bgl.glLineWidth(1.0)
-    bgl.glColor3f(1.0, 1.0, 1.0)
-    bgl.glDisable(bgl.GL_BLEND)
+    imm.immLineWidth(1.0)
+    imm.immColor3f(1.0, 1.0, 1.0)
 
 
 def intersect_aabb(min1, max1, min2, max2):
@@ -1334,7 +1315,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             draw_text(
                 modifier_keys_text, font_id, prefs.color,
                 prefs.shadow, prefs.shadow_color)
-            bgl.glColor4f(*prefs.color, 1.0)
+            imm.immColor4f(*prefs.color, 1.0)
 
             region_redraw = True
 
@@ -1435,14 +1416,18 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         dpi = compat.get_user_preferences(context).system.dpi
         blf.size(font_id, font_size, dpi)
 
-        scissor_box = bgl.Buffer(bgl.GL_INT, 4)
-        bgl.glGetIntegerv(bgl.GL_SCISSOR_BOX, scissor_box)
         # Clip 'TOOLS' and 'UI' region from 'WINDOW' region if need.
         # This prevents from drawing multiple time when
         # user_preferences.system.use_region_overlap is True.
         if context.area.type == 'VIEW_3D' and region.type == 'WINDOW':
             x_min, y_min, x_max, y_max = get_region_rect_on_v3d(context)
-            bgl.glScissor(x_min, y_min, x_max - x_min + 1, y_max - y_min + 1)
+            # Convert absolute coordinate to region local coordinate.
+            region_x_min = x_min - region.x
+            region_y_min = y_min - region.y
+            region_x_max = x_max - region.x + 1
+            region_y_max = y_max - region.y + 1
+            imm.immSetScissor(
+                [region_x_min, region_y_min, region_x_max, region_y_max])
 
         # Get start position to render.
         x = origin_x - region.x
@@ -1510,9 +1495,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         y += h
         region_drawn = region_drawn if region_drawn else rd
 
-        bgl.glDisable(bgl.GL_BLEND)
-        bgl.glScissor(*scissor_box)
-        bgl.glLineWidth(1.0)
+        imm.immSetScissor(None)
 
         if region_drawn:
             cls.draw_regions_prev.add(region.as_pointer())
@@ -2016,11 +1999,12 @@ class SK_OT_SetOrigin(bpy.types.Operator):
     def draw_callback(self, context):
         region = context.region
         if region and region == self.mouseovered_region:
-            bgl.glEnable(bgl.GL_BLEND)
-            bgl.glColor4f(1.0, 0.0, 0.0, 0.3)
-            bgl.glRecti(0, 0, region.width, region.height)
-            bgl.glDisable(bgl.GL_BLEND)
-            bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
+            original_state = gpu.state.blend_get()
+            gpu.state.blend_set('ALPHA')
+            imm.immColor4f(1.0, 0.0, 0.0, 0.3)
+            imm.immRecti(0, 0, region.width, region.height)
+            imm.immColor4f(1.0, 1.0, 1.0, 1.0)
+            gpu.state.blend_set(original_state)
 
     def draw_handler_add(self, context):
         for area in context.screen.areas:
