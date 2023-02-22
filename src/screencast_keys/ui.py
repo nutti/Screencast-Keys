@@ -22,7 +22,6 @@
 import bpy
 
 from .ops import show_mouse_hold_status
-from .utils import compatibility as compat
 
 
 class SK_PT_ScreencastKeys(bpy.types.Panel):
@@ -38,7 +37,7 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
 
     def draw(self, _):
         layout = self.layout
-        user_prefs = compat.get_user_preferences(bpy.context)
+        user_prefs = bpy.context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         column = layout.column()
@@ -55,9 +54,9 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
 
         column.prop(prefs, "background")
         if prefs.background:
-            sp = compat.layout_split(column, factor=0.5)
+            sp = column.split(factor=0.5)
             sp.prop(prefs, "background_mode", text="")
-            sp = compat.layout_split(sp, factor=1.0)
+            sp = sp.split(factor=1.0)
             sp.prop(prefs, "background_color", text="")
             column.prop(prefs, "background_rounded_corner_radius",
                         text="Corner Radius")
@@ -105,9 +104,9 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
 
         column.prop(prefs, "show_mouse_events")
         if prefs.show_mouse_events:
-            sp = compat.layout_split(column, factor=0.05)
+            sp = column.split(factor=0.05)
             _ = sp.column()     # spacer.
-            sp = compat.layout_split(sp, factor=1.0)
+            sp = sp.split(factor=1.0)
             c = sp.column()
             c.label(text="Mode:")
             c.prop(prefs, "mouse_events_show_mode", text="")
@@ -116,9 +115,9 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
 
         column.prop(prefs, "show_last_operator")
         if prefs.show_last_operator:
-            sp = compat.layout_split(column, factor=0.05)
+            sp = column.split(factor=0.05)
             _ = sp.column()     # spacer.
-            sp = compat.layout_split(sp, factor=1.0)
+            sp = sp.split(factor=1.0)
             c = sp.column()
             c.label(text="Mode:")
             c.prop(prefs, "last_operator_show_mode", text="")
@@ -127,9 +126,9 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
 
         column.label(text="Experimental:")
         column.column()
-        sp = compat.layout_split(column, factor=0.05)
+        sp = column.split(factor=0.05)
         _ = sp.column()     # spacer.
-        sp = compat.layout_split(sp, factor=1.0)
+        sp = sp.split(factor=1.0)
         c = sp.column()
         c.prop(prefs, "get_event_aggressively")
 

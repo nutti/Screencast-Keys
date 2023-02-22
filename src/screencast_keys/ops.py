@@ -205,7 +205,7 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False,
     """round_corner: [Right Bottom, Left Bottom, Right Top, Left Top]"""
 
     if color is None:
-        color = [1.0, 1.0, 1.0]
+        color = [1.0, 1.0, 1.0, 1.0]
     if round_corner is None:
         round_corner = [True, True, True, True]
 
@@ -246,7 +246,7 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False,
         math.pi * 0.5,
     ]
 
-    imm.immColor3f(*color)
+    imm.immColor4f(*color)
     imm.immLineWidth(line_thickness)
 
     if fill:
@@ -265,11 +265,11 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False,
     imm.immEnd()
 
     imm.immLineWidth(1.0)
-    imm.immColor3f(1.0, 1.0, 1.0)
+    imm.immColor4f(1.0, 1.0, 1.0, 1.0)
 
 
 def draw_rect(x1, y1, x2, y2, color):
-    imm.immColor3f(*color)
+    imm.immColor4f(*color)
 
     imm.immBegin(imm.GL_QUADS)
     imm.immVertex2f(x1, y1)
@@ -278,7 +278,7 @@ def draw_rect(x1, y1, x2, y2, color):
     imm.immVertex2f(x2, y1)
     imm.immEnd()
 
-    imm.immColor3f(1.0, 1.0, 1.0)
+    imm.immColor4f(1.0, 1.0, 1.0, 1.0)
 
 
 def draw_text_background(text, font_id, x, y, background_color,
@@ -303,10 +303,10 @@ def draw_text(text, font_id, color, shadow=False, shadow_color=None):
     # Draw shadow.
     if shadow:
         blf.shadow_offset(font_id, 3, -3)
-        blf.shadow(font_id, 5, *shadow_color, 1.0)
+        blf.shadow(font_id, 5, *shadow_color)
 
     # Draw text.
-    compat.set_blf_font_color(font_id, *color, 1.0)
+    blf.color(font_id, *color)
     blf.draw(font_id, text)
 
     blf.disable(font_id, blf.SHADOW)
@@ -317,7 +317,7 @@ def draw_line(p1, p2, color, shadow=False, shadow_color=None,
     # Draw shadow.
     if shadow:
         imm.immLineWidth(line_thickness + 3.0)
-        imm.immColor4f(*shadow_color, 1.0)
+        imm.immColor4f(*shadow_color)
         imm.immBegin(imm.GL_LINES)
         if use_3d_polyline(line_thickness):
             imm.immVertex3f(p1[0], p1[1], 0.0)
@@ -329,7 +329,7 @@ def draw_line(p1, p2, color, shadow=False, shadow_color=None,
 
     # Draw line.
     imm.immLineWidth(line_thickness + 2.0 if shadow else line_thickness)
-    imm.immColor3f(*color)
+    imm.immColor4f(*color)
 
     imm.immBegin(imm.GL_LINES)
     if use_3d_polyline(line_thickness):
@@ -341,7 +341,7 @@ def draw_line(p1, p2, color, shadow=False, shadow_color=None,
     imm.immEnd()
 
     imm.immLineWidth(1.0)
-    imm.immColor3f(1.0, 1.0, 1.0)
+    imm.immColor4f(1.0, 1.0, 1.0, 1.0)
 
 
 def intersect_aabb(min1, max1, min2, max2):
@@ -399,7 +399,7 @@ def get_region_rect_on_v3d(context, area=None, region=None):
                 ui = ar
 
     xmin, _, xmax, _ = get_window_region_rect(area)
-    sys_pref = compat.get_user_preferences(context).system
+    sys_pref = context.preferences.system
     if sys_pref.use_region_overlap:
         left_width = right_width = 0
 
@@ -445,7 +445,7 @@ def get_region_rect_on_v3d(context, area=None, region=None):
 
 
 def get_display_event_text(event_id):
-    user_prefs = compat.get_user_preferences(bpy.context)
+    user_prefs = bpy.context.preferences
     prefs = user_prefs.addons[__package__].preferences
 
     if not prefs.enable_display_event_text_aliases:
@@ -491,7 +491,6 @@ def show_draw_area_background(prefs):
 
 
 @BlClassRegistry()
-@compat.make_annotations
 class SK_OT_ScreencastKeys(bpy.types.Operator):
     # pylint: disable=R0904
     bl_idname = "wm.sk_screencast_keys"
@@ -606,7 +605,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     running = False
 
     # Should screencast be restarted
-    restart = bpy.props.BoolProperty(
+    restart: bpy.props.BoolProperty(
         default=False
     )
 
@@ -651,7 +650,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def removed_old_event_history(cls):
         """Return event history whose old events are removed."""
 
-        user_prefs = compat.get_user_preferences(bpy.context)
+        user_prefs = bpy.context.preferences
         prefs = user_prefs.addons[__package__].preferences
         current_time = time.time()
 
@@ -676,7 +675,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def get_alignment_offset(cls, context, width, margin=0):
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         dw, _ = cls.draw_area_size(context)
@@ -705,7 +704,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
            Retrun value: (Window, Area, Region, x, y)
         """
 
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         def is_window_match(window):
@@ -839,7 +838,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def _area_size_last_operator_layer(cls, context, font_id):
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         operator_history = cls.removed_old_operator_history()
@@ -873,9 +872,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return layer_width, layer_height
 
     @classmethod
-    def _area_size_mouse_and_modifier_keys_layer(
-            cls, context, font_id):
-        user_prefs = compat.get_user_preferences(context)
+    def _area_size_mouse_and_modifier_keys_layer(cls, context, font_id):
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         drawing = False  # TODO: Need to check if drawing is now on progress.
@@ -929,7 +927,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def _area_size_event_history_layer(cls, context, font_id):
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         sh = cls.text_area_height(font_id) + prefs.margin * 2
@@ -980,7 +978,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                  --------------     --------------
         """
 
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         font_size = prefs.font_size
@@ -1020,7 +1018,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def draw_area_rect(cls, context):
         """Return draw area rectangle."""
 
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         # Get draw target.
@@ -1093,7 +1091,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def _draw_last_operator_layer(cls, context, font_id, x, y):
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         operator_history = cls.removed_old_operator_history()
@@ -1109,7 +1107,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
             return 0, layer_height, False
 
-        compat.set_blf_font_color(font_id, *prefs.color, 1.0)
+        blf.color(font_id, *prefs.color)
 
         # Setup operator text.
         operator_text = ""
@@ -1169,11 +1167,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def _draw_mouse_and_modifier_keys_layer(cls, context, font_id, x, y):
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         drawing = False  # TODO: Need to check if drawing is now on progress.
-        compat.set_blf_font_color(font_id, *prefs.color, 1.0)
+        blf.color(font_id, *prefs.color)
         modifier_keys_box_margin = cls.text_area_height(font_id) * \
             cls.MARGIN_RATIO_FOR_MODIFIER_KEYS_BOX
         region_redraw = False
@@ -1315,7 +1313,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             draw_text(
                 modifier_keys_text, font_id, prefs.color,
                 prefs.shadow, prefs.shadow_color)
-            imm.immColor4f(*prefs.color, 1.0)
+            imm.immColor4f(*prefs.color)
 
             region_redraw = True
 
@@ -1323,13 +1321,13 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def _draw_event_history_layer(cls, context, font_id, x, y):
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         sh = cls.text_area_height(font_id) + prefs.margin * 2
         region_drawn = False
         color = prefs.color
-        compat.set_blf_font_color(font_id, *color, 1.0)
+        blf.color(font_id, *color)
 
         layer_width = 0.0
         layer_height = 0.0
@@ -1374,7 +1372,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def draw_callback(cls, context):
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         if context.window.as_pointer() != cls.origin["window"]:
@@ -1413,7 +1411,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         font_size = prefs.font_size
         font_id = 0
-        dpi = compat.get_user_preferences(context).system.dpi
+        dpi = context.preferences.system.dpi
         blf.size(font_id, font_size, dpi)
 
         # Clip 'TOOLS' and 'UI' region from 'WINDOW' region if need.
@@ -1436,7 +1434,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         # Warm up rendering.
         # This is needed to render the line with more than 1.5 thickness
         # properly.
-        draw_rect(0, 0, 0, 0, [0.0, 0.0, 0.0])
+        draw_rect(0, 0, 0, 0, [0.0, 0.0, 0.0, 0.0])
 
         # Draw draw area based background.
         if show_draw_area_background(prefs):
@@ -1450,13 +1448,13 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         def check_draw_status(cls, context, font_id, layer_name, calc_fn,
                               draw_x, draw_y, draw_w, draw_h):
-            user_prefs = compat.get_user_preferences(bpy.context)
+            user_prefs = bpy.context.preferences
             prefs = user_prefs.addons[__package__].preferences
             if prefs.display_draw_area:
                 offset_x, offset_y = cls.get_alignment_offset(context, draw_w)
                 draw_rounded_box(draw_x + offset_x,
                                  draw_y + offset_y,
-                                 draw_w, draw_h, 0, color=[1.0, 0.0, 0.0])
+                                 draw_w, draw_h, 0, color=[1.0, 0.0, 0.0, 1.0])
             if output_debug_log():
                 calc_w, calc_h = calc_fn(context, font_id)
                 mismatch_width = abs(draw_w - calc_w) >= 0.0001
@@ -1529,28 +1527,17 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 window.modalhandlers.first, POINTER(cstruct.wmEventHandler))
             while handler_ptr:
                 handler = handler_ptr.contents
-                if compat.check_version(2, 80, 0) >= 0:
-                    if handler.type == \
-                            cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
-                        do_auto_save = True
-                        op = handler.op.contents
-                        idname = op.idname.decode()
-                        op_prefix, op_name = idname.split("_OT_")
-                        idname_py = "{}.{}".format(op_prefix.lower(), op_name)
-                        if idname_py != SK_OT_ScreencastKeys.bl_idname:
-                            debug_print(f"Modal operator '{idname_py}' is "
-                                        "running. Skip auto save")
-                            return
-                else:
-                    if handler.op:
-                        op = handler.op.contents
-                        idname = op.idname.decode()
-                        op_prefix, op_name = idname.split("_OT_")
-                        idname_py = "{}.{}".format(op_prefix.lower(), op_name)
-                        if idname_py != SK_OT_ScreencastKeys.bl_idname:
-                            debug_print(f"Modal operator '{idname_py}' is "
-                                        "running. Skip auto save")
-                            return
+                if handler.type == \
+                        cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
+                    do_auto_save = True
+                    op = handler.op.contents
+                    idname = op.idname.decode()
+                    op_prefix, op_name = idname.split("_OT_")
+                    idname_py = "{}.{}".format(op_prefix.lower(), op_name)
+                    if idname_py != SK_OT_ScreencastKeys.bl_idname:
+                        debug_print(f"Modal operator '{idname_py}' is "
+                                    "running. Skip auto save")
+                        return
                 handler_ptr = cast(
                     handler.next, POINTER(cstruct.wmEventHandler))
 
@@ -1631,7 +1618,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
            This makes SK_OT_ScreencastKeys.model method enable to get events
            consumed by other modalhandlers."""
 
-        user_preferences = compat.get_user_preferences(bpy.context)
+        user_preferences = bpy.context.preferences
         if user_preferences is None:
             return
 
@@ -1650,32 +1637,24 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             has_ui_handler = False
             while handler_ptr:
                 handler = handler_ptr.contents
-                if compat.check_version(2, 80, 0) >= 0:
-                    if handler.type == \
-                            cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
-                        op = handler.op.contents
-                        idname = op.idname.decode()
-                        op_prefix, op_name = idname.split("_OT_")
-                        idname_py = "{}.{}".format(op_prefix.lower(), op_name)
-                        if idname_py == SK_OT_ScreencastKeys.bl_idname:
-                            indices.append(i)
-                        debug_print(
-                            "  TYPE: WM_HANDLER_TYPE_OP ({})"
-                            .format(idname_py))
-                    elif handler.type == \
-                            cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_UI:
-                        has_ui_handler = True
-                        debug_print("  TYPE: WM_HANDLER_TYPE_UI")
-                    else:
-                        debug_print("  TYPE: {}".format(handler.type))
+                if handler.type == \
+                        cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
+                    op = handler.op.contents
+                    idname = op.idname.decode()
+                    op_prefix, op_name = idname.split("_OT_")
+                    idname_py = "{}.{}".format(op_prefix.lower(), op_name)
+                    if idname_py == SK_OT_ScreencastKeys.bl_idname:
+                        indices.append(i)
+                    debug_print(
+                        "  TYPE: WM_HANDLER_TYPE_OP ({})"
+                        .format(idname_py))
+                elif handler.type == \
+                        cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_UI:
+                    has_ui_handler = True
+                    debug_print("  TYPE: WM_HANDLER_TYPE_UI")
                 else:
-                    if handler.op:
-                        op = handler.op.contents
-                        idname = op.idname.decode()
-                        op_prefix, op_name = idname.split("_OT_")
-                        idname_py = "{}.{}".format(op_prefix.lower(), op_name)
-                        if idname_py == SK_OT_ScreencastKeys.bl_idname:
-                            indices.append(i)
+                    debug_print("  TYPE: {}".format(handler.type))
+
                 handler_ptr = cast(
                     handler.next, POINTER(cstruct.wmEventHandler))
                 i += 1
@@ -1764,7 +1743,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         return False
 
     def modal(self, context, event):
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         if not self.__class__.is_running():
@@ -1922,34 +1901,20 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         self.origin["region_type"] = context.region.type
         context.area.tag_redraw()
         if prefs.get_event_aggressively:
-            if compat.check_version(2, 80, 0) >= 0:
-                bpy.app.handlers.depsgraph_update_pre.append(
-                    cls.sort_modalhandlers)
-            else:
-                bpy.app.handlers.scene_update_pre.append(
-                    cls.sort_modalhandlers)
+            bpy.app.handlers.depsgraph_update_pre.append(
+                cls.sort_modalhandlers)
         if prefs.auto_save:
-            if compat.check_version(2, 80, 0) >= 0:
-                bpy.app.handlers.depsgraph_update_pre.append(cls.auto_save)
-            else:
-                bpy.app.handlers.scene_update_pre.append(cls.auto_save)
+            bpy.app.handlers.depsgraph_update_pre.append(cls.auto_save)
 
         cls.running = True
 
     @classmethod
     def stop(cls, self, context):
-        if compat.check_version(2, 80, 0) >= 0:
-            if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
-                bpy.app.handlers.depsgraph_update_pre.remove(
-                    cls.sort_modalhandlers)
-            if cls.auto_save in bpy.app.handlers.depsgraph_update_pre:
-                bpy.app.handlers.depsgraph_update_pre.remove(cls.auto_save)
-        else:
-            if cls.sort_modalhandlers in bpy.app.handlers.scene_update_pre:
-                bpy.app.handlers.scene_update_pre.remove(
-                    cls.sort_modalhandlers)
-            if cls.auto_save in bpy.app.handlers.depsgraph_update_pre:
-                bpy.app.handlers.scene_update_pre.remove(cls.auto_save)
+        if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
+            bpy.app.handlers.depsgraph_update_pre.remove(
+                cls.sort_modalhandlers)
+        if cls.auto_save in bpy.app.handlers.depsgraph_update_pre:
+            bpy.app.handlers.depsgraph_update_pre.remove(cls.auto_save)
         self.event_timer_remove(context)
         self.draw_handler_remove_all()
         self.hold_modifier_keys.clear()
@@ -1962,7 +1927,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     def invoke(self, context, event):
         cls = self.__class__
-        user_prefs = compat.get_user_preferences(context)
+        user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
         if self.restart:

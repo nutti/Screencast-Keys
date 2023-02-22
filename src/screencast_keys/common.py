@@ -23,11 +23,9 @@ import re
 import platform
 
 import bpy
+import gpu
 
 from .utils import compatibility as compat
-
-if compat.check_version(2, 80, 0) >= 0:
-    import gpu
 
 
 CUSTOM_MOUSE_IMG_BASE_NAME = "[Screencast Keys] Custom Mouse Image Base"
@@ -40,7 +38,7 @@ CUSTOM_MOUSE_IMG_MMOUSE_NAME = \
 
 
 def output_debug_log():
-    user_prefs = compat.get_user_preferences(bpy.context)
+    user_prefs = bpy.context.preferences
     prefs = user_prefs.addons[__package__].preferences
 
     return prefs.output_debug_log

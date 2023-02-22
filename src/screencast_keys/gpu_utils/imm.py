@@ -159,6 +159,7 @@ def immBegin(mode):
 
 
 def _get_shader(dims, prim_mode, has_texture, scissor_box):
+    # TODO: In future release, use built-in shader instead of custom shader.
     if prim_mode in [GL_LINES, GL_LINE_STRIP, GL_LINE_LOOP]:
         if dims == 2:
             if scissor_box is not None:
@@ -180,15 +181,13 @@ def _get_shader(dims, prim_mode, has_texture, scissor_box):
         if has_texture:
             if scissor_box is not None:
                 return ShaderManager.get_shader('IMAGE_COLOR_SCISSOR')
+            if gpu.platform.backend_type_get() != 'OPENGL':
+                return gpu.shader.from_builtin('IMAGE_COLOR')
             return ShaderManager.get_shader('IMAGE_COLOR')
         if scissor_box is not None:
             return ShaderManager.get_shader('UNIFORM_COLOR_SCISSOR')
         else:
             return gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-    elif dims == 3:
-        if not has_texture:
-            return gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-        raise NotImplementedError("Texture is not supported in dims == 3")
     raise NotImplementedError(f"dims == {dims} is not supported")
 
 
@@ -200,6 +199,10 @@ def immEnd():
     coords = inst.get_verts()
     tex_coords = inst.get_tex_coords()
     scissor_box = inst.get_scissor()
+    # TODO: Other than OpenGL backend, scissor is not supported.
+    #       Temporary turn off when gpu.state.scissor_set is implemented.
+    if gpu.platform.backend_type_get() != 'OPENGL':
+        scissor_box = None
 
     has_texture = len(tex_coords) != 0
     prim_mode = inst.get_prim_mode()
@@ -266,14 +269,14 @@ def immEnd():
     else:
         if dims == 2:
             if has_texture:
-                projection_matrix = gpu.matrix.get_projection_matrix()
-                model_view_matrix = gpu.matrix.get_model_view_matrix()
-                mvp_matrix = projection_matrix @ model_view_matrix
-                shader.uniform_float("ModelViewProjectionMatrix", mvp_matrix)
                 shader.uniform_sampler("image", inst.get_tex())
-                if scissor_box is not None:
-                    shader.uniform_float("scissor", scissor_box)
+            projection_matrix = gpu.matrix.get_projection_matrix()
+            model_view_matrix = gpu.matrix.get_model_view_matrix()
+            mvp_matrix = projection_matrix @ model_view_matrix
+            shader.uniform_float("ModelViewProjectionMatrix", mvp_matrix)
             shader.uniform_float("color", color)
+            if scissor_box is not None:
+                shader.uniform_float("scissor", scissor_box)
 
     # Draw.
     batch.draw(shader)

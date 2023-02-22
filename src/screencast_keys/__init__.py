@@ -56,7 +56,6 @@ else:
     from . import common
 
 # pylint: disable=C0413
-from cgitb import enable
 import os
 
 
@@ -71,7 +70,7 @@ def load_post_handler(_):
     global is_startup
 
     context = bpy.context
-    user_prefs = utils.compatibility.get_user_preferences(context)
+    user_prefs = context.preferences
     prefs = user_prefs.addons[__package__].preferences
 
     enable_on_startup = prefs.enable_on_startup and is_startup
@@ -169,7 +168,7 @@ def register():
 
     # Apply preferences of UI.
     context = bpy.context
-    user_prefs = utils.compatibility.get_user_preferences(context)
+    user_prefs = context.preferences
     prefs = user_prefs.addons[__package__].preferences
     # Only default panel location is available in < 2.80
     if utils.compatibility.check_version(2, 80, 0) < 0:
@@ -199,7 +198,7 @@ def register():
 
 def unregister():
     context = bpy.context
-    user_prefs = utils.compatibility.get_user_preferences(context)
+    user_prefs = context.preferences
     prefs = user_prefs.addons[__package__].preferences
     preferences.remove_custom_mouse_image(prefs, context)
 

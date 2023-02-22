@@ -1,8 +1,8 @@
 uniform mat4 ModelViewProjectionMatrix;
 
-in vec3 pos;
+in vec2 pos;
 
 void main()
 {
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
 }

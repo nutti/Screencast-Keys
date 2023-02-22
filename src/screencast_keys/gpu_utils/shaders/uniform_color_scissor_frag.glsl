@@ -11,5 +11,5 @@ void main()
     discard;
   }
 
-  fragColor = color;
+  fragColor = blender_srgb_to_framebuffer_space(color);
 }
