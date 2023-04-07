@@ -257,7 +257,7 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False,
         for _ in range(n):
             x = x0 + r * math.cos(angle)
             y = y0 + r * math.sin(angle)
-            if use_3d_polyline(line_thickness):
+            if not fill and use_3d_polyline(line_thickness):
                 imm.immVertex3f(x, y, 0)
             else:
                 imm.immVertex2f(x, y)
