@@ -25,12 +25,10 @@ if "bpy" in locals():
     importlib.reload(addon_updater)
     importlib.reload(bl_class_registry)
     importlib.reload(compatibility)
-    importlib.reload(c_structures)
 else:
     from . import addon_updater
     from . import bl_class_registry
     from . import compatibility
-    from . import c_structures
 
 # pylint: disable=C0413
 import bpy

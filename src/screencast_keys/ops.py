@@ -41,7 +41,7 @@ from .common import (debug_print, fix_modifier_display_text,
                      output_debug_log, use_3d_polyline)
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
-from .utils import c_structures as cstruct
+from . import c_structure as cstruct
 from .gpu_utils import imm
 
 
