@@ -47,7 +47,8 @@ class ShaderManager:
 
     @classmethod
     def register_shaders(cls):
-        if gpu.platform.backend_type_get() != 'OPENGL':
+        if hasattr(gpu.platform, "backend_type_get") and \
+                gpu.platform.backend_type_get() != 'OPENGL':
             return
 
         for shader_name, shader_files in cls.SHADER_FILES.items():
@@ -74,7 +75,8 @@ class ShaderManager:
 
     @classmethod
     def unregister_shaders(cls):
-        if gpu.platform.backend_type_get() != 'OPENGL':
+        if hasattr(gpu.platform, "backend_type_get") and \
+                gpu.platform.backend_type_get() != 'OPENGL':
             return
 
         for instance in cls.shader_instances.values():
@@ -83,7 +85,8 @@ class ShaderManager:
 
     @classmethod
     def get_shader(cls, shader_name):
-        if gpu.platform.backend_type_get() != 'OPENGL':
+        if hasattr(gpu.platform, "backend_type_get") and \
+                gpu.platform.backend_type_get() != 'OPENGL':
             return None
 
         return cls.shader_instances[shader_name]

@@ -137,11 +137,8 @@ def fix_modifier_display_text(name):
     return fixed_name
 
 
-def use_3d_polyline(line_thickness=1.0):
+def use_3d_polyline(_):
     if compat.check_version(2, 80, 0) < 0:
-        return False
-
-    if line_thickness < 1.5:
         return False
 
     system = platform.system()

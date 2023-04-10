@@ -181,7 +181,8 @@ def _get_shader(dims, prim_mode, has_texture, scissor_box):
         if has_texture:
             if scissor_box is not None:
                 return ShaderManager.get_shader('IMAGE_COLOR_SCISSOR')
-            if gpu.platform.backend_type_get() != 'OPENGL':
+            if hasattr(gpu.platform, "backend_type_get") and \
+                    gpu.platform.backend_type_get() != 'OPENGL':
                 return gpu.shader.from_builtin('IMAGE_COLOR')
             return ShaderManager.get_shader('IMAGE_COLOR')
         if scissor_box is not None:
@@ -201,7 +202,8 @@ def immEnd():
     scissor_box = inst.get_scissor()
     # TODO: Other than OpenGL backend, scissor is not supported.
     #       Temporary turn off when gpu.state.scissor_set is implemented.
-    if gpu.platform.backend_type_get() != 'OPENGL':
+    if hasattr(gpu.platform, "backend_type_get") and \
+            gpu.platform.backend_type_get() != 'OPENGL':
         scissor_box = None
 
     has_texture = len(tex_coords) != 0
