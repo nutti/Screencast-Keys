@@ -2049,22 +2049,62 @@ class SK_OT_WaitBlenderInitializedAndStartScreencastKeys(bpy.types.Operator):
 
     initialization_handler = None
 
-    def execute(self, _):
+    def get_first_space_class(self, context):
+        space_to_class = {
+            'VIEW_3D': bpy.types.SpaceView3D,
+            'IMAGE_EDITOR': bpy.types.SpaceImageEditor,
+            'NODE_EDITOR': bpy.types.SpaceNodeEditor,
+            'SEQUENCE_EDITOR': bpy.types.SpaceSequenceEditor,
+            'CLIP_EDITOR': bpy.types.SpaceClipEditor,
+            'DOPESHEET_EDITOR': bpy.types.SpaceDopeSheetEditor,
+            'GRAPH_EDITOR': bpy.types.SpaceGraphEditor,
+            'NLA_EDITOR': bpy.types.SpaceNLA,
+            'TEXT_EDITOR': bpy.types.SpaceTextEditor,
+            'CONSOLE': bpy.types.SpaceConsole,
+            'INFO': bpy.types.SpaceInfo,
+            'OUTLINER': bpy.types.SpaceOutliner,
+            'PROPERTIES': bpy.types.SpaceProperties,
+            'FILE_BROWSER': bpy.types.SpaceFileBrowser,
+            'SPREADSHEET': bpy.types.SpaceSpreadsheet,
+            'PREFERENCES': bpy.types.SpacePreferences,
+        }
+
+        area_types = []
+        for area in context.screen.areas:
+            if area.type in space_to_class.keys():
+                area_types.append(area.type)
+        if len(area_types) == 0:
+            return None
+
+        area_types.sort(key=lambda t: list(space_to_class.keys()).index(t))
+
+        return space_to_class[area_types[0]]
+
+    def execute(self, context):
         cls = self.__class__
+        space_class = self.get_first_space_class(context)
+        if space_class is None:
+            debug_print(
+                "Failed to call "
+                "SK_OT_WaitBlenderInitializedAndStartScreencastKeys because "
+                "the space candidate not found.")
+            return {'CANCELLED'}
 
         # If we call bpy.ops.wm.sk_screencast_keys directly, no changes are
         # made because bpy.context.area is not loaded at that moment.
         # Therefore, we need to call bpy.ops.wm.sk_screencast_keys with delay
         # via co-routine method.
-        cls.initialization_handler = bpy.types.SpaceView3D.draw_handler_add(
-            cls.intialization_callback, (None, None), 'WINDOW', 'POST_PIXEL')
+        cls.initialization_handler = space_class.draw_handler_add(
+            cls.intialization_callback, (space_class, None),
+            'WINDOW', 'POST_PIXEL')
         debug_print("SK_OT_WaitBlenderInitializedAndStartScreencastKeys "
                     "handler address: " + str(cls.initialization_handler))
         return {'FINISHED'}
 
     @classmethod
-    def intialization_callback(cls, _, ___):
+    def intialization_callback(cls, space_class, ___):
         if bpy.context.area is not None:
             bpy.ops.wm.sk_screencast_keys('INVOKE_REGION_WIN', restart=True)
-            bpy.types.SpaceView3D.draw_handler_remove(
-                cls.initialization_handler, 'WINDOW')
+            if cls.initialization_handler is not None:
+                space_class.draw_handler_remove(
+                    cls.initialization_handler, 'WINDOW')
