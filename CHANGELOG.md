@@ -2,7 +2,18 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.9...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.10...master)
+
+<!-- markdownlint-disable-next-line MD013 -->
+## [Version 3.10](https://github.com/nutti/Screencast-Keys/compare/v3.9...v3.10) - 2023.X.XX
+
+### Notice
+
+Dropped of Blender 2.7x support.
+
+### Other Updates
+
+* Fix bugs
 
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 3.9](https://github.com/nutti/Screencast-Keys/compare/v3.8...v3.9) - 2023.2.7
