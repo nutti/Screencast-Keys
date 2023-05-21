@@ -2,10 +2,30 @@
 
 # Installation
 
+Before installing Screencast Keys add-on, check if
+[the add-on version](#support-version) supports on the your Blender version.
+
 There are two ways to install Screencast Keys add-on.
 
 * [Blender's Installation Tool](#blenders-installation-tool) *(Recommended)*
 * [Manual Install](#manual-install)
+
+## Support Version
+
+|Version|Supported Blender Version|
+|---|---|
+|Unstable|2.80 -|
+|3.10|2.80 -|
+|3.9|2.79 - 3.3|
+|3.8|2.79 - 3.3|
+|3.7|2.79 - 3.1|
+|3.6|2.79 - 2.93|
+|3.5|2.79 - 2.92|
+|3.4|2.79 - 2.91|
+|3.3|2.79 - 2.90|
+|3.2|2.79 - 2.90|
+|3.1|2.79 - 2.82|
+|3.0|2.79 - 2.80|
 
 ## Blender's Installation Tool
 

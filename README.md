@@ -14,6 +14,10 @@ Operation status.
 
 ## Download / Installation
 
+Before installing Screencast Keys add-on, check if
+[the add-on version](docs/installation.md#support-version) supports on the your
+Blender version.
+
 All released Screencast Keys add-on is available on
 [Release Page](https://github.com/nutti/Screencast-Keys/releases).  
 If you want to try newest (unstable) version, you can download it from
