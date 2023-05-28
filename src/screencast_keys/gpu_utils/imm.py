@@ -171,10 +171,16 @@ def _get_shader(dims, prim_mode, has_texture, scissor_box):
                 return ShaderManager.get_shader(
                     'POLYLINE_UNIFORM_COLOR_SCISSOR')
             else:
-                if is_shader_supported('3D_POLYLINE_UNIFORM_COLOR'):
-                    return gpu.shader.from_builtin('3D_POLYLINE_UNIFORM_COLOR')
+                if check_version(3, 4, 0) >= 0:
+                    if is_shader_supported('POLYLINE_UNIFORM_COLOR'):
+                        return gpu.shader.from_builtin(
+                            'POLYLINE_UNIFORM_COLOR')
+                else:
+                    if is_shader_supported('3D_POLYLINE_UNIFORM_COLOR'):
+                        return gpu.shader.from_builtin(
+                            '3D_POLYLINE_UNIFORM_COLOR')
                 raise NotImplementedError(
-                    "3D polyline is only supported for dims == 3")
+                    "polyline is only supported for dims == 3")
         raise NotImplementedError(f"dims == {dims} is not supported")
 
     if dims == 2:
@@ -188,7 +194,10 @@ def _get_shader(dims, prim_mode, has_texture, scissor_box):
         if scissor_box is not None:
             return ShaderManager.get_shader('UNIFORM_COLOR_SCISSOR')
         else:
-            return gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+            if check_version(3, 4, 0) >= 0:
+                return gpu.shader.from_builtin('UNIFORM_COLOR')
+            else:
+                return gpu.shader.from_builtin('2D_UNIFORM_COLOR')
     raise NotImplementedError(f"dims == {dims} is not supported")
 
 
