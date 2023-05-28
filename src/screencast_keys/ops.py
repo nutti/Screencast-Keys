@@ -983,8 +983,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         font_size = prefs.font_size
         font_id = 0         # TODO: font_id should be constant.
-        dpi = user_prefs.system.dpi
-        blf.size(font_id, font_size, dpi)
+        blf.size(font_id, font_size)
 
         # Calculate width/height of draw area.
         draw_area_width = 0
@@ -1411,8 +1410,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         font_size = prefs.font_size
         font_id = 0
-        dpi = context.preferences.system.dpi
-        blf.size(font_id, font_size, dpi)
+        blf.size(font_id, font_size)
 
         # Clip 'TOOLS' and 'UI' region from 'WINDOW' region if need.
         # This prevents from drawing multiple time when
