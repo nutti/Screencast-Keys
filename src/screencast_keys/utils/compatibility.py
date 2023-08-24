@@ -20,6 +20,7 @@
 
 import sys
 import bpy
+import blf
 
 
 def check_version(major, minor, _):
@@ -66,3 +67,10 @@ def get_all_space_types():
     add_if_exist("SpaceTimeline", 'TIMELINE', space_types)
 
     return space_types
+
+
+def blf_size(font_id, font_size, dpi):
+    if check_version(3, 4, 0) >= 0:
+        blf.size(font_id, font_size)
+    else:
+        blf.size(font_id, font_size, dpi)

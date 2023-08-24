@@ -37,8 +37,11 @@ import bpy.props
 import gpu
 
 from . import common
-from .common import (debug_print, fix_modifier_display_text,
-                     output_debug_log, use_3d_polyline)
+from .common import (
+    debug_print,
+    fix_modifier_display_text,
+    output_debug_log
+)
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
 from . import c_structure as cstruct
@@ -257,7 +260,7 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False,
         for _ in range(n):
             x = x0 + r * math.cos(angle)
             y = y0 + r * math.sin(angle)
-            if not fill and use_3d_polyline(line_thickness):
+            if not fill:
                 imm.immVertex3f(x, y, 0)
             else:
                 imm.immVertex2f(x, y)
@@ -319,12 +322,8 @@ def draw_line(p1, p2, color, shadow=False, shadow_color=None,
         imm.immLineWidth(line_thickness + 3.0)
         imm.immColor4f(*shadow_color)
         imm.immBegin(imm.GL_LINES)
-        if use_3d_polyline(line_thickness):
-            imm.immVertex3f(p1[0], p1[1], 0.0)
-            imm.immVertex3f(p2[0], p2[1], 0.0)
-        else:
-            imm.immVertex2f(*p1)
-            imm.immVertex2f(*p2)
+        imm.immVertex3f(p1[0], p1[1], 0.0)
+        imm.immVertex3f(p2[0], p2[1], 0.0)
         imm.immEnd()
 
     # Draw line.
@@ -332,12 +331,8 @@ def draw_line(p1, p2, color, shadow=False, shadow_color=None,
     imm.immColor4f(*color)
 
     imm.immBegin(imm.GL_LINES)
-    if use_3d_polyline(line_thickness):
-        imm.immVertex3f(p1[0], p1[1], 0.0)
-        imm.immVertex3f(p2[0], p2[1], 0.0)
-    else:
-        imm.immVertex2f(*p1)
-        imm.immVertex2f(*p2)
+    imm.immVertex3f(p1[0], p1[1], 0.0)
+    imm.immVertex3f(p2[0], p2[1], 0.0)
     imm.immEnd()
 
     imm.immLineWidth(1.0)
@@ -983,7 +978,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         font_size = prefs.font_size
         font_id = 0         # TODO: font_id should be constant.
-        blf.size(font_id, font_size)
+        dpi = user_prefs.system.dpi
+        compat.blf_size(font_id, font_size, dpi)
 
         # Calculate width/height of draw area.
         draw_area_width = 0
@@ -1410,7 +1406,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         font_size = prefs.font_size
         font_id = 0
-        blf.size(font_id, font_size)
+        dpi = user_prefs.system.dpi
+        compat.blf_size(font_id, font_size, dpi)
 
         # Clip 'TOOLS' and 'UI' region from 'WINDOW' region if need.
         # This prevents from drawing multiple time when
