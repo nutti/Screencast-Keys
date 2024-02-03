@@ -37,6 +37,12 @@ CUSTOM_MOUSE_IMG_MMOUSE_NAME = \
     "[Screencast Keys] Custom Mouse Image Overlay Middle Mouse"
 
 
+def is_console_mode():
+    if "SK_CONSOLE_MODE" not in os.environ:
+        return False
+    return os.environ["SK_CONSOLE_MODE"] == "true"
+
+
 def output_debug_log():
     user_prefs = bpy.context.preferences
     prefs = user_prefs.addons[__package__].preferences

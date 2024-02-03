@@ -153,7 +153,8 @@ def unregister_addon_enable_property():
 
 
 def register():
-    gpu_utils.shader.ShaderManager.register_shaders()
+    if not common.is_console_mode():
+        gpu_utils.shader.ShaderManager.register_shaders()
     register_updater(bl_info)
     # Register Screencast Key's enable property at here to use it in the
     # both SK_PT_ScreencastKeys Panel and SK_PT_ScreencastKeys_Overlay Panel.
@@ -212,7 +213,8 @@ def unregister():
     call_silently(bpy.utils.unregister_class, ui.SK_PT_ScreencastKeys)
     bpy.utils.unregister_class(preferences.DisplayEventTextAliasProperties)
     unregister_addon_enable_property()
-    gpu_utils.shader.ShaderManager.unregister_shaders()
+    if not common.is_console_mode():
+        gpu_utils.shader.ShaderManager.unregister_shaders()
 
 
 if __name__ == "__main__":

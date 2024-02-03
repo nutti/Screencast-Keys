@@ -94,12 +94,16 @@ helps you to set the mouse size same as the base image size.
 
 **Origin** option specifies the location to display texts and figures.
 
+<!-- markdownlint-disable MD013 -->
+
 |||
 |---|---|
-|**Region**|Currently selected region. You can change the region by **Set Origin** operation.|  <!-- markdownlint-disable-line MD013 -->
-|**Area**|Currently selected area. You can change the area by **Set Origin** operation.|  <!-- markdownlint-disable-line MD013 -->
+|**Region**|Currently selected region. You can change the region by **Set Origin** operation.|
+|**Area**|Currently selected area. You can change the area by **Set Origin** operation.|
 |**Window**|Blender's application window.|
 |**Cursor**|Mouse cursor.|
+
+<!-- markdownlint-enable MD013 -->
 
 ### Align
 
@@ -142,11 +146,15 @@ If **Show Mouse Events** option is enabled, events from mouse will be
 displayed.  
 You can change the display mode from **Mode** option.  
 
+<!-- markdownlint-disable MD013 -->
+
 |||
 |---|---|
-|**Event History**|Events from mouse will be displayed as events history as well as events from keyboard.|  <!-- markdownlint-disable-line MD013 -->
+|**Event History**|Events from mouse will be displayed as events history as well as events from keyboard.|
 |**Hold Status**|Hold mouse button status will be displayed as figure.|
 |**Event History + Hold Status**|Both **Event History** and **Hold Status**.|
+
+<!-- markdownlint-enable MD013 -->
 
 ![Option (Show Mouse Events)](images/tutorial/option_show_mouse_events.png)
 
