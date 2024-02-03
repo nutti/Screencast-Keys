@@ -70,7 +70,7 @@ def get_all_space_types():
 
 
 def blf_size(font_id, font_size, dpi):
-    if check_version(3, 4, 0) >= 0:
+    try:
         blf.size(font_id, font_size)
-    else:
+    except TypeError:
         blf.size(font_id, font_size, dpi)
