@@ -211,7 +211,7 @@ def immEnd():
     scissor_box = inst.get_scissor()
     # TODO: Other than OpenGL backend, scissor is not supported.
     #       Temporary turn off when gpu.state.scissor_set is implemented.
-    if hasattr(gpu, "hasattr") and \
+    if hasattr(gpu, "platform") and \
             hasattr(gpu.platform, "backend_type_get") and \
             gpu.platform.backend_type_get() != 'OPENGL':
         scissor_box = None
