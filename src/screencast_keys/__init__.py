@@ -182,15 +182,18 @@ def register():
     preferences.SK_Preferences.ui_in_sidebar_update_fn(prefs, context)
     preferences.SK_Preferences.ui_in_overlay_update_fn(prefs, context)
 
-    for event in list(ops.EventType):
-        item = prefs.display_event_text_aliases_props.add()
-        item.event_id = event.name
-        if event in ops.SK_OT_ScreencastKeys.MODIFIER_EVENT_TYPES:
-            item.default_text = common.fix_modifier_display_text(
-                ops.EventType.names[event.name]
-            )
-        else:
-            item.default_text = ops.EventType.names[event.name]
+    # Fix: https://github.com/nutti/Screencast-Keys/issues/195
+    # TODO: This workaround is hacky. We need to apply a better solution.
+    if len(prefs.display_event_text_aliases_props) == 0:
+        for event in list(ops.EventType):
+            item = prefs.display_event_text_aliases_props.add()
+            item.event_id = event.name
+            if event in ops.SK_OT_ScreencastKeys.MODIFIER_EVENT_TYPES:
+                item.default_text = common.fix_modifier_display_text(
+                    ops.EventType.names[event.name]
+                )
+            else:
+                item.default_text = ops.EventType.names[event.name]
 
     try:
         common.reload_custom_mouse_image(prefs, context)
@@ -204,6 +207,7 @@ def unregister():
     user_prefs = context.preferences
     prefs = user_prefs.addons[__package__].preferences
     preferences.remove_custom_mouse_image(prefs, context)
+    prefs.display_event_text_aliases_props.clear()
 
     bpy.app.handlers.load_post.remove(load_post_handler)
     unregister_shortcut_key()
