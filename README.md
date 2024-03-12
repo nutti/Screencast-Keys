@@ -88,3 +88,4 @@ Thanks for the sponsoring this project.
 
 * Joel E White
 * theangelik1art
+* Stanley Creative
