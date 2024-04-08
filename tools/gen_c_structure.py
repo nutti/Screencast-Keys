@@ -28,7 +28,7 @@ SOURCE_BASE_URL = "https://raw.githubusercontent.com/blender/blender/"
 
 def write_import(file):
     body = '''from ctypes import (
-    c_void_p, c_char, c_short, c_int, c_int8,
+    c_void_p, c_char, c_short, c_int, c_int8, c_uint64,
     addressof, cast, pointer,
     Structure,
     POINTER,
@@ -42,6 +42,7 @@ def parse_struct_variables(code_body):
     lines = code_body.split("\n")
     variables = []
     for line in lines:
+        line = re.sub(r"^\s*const ", "", line)  # Remove const specifier.
         m = re.search(r"^\s*(enum\s+|struct\s+)*([a-zA-Z_][a-zA-Z0-9_]*)\s+"
                       r"([a-zA-Z0-9_\[\],\s*]*?)(\s+DNA_DEPRECATED)*;", line)
         if m:
@@ -110,6 +111,9 @@ def type_to_ctype(type_, is_pointer):
         "int",
         "int8",
     )
+    builtin_types_with_t = (
+        "uint64_t",
+    )
 
     if type_ in known_struct:
         if is_pointer:
@@ -123,6 +127,8 @@ def type_to_ctype(type_, is_pointer):
         if is_pointer:
             return True, f"c_{type_}_p"
         return True, f"c_{type_}"
+    if type_ in builtin_types_with_t:
+        return True, f"c_{type_[:-2]}"
 
     assert is_pointer
     return False, "c_void_p"
@@ -315,11 +321,26 @@ def parse_argument():
     return args
 
 
+def compare_version(target, ref):
+    if target[0] != "v" or ref[0] != "v":
+        raise ValueError(f"Version must start from 'v' "
+                         f"(target: {target}, ref: {ref})")
+
+    if target == ref:
+        return 0
+
+    s = sorted([target, ref])
+    if s[0] == target:
+        return -1
+    return 1
+
+
 def main():
     args = parse_argument()
 
     output_file = args.output
     target = args.target
+
     gen_info = [
         [
             "enum",
@@ -370,6 +391,12 @@ def main():
             add_variable_for_wmEventHandler
         ],
     ]
+
+    # From v4.1.0, the extension of some header files is ".hh".
+    if compare_version(target, "v4.1.0") >= 0:
+        for info in gen_info:
+            if info[2] in ("wmEventHandler", "eWM_EventHandlerType"):
+                info[1] += "h"
 
     # Parse struct/enum.
     struct_info = []
