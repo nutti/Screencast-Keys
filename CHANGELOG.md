@@ -2,7 +2,21 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.13...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.14.0...master)
+
+<!-- markdownlint-disable-next-line MD013 -->
+## [Version 3.14.0](https://github.com/nutti/Screencast-Keys/compare/v3.13...v3.14.0) - 2024.XX.XX
+
+### Notice
+
+Since this version, the add-on introduces a
+[Semantic Versioning](https://semver.org/).  
+Semantic versioning can realize a short-term release after bug fixes and a
+long-term support for the specific Blender version.
+
+### Other Updates
+
+* Fix bugs
 
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 3.13](https://github.com/nutti/Screencast-Keys/compare/v3.12...v3.13) - 2024.2.4
