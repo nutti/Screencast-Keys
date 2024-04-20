@@ -21,8 +21,8 @@
 
 bl_info = {
     "name": "Screencast Keys",
-    "author": "Paulo Gomes, Bart Crouch, John E. Herrenyo, "
-              "Gaia Clary, Pablo Vazquez, chromoly, Nutti, Hawkpath, "
+    "author": "Nutti, Paulo Gomes, Bart Crouch, John E. Herrenyo, "
+              "Gaia Clary, Pablo Vazquez, chromoly, Hawkpath, "
               "CheeryLee, Kureii",
     "version": (3, 13, 0),
     "blender": (2, 80, 0),
