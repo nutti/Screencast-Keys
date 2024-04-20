@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+
+id = "screencast_keys"
+version = "3.13.1"
+name = "Screencast Keys"
+tagline = "Display keys pressed in Blender"
+maintainer = "nutti <nutti.metro@gmail.com>"
+type = "add-on"
+
+permissions = ["files", "network"]
+website = "https://github.com/nutti/Screencast-Keys"
+tags = ["System", "User Interface"]
+blender_version_min = "4.2.0"
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
