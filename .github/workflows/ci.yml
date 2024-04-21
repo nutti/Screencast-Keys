@@ -6,6 +6,7 @@ on:   # yamllint disable-line rule:truthy
   push:
     branches:
       - master
+      - 'release/v**'
       - 'run-ci/**'
     tags:
       - 'v*'
