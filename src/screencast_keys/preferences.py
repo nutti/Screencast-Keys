@@ -31,7 +31,6 @@ from .utils import compatibility as compat
 from .utils.addon_updater import AddonUpdaterManager
 from .utils.bl_class_registry import BlClassRegistry
 from . import common
-from . import c_structure as cstruct
 
 
 @BlClassRegistry()
@@ -394,13 +393,6 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default='LABEL_AND_IDNAME',
     )
 
-    get_event_aggressively: bpy.props.BoolProperty(
-        name="Get Event Aggressively",
-        description="(Experimental) Get events which will be dropped by the"
-                    "other modalhandlers. This may make blender unstable",
-        default=not cstruct.NOT_SUPPORTED,
-    )
-
     auto_save: bpy.props.BoolProperty(
         name="Auto Save",
         description="(Experimental) Enable custom auto save while modal "
@@ -653,7 +645,6 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
             layout.label(text="Experimental:")
             col = layout.column()
-            col.prop(self, "get_event_aggressively")
             col.prop(self, "auto_save")
 
             layout.separator()

@@ -41,7 +41,6 @@ if "bpy" in locals():
     # pylint: disable=E0601
     importlib.reload(gpu_utils)
     importlib.reload(utils)
-    importlib.reload(c_structure)
     utils.bl_class_registry.BlClassRegistry.cleanup()
     importlib.reload(preferences)
     importlib.reload(ops)
@@ -51,7 +50,6 @@ else:
     import bpy
     from . import gpu_utils
     from . import utils
-    from . import c_structure
     from . import preferences
     from . import ops
     from . import ui

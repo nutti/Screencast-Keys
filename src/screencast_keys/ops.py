@@ -25,11 +25,6 @@ import math
 import collections
 import enum
 import time
-from ctypes import (
-    c_void_p,
-    cast,
-    POINTER,
-)
 
 import blf
 import bpy
@@ -44,7 +39,6 @@ from .common import (
 )
 from .utils.bl_class_registry import BlClassRegistry
 from .utils import compatibility as compat
-from . import c_structure as cstruct
 from .gpu_utils import imm
 
 
@@ -491,7 +485,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     bl_idname = "wm.sk_screencast_keys"
     bl_label = "Screencast Keys"
     bl_description = "Display keys pressed"
-    bl_options = {'REGISTER'}
+    bl_options = {'REGISTER', 'MODAL_PRIORITY'}
 
     # Last save time by auto save.
     last_auto_saved_time = 0
@@ -1515,26 +1509,17 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         # Perform auto save only if the modal operator is executed from
         # Screencast Keys.
         do_auto_save = False
-        for w in bpy.context.window_manager.windows:
-            window = cast(
-                c_void_p(w.as_pointer()), POINTER(cstruct.wmWindow)).contents
-            handler_ptr = cast(
-                window.modalhandlers.first, POINTER(cstruct.wmEventHandler))
-            while handler_ptr:
-                handler = handler_ptr.contents
-                if handler.type == \
-                        cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
-                    do_auto_save = True
-                    op = handler.op.contents
-                    idname = op.idname.decode()
-                    op_prefix, op_name = idname.split("_OT_")
-                    idname_py = "{}.{}".format(op_prefix.lower(), op_name)
-                    if idname_py != SK_OT_ScreencastKeys.bl_idname:
-                        debug_print(f"Modal operator '{idname_py}' is "
-                                    "running. Skip auto save")
-                        return
-                handler_ptr = cast(
-                    handler.next, POINTER(cstruct.wmEventHandler))
+        wm = bpy.context.window_manager
+        for window in wm.windows:
+            for op in window.modal_operators:
+                idname = op.bl_idname
+                op_prefix, op_name = idname.split("_OT_")
+                idname_py = "{}.{}".format(op_prefix.lower(), op_name)
+                if idname_py != SK_OT_ScreencastKeys.bl_idname:
+                    debug_print(f"Modal operator '{idname_py}' is "
+                                "running. Skip auto save")
+                    return
+                do_auto_save = True
 
         if not do_auto_save:
             debug_print("No modal operator is running. Skip auto save")
@@ -1605,72 +1590,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         cls.last_auto_saved_time = os.stat(save_path).st_mtime
         prefs.filepaths.auto_save_time = prefs.filepaths.auto_save_time
         cls.auto_saving = False
-
-    @staticmethod
-    @bpy.app.handlers.persistent
-    def sort_modalhandlers(_):
-        """Sort modalhandlers registered on wmWindow.
-           This makes SK_OT_ScreencastKeys.model method enable to get events
-           consumed by other modalhandlers."""
-
-        user_preferences = bpy.context.preferences
-        if user_preferences is None:
-            return
-
-        prefs = user_preferences.addons[__package__].preferences
-        if not prefs.get_event_aggressively:
-            return
-
-        for w in bpy.context.window_manager.windows:
-            window = cast(
-                c_void_p(w.as_pointer()), POINTER(cstruct.wmWindow)).contents
-            handler_ptr = cast(
-                window.modalhandlers.first, POINTER(cstruct.wmEventHandler))
-            indices = []
-            i = 0
-            debug_print("====== HANDLER_LIST ======")
-            has_ui_handler = False
-            while handler_ptr:
-                handler = handler_ptr.contents
-                if handler.type == \
-                        cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_OP:
-                    op = handler.op.contents
-                    idname = op.idname.decode()
-                    op_prefix, op_name = idname.split("_OT_")
-                    idname_py = "{}.{}".format(op_prefix.lower(), op_name)
-                    if idname_py == SK_OT_ScreencastKeys.bl_idname:
-                        indices.append(i)
-                    debug_print(
-                        "  TYPE: WM_HANDLER_TYPE_OP ({})"
-                        .format(idname_py))
-                elif handler.type == \
-                        cstruct.eWM_EventHandlerType.WM_HANDLER_TYPE_UI:
-                    has_ui_handler = True
-                    debug_print("  TYPE: WM_HANDLER_TYPE_UI")
-                else:
-                    debug_print("  TYPE: {}".format(handler.type))
-
-                handler_ptr = cast(
-                    handler.next, POINTER(cstruct.wmEventHandler))
-                i += 1
-            debug_print("==========================")
-
-            # Blender will crash when we change the space type while Screencast
-            # Key is running. This issue is caused by changing order of
-            # WM_HANDLER_TYPE_UI handler.
-            # So, do nothing if there is a WM_HANDLER_TYPE_UI handler.
-            # TODO: Sort only WM_HANDLER_TYPE_OP handlers.
-            if has_ui_handler:
-                return
-
-            if indices:
-                handlers = window.modalhandlers
-                for count, index in enumerate(indices):
-                    if index != count:
-                        prev = handlers.find(index - 2)
-                        handler = handlers.find(index)
-                        handlers.remove(handler)
-                        handlers.insert_after(prev, handler)
 
     def update_hold_modifier_keys(self, event):
         """Update hold modifier keys."""
@@ -1895,9 +1814,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         self.origin["space"] = context.space_data.as_pointer()
         self.origin["region_type"] = context.region.type
         context.area.tag_redraw()
-        if prefs.get_event_aggressively:
-            bpy.app.handlers.depsgraph_update_pre.append(
-                cls.sort_modalhandlers)
         if prefs.auto_save:
             bpy.app.handlers.depsgraph_update_pre.append(cls.auto_save)
 
@@ -1905,9 +1821,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
     @classmethod
     def stop(cls, self, context):
-        if cls.sort_modalhandlers in bpy.app.handlers.depsgraph_update_pre:
-            bpy.app.handlers.depsgraph_update_pre.remove(
-                cls.sort_modalhandlers)
         if cls.auto_save in bpy.app.handlers.depsgraph_update_pre:
             bpy.app.handlers.depsgraph_update_pre.remove(cls.auto_save)
         self.event_timer_remove(context)
