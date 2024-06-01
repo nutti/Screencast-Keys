@@ -14,8 +14,8 @@ There are two ways to install Screencast Keys add-on.
 
 |Version|Supported Blender Version|
 |---|---|
-|Unstable|2.80 -|
-|3.14|2.80 -|
+|Unstable|4.2 -|
+|3.14|2.80 - 4.1|
 |3.13|2.80 - 4.1|
 |3.12|2.80 - 4.0|
 |3.11|2.80 - 3.6|

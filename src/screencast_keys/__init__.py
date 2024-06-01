@@ -24,8 +24,8 @@ bl_info = {
     "author": "Nutti, Paulo Gomes, Bart Crouch, John E. Herrenyo, "
               "Gaia Clary, Pablo Vazquez, chromoly, Hawkpath, "
               "CheeryLee, Kureii",
-    "version": (3, 14, 0),
-    "blender": (2, 80, 0),
+    "version": (3, 14, 1),
+    "blender": (4, 2, 0),
     "location": "3D View > Sidebar > Screencast Keys",
     "warning": "",
     "description": "Display keys pressed in Blender",
