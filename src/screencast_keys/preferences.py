@@ -28,11 +28,12 @@ from bpy.props import (
 from .ops import show_mouse_hold_status
 from .ui import SK_PT_ScreencastKeys, SK_PT_ScreencastKeys_Overlay
 from .utils import compatibility as compat
-from .utils.addon_updater import AddonUpdaterManager
+from .utils.addon_updater import AddonUpdaterManager    # extensions.blender.org: Delete line   # noqa # pylint: disable=C0301
 from .utils.bl_class_registry import BlClassRegistry
 from . import common
 
 
+# extensions.blender.org: Delete block start
 @BlClassRegistry()
 class SK_OT_CheckAddonUpdate(bpy.types.Operator):
     bl_idname = "wm.sk_check_addon_update"
@@ -65,6 +66,16 @@ class SK_OT_UpdateAddon(bpy.types.Operator):
         updater.update(self.branch_name)
 
         return {'FINISHED'}
+
+
+# pylint: disable=W0613
+def get_update_candidate_branches(self, _):
+    updater = AddonUpdaterManager.get_instance()
+    if not updater.candidate_checked():
+        return []
+
+    return [(name, name, "") for name in updater.get_candidate_branch_names()]
+# extensions.blender.org: Delete block end
 
 
 @BlClassRegistry()
@@ -115,15 +126,6 @@ class SK_OT_SelectCustomMouseImage(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# pylint: disable=W0613
-def get_update_candidate_branches(self, _):
-    updater = AddonUpdaterManager.get_instance()
-    if not updater.candidate_checked():
-        return []
-
-    return [(name, name, "") for name in updater.get_candidate_branch_names()]
-
-
 class DisplayEventTextAliasProperties(bpy.types.PropertyGroup):
     alias_text: bpy.props.StringProperty(name="Alias Text", default="")
     default_text: bpy.props.StringProperty(options={'HIDDEN'})
@@ -166,7 +168,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
             ('CONFIG', "Configuration", "Configuration about this add-on"),
             ('DISPLAY_EVENT_TEXT_ALIAS', "Display Event Text Alias",
              "Event text aliases for display"),
-            ('UPDATE', "Update", "Update this add-on"),
+            ('UPDATE', "Update", "Update this add-on"),     # extensions.blender.org: Delete line   # noqa # pylint: disable=C0301
         ],
         default='CONFIG'
     )
@@ -495,12 +497,14 @@ class SK_Preferences(bpy.types.AddonPreferences):
         type=DisplayEventTextAliasProperties
     )
 
+# extensions.blender.org: Delete block start
     # for add-on updater
     updater_branch_to_update: EnumProperty(
         name="branch",
         description="Target branch to update add-on",
         items=get_update_candidate_branches
     )
+# extensions.blender.org: Delete block end
 
     def draw(self, _):
         layout = self.layout
@@ -685,6 +689,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
                     col = sp.column()
                     col.prop(d, "alias_text", text="")
 
+# extensions.blender.org: Delete block start
         elif self.category == 'UPDATE':
             updater = AddonUpdaterManager.get_instance()
 
@@ -734,3 +739,4 @@ class SK_Preferences(bpy.types.AddonPreferences):
                 elif updater.has_info():
                     box = layout.box()
                     box.label(text=updater.info(), icon='ERROR')
+# extensions.blender.org: Delete block end

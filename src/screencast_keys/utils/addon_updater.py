@@ -36,6 +36,24 @@ def get_separator():
     return "/"
 
 
+def register_updater(info):
+    config = AddonUpdaterConfig()
+    config.owner = "nutti"
+    config.repository = "Screencast-Keys"
+    config.current_addon_path = os.path.dirname(os.path.realpath(__file__))
+    config.branches = ["master", "develop"]
+    ridx = config.current_addon_path.rfind(get_separator())
+    config.addon_directory = config.current_addon_path[:ridx]
+    config.min_release_version = info["version"]
+    config.default_target_addon_path = "screencast_keys"
+    config.target_addon_path = {
+        "master": "src{}screencast_keys".format(get_separator()),
+        "develop": "src{}screencast_keys".format(get_separator()),
+    }
+    updater = AddonUpdaterManager.get_instance()
+    updater.init(config)
+
+
 def _request(url, json_decode=True):
     # pylint: disable=W0212
     ssl._create_default_https_context = ssl._create_unverified_context

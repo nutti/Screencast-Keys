@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "screencast_keys"
-version = "3.14.1"
+version = "3.14.2"
 name = "Screencast Keys"
 tagline = "Display keys pressed in Blender"
 maintainer = "nutti <nutti.metro@gmail.com>"

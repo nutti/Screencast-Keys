@@ -22,11 +22,11 @@
 if "bpy" in locals():
     import importlib
     # pylint: disable=E0601
-    importlib.reload(addon_updater)
+    importlib.reload(addon_updater)     # extensions.blender.org: Delete line
     importlib.reload(bl_class_registry)
     importlib.reload(compatibility)
 else:
-    from . import addon_updater
+    from . import addon_updater     # extensions.blender.org: Delete line
     from . import bl_class_registry
     from . import compatibility
 

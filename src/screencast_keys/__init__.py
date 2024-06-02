@@ -24,7 +24,7 @@ bl_info = {
     "author": "Nutti, Paulo Gomes, Bart Crouch, John E. Herrenyo, "
               "Gaia Clary, Pablo Vazquez, chromoly, Hawkpath, "
               "CheeryLee, Kureii",
-    "version": (3, 14, 1),
+    "version": (3, 14, 2),
     "blender": (4, 2, 0),
     "location": "3D View > Sidebar > Screencast Keys",
     "warning": "",
@@ -81,26 +81,6 @@ def load_post_handler(_):
     is_startup = False
 
 
-def register_updater(info):
-    config = utils.addon_updater.AddonUpdaterConfig()
-    config.owner = "nutti"
-    config.repository = "Screencast-Keys"
-    config.current_addon_path = os.path.dirname(os.path.realpath(__file__))
-    config.branches = ["master", "develop"]
-    ridx = config.current_addon_path.rfind(utils.addon_updater.get_separator())
-    config.addon_directory = config.current_addon_path[:ridx]
-    config.min_release_version = info["version"]
-    config.default_target_addon_path = "screencast_keys"
-    config.target_addon_path = {
-        "master": "src{}screencast_keys".format(
-            utils.addon_updater.get_separator()),
-        "develop": "src{}screencast_keys".format(
-            utils.addon_updater.get_separator()),
-    }
-    updater = utils.addon_updater.AddonUpdaterManager.get_instance()
-    updater.init(config)
-
-
 def register_shortcut_key():
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
@@ -153,7 +133,7 @@ def unregister_addon_enable_property():
 def register():
     if not common.is_console_mode():
         gpu_utils.shader.ShaderManager.register_shaders()
-    register_updater(bl_info)
+    utils.addon_updater.register_updater(bl_info)   # extensions.blender.org: Delete line   # noqa
     # Register Screencast Key's enable property at here to use it in the
     # both SK_PT_ScreencastKeys Panel and SK_PT_ScreencastKeys_Overlay Panel.
     # TODO: This registration should be handled by BlClassRegistry to add

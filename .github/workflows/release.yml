@@ -12,8 +12,8 @@ on:   # yamllint disable-line rule:truthy
   pull_request:
 
 jobs:
-  pack:
-    name: Pack add-on's sources
+  pack-github-release:
+    name: Pack add-on's sources for GitHub Release
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
@@ -21,21 +21,46 @@ jobs:
 
       - name: Compress add-on's sources
         run: |
-          mkdir release
+          mkdir release-github-release
           cd src
           zip -r screencast_keys.zip screencast_keys
           cd ..
-          mv src/screencast_keys.zip release
+          mv src/screencast_keys.zip release-github-release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: screencast_keys
-          path: "release"
+          name: screencast_keys-github-release
+          path: "release-github-release"
 
-  publish:
-    name: Publish
-    needs: pack
+  pack-extensions-blender-org:
+    name: Pack add-on's sources for extensions.blender.org
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Run scripts for the code removing
+        run: |
+          bash tools/remove_code_extensions.blender.org.sh src tmp
+
+      - name: Compress add-on's sources
+        run: |
+          mkdir release-extensions.blender.org
+          cd tmp/src
+          zip -r screencast_keys.zip screencast_keys
+          cd ../..
+          mv tmp/src/screencast_keys.zip release-extensions.blender.org
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: screencast_keys-extensions.blender.org
+          path: "release-extensions.blender.org"
+
+  publish-github-release:
+    name: Publish for GitHub Release
+    needs: pack-github-release
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-20.04
     steps:
@@ -59,6 +84,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN_FOR_ACTIONS }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/screencast_keys/screencast_keys.zip
+          asset_path: dist/screencast_keys-github-release/screencast_keys.zip
           asset_name: screencast_keys.zip
           asset_content_type: application/zip
