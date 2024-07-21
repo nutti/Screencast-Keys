@@ -133,7 +133,7 @@ def unregister_addon_enable_property():
 def register():
     if not common.is_console_mode():
         gpu_utils.shader.ShaderManager.register_shaders()
-    utils.addon_updater.register_updater(bl_info)   # extensions.blender.org: Delete line   # noqa
+    utils.addon_updater.register_updater()   # extensions.blender.org: Delete line   # noqa
     # Register Screencast Key's enable property at here to use it in the
     # both SK_PT_ScreencastKeys Panel and SK_PT_ScreencastKeys_Overlay Panel.
     # TODO: This registration should be handled by BlClassRegistry to add

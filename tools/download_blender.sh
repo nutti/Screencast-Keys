@@ -7,7 +7,7 @@ SUPPORTED_VERSIONS=(
     "2.78" "2.79" "2.80" "2.81" "2.82" "2.83"
     "2.90" "2.91" "2.92" "2.93"
     "3.0" "3.1" "3.2" "3.3" "3.4" "3.5" "3.6"
-    "4.0"
+    "4.0" "4.1" "4.2"
 )
 
 declare -A BLENDER_DOWNLOAD_URL_LINUX_PATTERN=(
@@ -29,6 +29,8 @@ declare -A BLENDER_DOWNLOAD_URL_LINUX_PATTERN=(
     ["v3.5"]="blender-3\\.5\\.([0-9]+)-linux.*?\\.tar\\.xz"
     ["v3.6"]="blender-3\\.6\\.([0-9]+)-linux.*?\\.tar\\.xz"
     ["v4.0"]="blender-4\\.0\\.([0-9]+)-linux.*?\\.tar\\.xz"
+    ["v4.1"]="blender-4\\.1\\.([0-9]+)-linux.*?\\.tar\\.xz"
+    ["v4.2"]="blender-4\\.2\\.([0-9]+)-linux.*?\\.tar\\.xz"
 )
 
 declare -A BLENDER_CHECKSUM_URL_PATTERN=(
@@ -50,6 +52,8 @@ declare -A BLENDER_CHECKSUM_URL_PATTERN=(
     ["v3.5"]="blender-3\\.5\\.([0-9]+)\\.md5"
     ["v3.6"]="blender-3\\.6\\.([0-9]+)\\.md5"
     ["v4.0"]="blender-4\\.0\\.([0-9]+)\\.md5"
+    ["v4.1"]="blender-4\\.1\\.([0-9]+)\\.md5"
+    ["v4.2"]="blender-4\\.2\\.([0-9]+)\\.md5"
 )
 
 function get_extractor() {

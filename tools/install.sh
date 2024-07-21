@@ -10,11 +10,11 @@ version=${2}
 target=""
 
 if [ "${os}" = "mac" ]; then
-    addon_dir="${HOME}/Library/Application Support/Blender/${version}/scripts/addons"
+    addon_dir="${HOME}/Library/Application Support/Blender/${version}/extensions/user_default"
     mkdir -p "${addon_dir}"
     target="${addon_dir}/screencast_keys"
 elif [ "${os}" = "linux" ]; then
-    addon_dir="${HOME}/.config/blender/${version}/scripts/addons"
+    addon_dir="${HOME}/.config/blender/${version}/extensions/user_default"
     mkdir -p "${addon_dir}"
     target="${addon_dir}/screencast_keys"
 else

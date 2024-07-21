@@ -72,12 +72,19 @@ def panel_exists(idname):
 
 
 def preferences_exists(name):
-    return name in get_user_preferences(bpy.context).addons.keys()
+    if name in get_user_preferences(bpy.context).addons.keys():
+        return True
+
+    fullname = f"bl_ext.user_default.{name}"
+    if fullname in get_user_preferences(bpy.context).addons.keys():
+        return True
+
+    return False
 
 
 class TestBase(unittest.TestCase):
 
-    package_name = "screencast_keys"
+    package_name = "bl_ext.user_default.screencast_keys"
     module_name = ""
     submodule_name = None
     idname = []

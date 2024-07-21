@@ -7,7 +7,7 @@ tagline = "Display keys pressed in Blender"
 maintainer = "nutti <nutti.metro@gmail.com>"
 type = "add-on"
 
-permissions = ["files", "network"]
+permissions = []
 website = "https://github.com/nutti/Screencast-Keys"
 tags = ["System", "User Interface"]
 blender_version_min = "4.2.0"

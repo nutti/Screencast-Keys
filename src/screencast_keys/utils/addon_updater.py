@@ -36,7 +36,7 @@ def get_separator():
     return "/"
 
 
-def register_updater(info):
+def register_updater():
     config = AddonUpdaterConfig()
     config.owner = "nutti"
     config.repository = "Screencast-Keys"
@@ -44,7 +44,7 @@ def register_updater(info):
     config.branches = ["master", "develop"]
     ridx = config.current_addon_path.rfind(get_separator())
     config.addon_directory = config.current_addon_path[:ridx]
-    config.min_release_version = info["version"]
+    config.min_release_version = (3, 14, 2)
     config.default_target_addon_path = "screencast_keys"
     config.target_addon_path = {
         "master": "src{}screencast_keys".format(get_separator()),
@@ -188,7 +188,7 @@ class AddonUpdaterConfig:
         #   e.g. (5, 2) if your release tag name is "v5.2"
         # If you specify (-1, -1), ignore versions less than current add-on
         # version specified in bl_info.
-        self.min_release_version = (-1, -1)
+        self.min_release_version = (-1, -1, -1)
 
         # Target add-on path
         # {"branch/tag": "add-on path"}
