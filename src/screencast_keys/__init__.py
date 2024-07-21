@@ -21,10 +21,10 @@
 
 bl_info = {
     "name": "Screencast Keys",
-    "author": "Nutti, Paulo Gomes, Bart Crouch, John E. Herrenyo, "
+    "author": "nutti, Paulo Gomes, Bart Crouch, John E. Herrenyo, "
               "Gaia Clary, Pablo Vazquez, chromoly, Hawkpath, "
               "CheeryLee, Kureii",
-    "version": (3, 14, 2),
+    "version": (4, 0, 0),
     "blender": (4, 2, 0),
     "location": "3D View > Sidebar > Screencast Keys",
     "warning": "",

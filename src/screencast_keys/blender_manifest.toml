@@ -1,13 +1,12 @@
 schema_version = "1.0.0"
 
 id = "screencast_keys"
-version = "3.14.2"
+version = "4.0.0"
 name = "Screencast Keys"
 tagline = "Display keys pressed in Blender"
 maintainer = "nutti <nutti.metro@gmail.com>"
 type = "add-on"
 
-permissions = []
 website = "https://github.com/nutti/Screencast-Keys"
 tags = ["System", "User Interface"]
 blender_version_min = "4.2.0"
