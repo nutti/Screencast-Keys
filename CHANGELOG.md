@@ -2,7 +2,25 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v3.14.0...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.0.0...master)
+
+<!-- markdownlint-disable-next-line MD013 -->
+## [Version 4.0.0](https://github.com/nutti/Screencast-Keys/compare/v3.14.0...v4.0.0) - 2024.X.XX
+
+### Notice
+
+From this version, Screencast Keys add-on uses the 'MODAL_PRIORITY' option
+to remove the dependency of the Blender internal structure.  
+Also, this add-on is available at [extensions.blender.org](https://extensions.blender.org/add-ons/screencast-keys/).
+
+On the other hand, this add-on only supports Blender 4.2 or later from this
+version.  
+If you continue this add-on on Blender 4.1 or before, use Version 3.14 series.
+
+### Other Updates
+
+* Publish at [extensions.blender.org](https://extensions.blender.org/add-ons/screencast-keys/).
+* Remove "Get Event Aggressively" option
 
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 3.14.0](https://github.com/nutti/Screencast-Keys/compare/v3.13...v3.14.0) - 2024.4.21

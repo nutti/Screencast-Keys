@@ -5,9 +5,11 @@
 Before installing Screencast Keys add-on, check if
 [the add-on version](#support-version) supports on the your Blender version.
 
-There are two ways to install Screencast Keys add-on.
+There are 3 ways to install Screencast Keys add-on.
 
-* [Blender's Installation Tool](#blenders-installation-tool) *(Recommended)*
+<!-- markdownlint-disable-next-line MD013 -->
+* [Blender's Installation Tool (from extensions.blender.org)](#blenders-installation-tool-from-extensionsblenderorg) *(Recommended)*
+* [Blender's Installation Tool (from Disk)](#blenders-installation-tool-from-disk)
 * [Manual Install](#manual-install)
 
 ## Support Version
@@ -15,6 +17,7 @@ There are two ways to install Screencast Keys add-on.
 |Version|Supported Blender Version|
 |---|---|
 |Unstable|4.2 -|
+|4.0|4.2 -|
 |3.14|2.80 - 4.1|
 |3.13|2.80 - 4.1|
 |3.12|2.80 - 4.0|
@@ -31,10 +34,24 @@ There are two ways to install Screencast Keys add-on.
 |3.1|2.79 - 2.82|
 |3.0|2.79 - 2.80|
 
-## Blender's Installation Tool
+## Blender's Installation Tool (from extensions.blender.org)
 
-*This method works for the stable version only. You can't install the unstable*
-*version by this method.*
+*This method works for the stable version whose version is 4.0 or later.*  
+*If you want to install the older version, follow other processes*
+
+<!-- markdownlint-disable-next-line MD013 -->
+Screencast Keys is published at [extensions.blender.org](https://extensions.blender.org/add-ons/screencast-keys/).  
+You can install this add-on from there.
+
+1. Launch Blender and open the preference window by clicking *Edit* >
+   *Preferences ...*.
+2. Click *Get Extensions* in the preference window.
+3. Search **Screencast Keys** and click *Install* button.
+
+## Blender's Installation Tool (from Disk)
+
+*This method works for the stable version only.*  
+*You can't install the unstable version by this method.*  
 *If you want to install the unstable version, follow
 *[Manual Install](#manual-install) process*
 
@@ -43,6 +60,7 @@ There are two ways to install Screencast Keys add-on.
 
 |Version|Download URL|
 |---|---|
+|4.0|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.0.0)|
 |3.14|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.14.0)|
 |3.13|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.13)|
 |3.12|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.12)|
@@ -63,6 +81,21 @@ There are two ways to install Screencast Keys add-on.
 
 Follow below process.
 
+##### Blender 4.2 or later
+
+1. Launch Blender and open the preference window by clicking *Edit* >
+   *Preferences ...*.
+2. Click *Add-ons* in the preference window
+3. Click down arrow button on the upper-right of window, and click
+   *Install from Disk...* and select the downloaded .zip file.
+
+or,
+
+1. Launch Blender.
+2. Drag and drop the downloaded .zip file to Blender.
+
+##### Before Blender 4.1
+
 1. Launch Blender and open the preference window by clicking *Edit* >
    *Preferences ...*.
 2. Click *Add-ons* in the preference window
@@ -81,7 +114,8 @@ The name of add-on displayed in Blender is **Screencast Keys**.
 |Version|Download URL|
 |---|---|
 |*unstable*|[Download](https://github.com/nutti/Screencast-Keys/archive/master.zip)|
-|3.14|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.14)|
+|4.0|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.0.0)|
+|3.14|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.14.0)|
 |3.13|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.13)|
 |3.12|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.12)|
 |3.11|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.11)|
@@ -107,13 +141,23 @@ Add-on sources are located on the different places depending on the add-on versi
 |Version|Sources|
 |---|---|
 |unstable|src/screencast_keys|
-|3.1 - 3.14|screencast_keys|
+|3.1 - 4.0|screencast_keys|
 |3.0|screencastkeys|
 
 #### 3. Copy add-on sources into your add-on folder
 
 The location of the add-on folder depends on your operating system.  
 If the folder does not exist in your environment, make it in advance.
+
+##### Blender 4.2 or later
+
+|OS|Location|
+|---|---|
+|Windows|`C:\Users\<username>\AppData\Roaming\Blender Foundation\Blender\<blender_version>\extensions\user_default`|
+|Mac|`/Users/<username>/Library/Application Support/Blender/<blender_version>/extensions/user_default`|
+|Linux|`/home/<username>/.config/blender/<blender_version>/extensions/user_default`|
+
+##### Before Blender 4.1
 
 |OS|Location|
 |---|---|
