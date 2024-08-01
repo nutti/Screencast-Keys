@@ -53,7 +53,7 @@ If you want to report bug, request features or discuss about this add-on, see
 We provide [the answers](docs/faq.md) for the frequently asked questions.
 See these answers before making bug reports.  
 If you want to have an interactive discussion, you can use
-[screencast-keys channel](https://discord.gg/dGU9et5S2d) on the Discord server.
+[screencast-keys channel](https://discord.gg/8hEhu3YB4g) on the Discord server.
 
 ## Contribution / Support
 
