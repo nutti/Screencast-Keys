@@ -38,6 +38,8 @@ CUSTOM_MOUSE_IMG_MMOUSE_NAME = \
 
 
 def is_console_mode():
+    if bpy.app.background:
+        return True
     if "SK_CONSOLE_MODE" not in os.environ:
         return False
     return os.environ["SK_CONSOLE_MODE"] == "true"
