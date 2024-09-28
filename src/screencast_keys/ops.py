@@ -243,6 +243,8 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False,
         math.pi * 0.5,
     ]
 
+    original_state = gpu.state.blend_get()
+    gpu.state.blend_set('ALPHA')
     imm.immColor4f(*color)
     imm.immLineWidth(line_thickness)
 
@@ -263,6 +265,7 @@ def draw_rounded_box(x, y, w, h, round_radius, fill=False,
 
     imm.immLineWidth(1.0)
     imm.immColor4f(1.0, 1.0, 1.0, 1.0)
+    gpu.state.blend_set(original_state)
 
 
 def draw_rect(x1, y1, x2, y2, color):
