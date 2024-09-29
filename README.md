@@ -83,6 +83,7 @@ Thanks for the contribution to this project.
 * [**@kant**](https://github.com/kant)
 * [**@CheeryLee**](https://github.com/CheeryLee)
 * [**@Kureii**](https://github.com/Kureii)
+* [**@Andrej730**](https://github.com/Andrej730)
 
 ### Sponsors
 
