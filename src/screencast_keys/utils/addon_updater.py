@@ -44,7 +44,7 @@ def register_updater():
     config.branches = ["master", "develop"]
     ridx = config.current_addon_path.rfind(get_separator())
     config.addon_directory = config.current_addon_path[:ridx]
-    config.min_release_version = (4, 0, 0)
+    config.min_release_version = (4, 0, 1)
     config.default_target_addon_path = "screencast_keys"
     config.target_addon_path = {
         "master": "src{}screencast_keys".format(get_separator()),
