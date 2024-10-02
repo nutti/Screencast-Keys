@@ -31,6 +31,7 @@ from .utils import compatibility as compat
 from .utils.addon_updater import AddonUpdaterManager    # extensions.blender.org: Delete line   # noqa # pylint: disable=C0301
 from .utils.bl_class_registry import BlClassRegistry
 from . import common
+from . import c_structure as cstruct    # extensions.blender.org: Delete line
 
 
 # extensions.blender.org: Delete block start
@@ -395,6 +396,15 @@ class SK_Preferences(bpy.types.AddonPreferences):
         default='LABEL_AND_IDNAME',
     )
 
+    # extensions.blender.org: Delete block start
+    get_event_aggressively: bpy.props.BoolProperty(
+        name="Get Event Aggressively",
+        description="(Experimental) Get events which will be dropped by the"
+                    "other modalhandlers. This may make blender unstable",
+        default=not cstruct.NOT_SUPPORTED,
+    )
+    # extensions.blender.org: Delete block end
+
     auto_save: bpy.props.BoolProperty(
         name="Auto Save",
         description="(Experimental) Enable custom auto save while modal "
@@ -497,14 +507,14 @@ class SK_Preferences(bpy.types.AddonPreferences):
         type=DisplayEventTextAliasProperties
     )
 
-# extensions.blender.org: Delete block start
+    # extensions.blender.org: Delete block start
     # for add-on updater
     updater_branch_to_update: EnumProperty(
         name="branch",
         description="Target branch to update add-on",
         items=get_update_candidate_branches
     )
-# extensions.blender.org: Delete block end
+    # extensions.blender.org: Delete block end
 
     def draw(self, _):
         layout = self.layout
@@ -649,6 +659,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
 
             layout.label(text="Experimental:")
             col = layout.column()
+            col.prop(self, "get_event_aggressively")    # extensions.blender.org: Delete line   # noqa # pylint: disable=C0301
             col.prop(self, "auto_save")
 
             layout.separator()
@@ -689,7 +700,7 @@ class SK_Preferences(bpy.types.AddonPreferences):
                     col = sp.column()
                     col.prop(d, "alias_text", text="")
 
-# extensions.blender.org: Delete block start
+        # extensions.blender.org: Delete block start
         elif self.category == 'UPDATE':
             updater = AddonUpdaterManager.get_instance()
 
@@ -739,4 +750,4 @@ class SK_Preferences(bpy.types.AddonPreferences):
                 elif updater.has_info():
                     box = layout.box()
                     box.label(text=updater.info(), icon='ERROR')
-# extensions.blender.org: Delete block end
+        # extensions.blender.org: Delete block end

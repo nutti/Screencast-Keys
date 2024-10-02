@@ -19,6 +19,7 @@ TMP_DIR=$(mktemp -d)
 
 REMOVE_FILES=(
     "screencast_keys/utils/addon_updater.py"
+    "screencast_keys/c_structure/.*.py"
 )
 
 mkdir -p "${OUTPUT_DIR}"

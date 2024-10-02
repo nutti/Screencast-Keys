@@ -17,6 +17,8 @@ def check_version(major, minor, _):
         return 0
     if bpy.app.version[0] > major:
         return 1
+    if bpy.app.version[0] < major:
+        return -1
     if bpy.app.version[1] > minor:
         return 1
     return -1
@@ -30,23 +32,31 @@ def get_user_preferences(context):
 
 
 def check_addon_enabled(mod):
-    if check_version(2, 80, 0) < 0:
-        result = bpy.ops.wm.addon_enable(module=mod)
-    else:
+    if check_version(2, 80, 0) >= 0:
         result = bpy.ops.preferences.addon_enable(module=mod)
-    assert (result == {'FINISHED'}), "Failed to enable add-on %s" % (mod)
-    assert (mod in get_user_preferences(bpy.context).addons.keys()), \
-        "Failed to enable add-on %s" % (mod)
+    else:
+        result = bpy.ops.wm.addon_enable(module=mod)
+    assert (result == {'FINISHED'}), "Failed to enable add-on {}".format(mod)
+    if check_version(2, 80, 0) >= 0:
+        assert mod in bpy.context.preferences.addons.keys(),\
+               "Failed to enable add-on {}".format(mod)
+    else:
+        assert mod in bpy.context.user_preferences.addons.keys(),\
+               "Failed to enable add-on {}".format(mod)
 
 
 def check_addon_disabled(mod):
-    if check_version(2, 80, 0) < 0:
-        result = bpy.ops.wm.addon_disable(module=mod)
-    else:
+    if check_version(2, 80, 0) >= 0:
         result = bpy.ops.preferences.addon_disable(module=mod)
-    assert (result == {'FINISHED'}), "Failed to disable add-on %s" % (mod)
-    assert (mod not in get_user_preferences(bpy.context).addons.keys()), \
-        "Failed to disable add-on %s" % (mod)
+    else:
+        result = bpy.ops.wm.addon_disable(module=mod)
+    assert (result == {'FINISHED'}), "Failed to disable add-on {}".format(mod)
+    if check_version(2, 80, 0) >= 0:
+        assert mod not in bpy.context.preferences.addons.keys(),\
+               "Failed to disable add-on {}".format(mod)
+    else:
+        assert mod not in bpy.context.user_preferences.addons.keys(),\
+               "Failed to disable add-on {}".format(mod)
 
 
 def operator_exists(idname):
@@ -84,13 +94,16 @@ def preferences_exists(name):
 
 class TestBase(unittest.TestCase):
 
-    package_name = "bl_ext.user_default.screencast_keys"
+    package_name = "screencast_keys"
     module_name = ""
     submodule_name = None
     idname = []
 
     @classmethod
     def setUpClass(cls):
+        if check_version(4, 2, 0) >= 0:
+            cls.package_name = "bl_ext.user_default." + cls.package_name
+
         if cls.submodule_name is not None:
             print("\n======== Module Test: {}.{} ({}) ========"
                   .format(cls.package_name, cls.module_name,

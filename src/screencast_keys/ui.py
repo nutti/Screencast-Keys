@@ -122,6 +122,20 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
             c.label(text="Mode:")
             c.prop(prefs, "last_operator_show_mode", text="")
 
+        # extensions.blender.org: Delete block start
+
+        column.separator()
+
+        column.label(text="Experimental:")
+        column.column()
+        sp = column.split(factor=0.05)
+        _ = sp.column()     # spacer.
+        sp = sp.split(factor=1.0)
+        c = sp.column()
+        c.prop(prefs, "get_event_aggressively")
+
+        # extensions.blender.org: Delete block end
+
 
 class SK_PT_ScreencastKeys_Overlay(bpy.types.Panel):
     bl_label = ""
