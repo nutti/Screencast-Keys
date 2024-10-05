@@ -16,8 +16,9 @@ There are 3 ways to install Screencast Keys add-on.
 
 |Version|Supported Blender Version|
 |---|---|
-|Unstable|4.2 -|
-|4.0|4.2 -|
+|Unstable|2.80 -|
+|4.1|2.80 -|
+|4.0|4.2 - 4.2|
 |3.14|2.80 - 4.1|
 |3.13|2.80 - 4.1|
 |3.12|2.80 - 4.0|
@@ -36,7 +37,7 @@ There are 3 ways to install Screencast Keys add-on.
 
 ## Blender's Installation Tool (from extensions.blender.org)
 
-*This method works for the stable version whose version is 4.0 or later.*  
+*This method works for the stable version on Blender 4.2 or later.*  
 *If you want to install the older version, follow other processes*
 
 <!-- markdownlint-disable-next-line MD013 -->
@@ -60,6 +61,7 @@ You can install this add-on from there.
 
 |Version|Download URL|
 |---|---|
+|4.1|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.1.0)|
 |4.0|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.0.1)|
 |3.14|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.14.0)|
 |3.13|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.13)|
@@ -94,7 +96,7 @@ or,
 1. Launch Blender.
 2. Drag and drop the downloaded .zip file to Blender.
 
-##### Before Blender 4.1
+##### Blender 4.1 or before
 
 1. Launch Blender and open the preference window by clicking *Edit* >
    *Preferences ...*.
@@ -114,6 +116,7 @@ The name of add-on displayed in Blender is **Screencast Keys**.
 |Version|Download URL|
 |---|---|
 |*unstable*|[Download](https://github.com/nutti/Screencast-Keys/archive/master.zip)|
+|4.1|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.1.0)|
 |4.0|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.0.1)|
 |3.14|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.14.0)|
 |3.13|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.13)|
@@ -141,7 +144,7 @@ Add-on sources are located on the different places depending on the add-on versi
 |Version|Sources|
 |---|---|
 |unstable|src/screencast_keys|
-|3.1 - 4.0|screencast_keys|
+|3.1 - 4.1|screencast_keys|
 |3.0|screencastkeys|
 
 #### 3. Copy add-on sources into your add-on folder
@@ -157,7 +160,7 @@ If the folder does not exist in your environment, make it in advance.
 |Mac|`/Users/<username>/Library/Application Support/Blender/<blender_version>/extensions/user_default`|
 |Linux|`/home/<username>/.config/blender/<blender_version>/extensions/user_default`|
 
-##### Before Blender 4.1
+##### Blender 4.1 or before
 
 |OS|Location|
 |---|---|

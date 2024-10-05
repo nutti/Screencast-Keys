@@ -172,6 +172,17 @@ You can change the display mode from **Mode** option.
 
 ![Option (Show Last Operators)](images/tutorial/option_show_last_operators.png)
 
+### Get Event Aggressively
+
+*NOTE: This option is available for Blender 4.1 or before. For Blender 4.2 or*
+*later, all events can be collected without this option.*
+
+*NOTE: This is an experimental option. If this option is enabled, Blender may*
+*be crashed in the specific environment.*
+
+If **Get Event Aggressively** option is enabled, the events raised in the modal
+status will also be displayed.
+
 ### Auto Save
 
 *NOTE: This is an experimental option. If this option is enabled, Blender may*

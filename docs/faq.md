@@ -20,11 +20,11 @@ add-on.
 <!-- markdownlint-disable-next-line MD013 -->
 ### Failed to get event while the modal operation is running (e.g. G + X, S + Y, ...)
 
-* Version 4.0 or later
+* Blender 4.2 or later
 
 This issue is completely fixed and *Get Event Aggressively* option is removed.
 
-* Before Version 3.14
+* Blender 4.1 or before
 
 Try to enable the experimental option *Get Event Aggressively*.  
 This option enables you to get events even if the modal operation is running.

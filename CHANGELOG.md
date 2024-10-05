@@ -2,7 +2,24 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.0.0...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.1.0...master)
+
+<!-- markdownlint-disable-next-line MD013 -->
+## [Version 4.1.0](https://github.com/nutti/Screencast-Keys/compare/v4.0.0...v4.1.0) - 2024.10.5
+
+### Notice
+
+We found a way to coexist with the old Blender specific code.  
+From this version, this add-on supports Blender 2.8 to 4.1 again which drops
+at Version 4.0.
+
+### Other Updates
+
+* Fix bugs
+
+### Contributors
+
+* [**@Andrej730**](https://github.com/Andrej730)
 
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 4.0.1](https://github.com/nutti/Screencast-Keys/compare/v4.0.0...v4.0.1) - 2024.9.29
