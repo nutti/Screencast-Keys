@@ -58,7 +58,8 @@ EventType = enum.IntEnum(
 EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
-def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
+def draw_default_mouse(x, y, w, h, left_button_status,
+                       right_button_status, middle_button_status,
                        color, round_radius, fill=False, fill_color=None,
                        line_thickness=1):
     mouse_body = [x, y, w, h / 2]
@@ -97,7 +98,7 @@ def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
         fill=False, color=color,
         round_corner=[False, False, False, True],
         line_thickness=line_thickness)
-    if left_pressed:
+    if left_button_status in ('PRESS', 'CLICK_DRAG'):
         draw_rounded_box(
             left_mouse_button[0], left_mouse_button[1],
             left_mouse_button[2], left_mouse_button[3],
@@ -122,7 +123,7 @@ def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
         fill=False, color=color,
         round_corner=[False, False, False, False],
         line_thickness=line_thickness)
-    if middle_pressed:
+    if middle_button_status in ('PRESS', 'CLICK_DRAG'):
         draw_rounded_box(
             middle_mouse_button[0], middle_mouse_button[1],
             middle_mouse_button[2], middle_mouse_button[3],
@@ -147,7 +148,7 @@ def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
         fill=False, color=color,
         round_corner=[False, False, True, False],
         line_thickness=line_thickness)
-    if right_pressed:
+    if right_button_status in ('PRESS', 'CLICK_DRAG'):
         draw_rounded_box(
             right_mouse_button[0], right_mouse_button[1],
             right_mouse_button[2], right_mouse_button[3],
@@ -157,7 +158,8 @@ def draw_default_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
             line_thickness=line_thickness)
 
 
-def draw_custom_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
+def draw_custom_mouse(x, y, w, h, left_button_status,
+                      right_button_status, middle_button_status,
                       image_name_base, image_name_overlay_lmouse,
                       image_name_overlay_rmouse,
                       image_name_overlay_mmouse):
@@ -194,13 +196,16 @@ def draw_custom_mouse(x, y, w, h, left_pressed, right_pressed, middle_pressed,
 
     if image_name_base in bpy.data.images:
         draw_image(bpy.data.images[image_name_base], positions, tex_coords)
-    if left_pressed and (image_name_overlay_lmouse in bpy.data.images):
+    if left_button_status in ('PRESS', 'CLICK_DRAG') and \
+            (image_name_overlay_lmouse in bpy.data.images):
         draw_image(bpy.data.images[image_name_overlay_lmouse], positions,
                    tex_coords)
-    if right_pressed and (image_name_overlay_rmouse in bpy.data.images):
+    if right_button_status in ('PRESS', 'CLICK_DRAG') and \
+            (image_name_overlay_rmouse in bpy.data.images):
         draw_image(bpy.data.images[image_name_overlay_rmouse], positions,
                    tex_coords)
-    if middle_pressed and (image_name_overlay_mmouse in bpy.data.images):
+    if middle_button_status in ('PRESS', 'CLICK_DRAG') and \
+            (image_name_overlay_mmouse in bpy.data.images):
         draw_image(bpy.data.images[image_name_overlay_mmouse], positions,
                    tex_coords)
 
@@ -507,10 +512,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     # Hold modifier keys.
     hold_modifier_keys = []
     # Hold mouse buttons.
-    hold_mouse_buttons = {
-        'LEFTMOUSE': False,
-        'RIGHTMOUSE': False,
-        'MIDDLEMOUSE': False,
+    mouse_buttons_status = {
+        'LEFTMOUSE': 'RELEASE',    # One of ['RELEASE', 'PRESS', 'CLICK_DRAG']
+        'RIGHTMOUSE': 'RELEASE',
+        'MIDDLEMOUSE': 'RELEASE',
     }
     # Event history.
     # Format: [time, event_type, modifiers, repeat_count]
@@ -1258,9 +1263,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             if prefs.use_custom_mouse_image:
                 draw_custom_mouse(mouse_start_x, mouse_start_y,
                                   mouse_icon_width, mouse_icon_height,
-                                  cls.hold_mouse_buttons['LEFTMOUSE'],
-                                  cls.hold_mouse_buttons['RIGHTMOUSE'],
-                                  cls.hold_mouse_buttons['MIDDLEMOUSE'],
+                                  cls.mouse_buttons_status['LEFTMOUSE'],
+                                  cls.mouse_buttons_status['RIGHTMOUSE'],
+                                  cls.mouse_buttons_status['MIDDLEMOUSE'],
                                   common.CUSTOM_MOUSE_IMG_BASE_NAME,
                                   common.CUSTOM_MOUSE_IMG_LMOUSE_NAME,
                                   common.CUSTOM_MOUSE_IMG_RMOUSE_NAME,
@@ -1268,9 +1273,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             else:
                 draw_default_mouse(mouse_start_x, mouse_start_y,
                                    mouse_icon_width, mouse_icon_height,
-                                   cls.hold_mouse_buttons['LEFTMOUSE'],
-                                   cls.hold_mouse_buttons['RIGHTMOUSE'],
-                                   cls.hold_mouse_buttons['MIDDLEMOUSE'],
+                                   cls.mouse_buttons_status['LEFTMOUSE'],
+                                   cls.mouse_buttons_status['RIGHTMOUSE'],
+                                   cls.mouse_buttons_status['MIDDLEMOUSE'],
                                    prefs.color,
                                    prefs.mouse_size * 0.5,
                                    fill=prefs.background,
@@ -1726,10 +1731,10 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if EventType[event.type] == EventType.WINDOW_DEACTIVATE:
             self.hold_modifier_keys.clear()
 
-    def update_hold_mouse_buttons(self, event):
+    def update_mouse_buttons_status(self, event):
         """Update hold mouse buttons."""
 
-        is_hold_mouse_event = event.type in self.hold_mouse_buttons.keys()
+        is_hold_mouse_event = event.type in self.mouse_buttons_status.keys()
         if event.type != 'MOUSEMOVE' and not is_hold_mouse_event:
             return
 
@@ -1739,21 +1744,22 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         # To solve this issue, use 'MOUSEMOVE' event which will not be fired
         # when some mouse key is not pressed.
         if event.type == 'MOUSEMOVE':
-            reset = False
             if compat.check_version(3, 2, 0) < 0:
                 if event.value == 'RELEASE':
-                    reset = True
+                    for k in self.mouse_buttons_status.keys():
+                        self.mouse_buttons_status[k] = 'RELEASE'
+            elif compat.check_version(4, 2, 0) < 0:
+                for k in self.mouse_buttons_status.keys():
+                    self.mouse_buttons_status[k] = 'RELEASE'
             else:
-                reset = True
+                for k, v in self.mouse_buttons_status.items():
+                    if k == 'MIDDLEMOUSE':
+                        continue
+                    if k == 'LEFTMOUSE' and v == 'CLICK_DRAG':
+                        continue
+                    self.mouse_buttons_status[k] = 'RELEASE'
 
-            if reset:
-                for k in self.hold_mouse_buttons.keys():
-                    self.hold_mouse_buttons[k] = False
-
-        if event.value in ('PRESS', 'CLICK_DRAG'):
-            self.hold_mouse_buttons[event.type] = True
-        elif event.value == 'RELEASE':
-            self.hold_mouse_buttons[event.type] = False
+        self.mouse_buttons_status[event.type] = event.value
 
     def is_ignore_event(self, event, prefs=None):
         """Return True if event will not be shown."""
@@ -1807,7 +1813,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             current_mod_keys.remove(event_type)
 
         # Update hold mouse buttons.
-        self.update_hold_mouse_buttons(event)
+        self.update_mouse_buttons_status(event)
 
         # Update event history.
         if not self.is_ignore_event(event, prefs=prefs) and \
