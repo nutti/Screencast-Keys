@@ -1867,7 +1867,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Redraw regions which we want.
         prev_time = self.prev_time
-        if not self.is_ignore_event(event, prefs=prefs) or \
+        if not self.is_ignore_event(event) or \
                 prev_time and current_time - prev_time >= self.TIMER_STEP:
             regions = self.find_redraw_regions(context)
 
