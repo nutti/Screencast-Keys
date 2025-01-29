@@ -847,17 +847,19 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
-        operator_history = cls.removed_old_operator_history()
-        sh = cls.text_area_height(font_id) + prefs.margin * 2
+        if not prefs.show_last_operator:
+            return 0, 0
 
+        sh = cls.text_area_height(font_id) + prefs.margin * 2
+        layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+
+        operator_history = cls.removed_old_operator_history()
         if not operator_history:
-            layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
             return 0, layer_height
 
         current_time = time.time()
         time_, bl_label, idname_py, _ = operator_history[-1]
         if current_time - time_ > prefs.display_time:
-            layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
             return 0, layer_height
 
         operator_text = ""
@@ -873,7 +875,6 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         layer_width = cls.text_area_width(operator_text, font_id) \
             + prefs.margin * 2
-        layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
 
         return layer_width, layer_height
 
@@ -942,8 +943,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         layer_height = 0.0
 
         event_history = cls.removed_old_event_history()
-        layer_height += cls.text_area_height(font_id) * \
-            cls.HEIGHT_RATIO_FOR_SEPARATOR
+        if event_history:
+            layer_height += cls.text_area_height(font_id) * \
+                cls.HEIGHT_RATIO_FOR_SEPARATOR
         for _, event_type, modifiers, repeat_count in event_history[::-1]:
             text = get_display_event_text(event_type.name)
             if modifiers:
@@ -957,6 +959,55 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             layer_height += sh
 
         return layer_width, layer_height
+
+    @classmethod
+    def skip_draw(cls, context):
+        """Return True if no contents will be displayed."""
+        user_prefs = context.preferences
+        prefs = user_prefs.addons[__package__].preferences
+
+        if prefs.show_last_operator:
+            operator_history = cls.removed_old_operator_history()
+            if operator_history:
+                time_, _, _, _ = operator_history[-1]
+                current_time = time.time()
+                if current_time - time_ <= prefs.display_time:
+                    return False
+
+        if show_mouse_hold_status(prefs):
+            return False
+
+        if cls.hold_modifier_keys:
+            return False
+
+        event_history = cls.removed_old_event_history()
+        if event_history:
+            return False
+
+        return True
+
+    @classmethod
+    def draw_area_baseline(cls, context):
+        user_prefs = context.preferences
+        prefs = user_prefs.addons[__package__].preferences
+
+        if not prefs.show_last_operator:
+            return 0, 0
+
+        font_id = 0         # TODO: font_id should be constant.
+        sh = cls.text_area_height(font_id) + prefs.margin * 2
+        offset_y = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
+
+        operator_history = cls.removed_old_operator_history()
+        if not operator_history:
+            return 0, offset_y
+
+        current_time = time.time()
+        time_, _, _, _ = operator_history[-1]
+        if current_time - time_ > prefs.display_time:
+            return 0, offset_y
+
+        return 0, 0
 
     @classmethod
     def draw_area_size(cls, context):
@@ -997,10 +1048,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         draw_area_height = 0
 
         # Last operator.
-        if prefs.show_last_operator:
-            w, h = cls._area_size_last_operator_layer(context, font_id)
-            draw_area_width = max(w, draw_area_width)
-            draw_area_height += h
+        w, h = cls._area_size_last_operator_layer(context, font_id)
+        draw_area_width = max(w, draw_area_width)
+        draw_area_height += h
 
         # Hold mouse status / Hold modifier keys.
         w, h = cls._area_size_mouse_and_modifier_keys_layer(context, font_id)
@@ -1100,9 +1150,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
 
-        operator_history = cls.removed_old_operator_history()
         sh = cls.text_area_height(font_id) + prefs.margin * 2
 
+        operator_history = cls.removed_old_operator_history()
         if not operator_history:
             layer_height = sh + sh * cls.HEIGHT_RATIO_FOR_SEPARATOR
             return 0, layer_height, False
@@ -1341,10 +1391,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         event_start_y = y
 
         event_history = cls.removed_old_event_history()
-        layer_height += \
-            cls.text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
-        event_start_y += \
-            cls.text_area_height(font_id) * cls.HEIGHT_RATIO_FOR_SEPARATOR
+        if event_history:
+            layer_height += cls.text_area_height(font_id) * \
+                cls.HEIGHT_RATIO_FOR_SEPARATOR
+            event_start_y += cls.text_area_height(font_id) * \
+                cls.HEIGHT_RATIO_FOR_SEPARATOR
         for _, event_type, modifiers, repeat_count in event_history[::-1]:
             text = get_display_event_text(event_type.name)
             if modifiers:
@@ -1380,6 +1431,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
     def draw_callback(cls, context):
         user_prefs = context.preferences
         prefs = user_prefs.addons[__package__].preferences
+
+        if cls.skip_draw(context):
+            return      # Skip if no contents will be displayed.
 
         if context.window.as_pointer() != cls.origin["window"]:
             return      # Not match target window.
@@ -1444,10 +1498,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
 
         # Draw draw area based background.
         if show_draw_area_background(prefs):
+            # Clip a last operator area if no operator is shown.
+            _, baseline_y = cls.draw_area_baseline(context)
             draw_rounded_box(draw_area_min_x - region.x,
-                             draw_area_min_y - region.y,
+                             draw_area_min_y - region.y + baseline_y,
                              draw_area_max_x - draw_area_min_x,
-                             draw_area_max_y - draw_area_min_y,
+                             draw_area_max_y - draw_area_min_y - baseline_y,
                              prefs.background_rounded_corner_radius,
                              True,
                              prefs.background_color)
