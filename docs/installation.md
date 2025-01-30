@@ -61,7 +61,7 @@ You can install this add-on from there.
 
 |Version|Download URL|
 |---|---|
-|4.1|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.1.0)|
+|4.1|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.1.1)|
 |4.0|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.0.1)|
 |3.14|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.14.0)|
 |3.13|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.13)|
@@ -116,7 +116,7 @@ The name of add-on displayed in Blender is **Screencast Keys**.
 |Version|Download URL|
 |---|---|
 |*unstable*|[Download](https://github.com/nutti/Screencast-Keys/archive/master.zip)|
-|4.1|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.1.0)|
+|4.1|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.1.1)|
 |4.0|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v4.0.1)|
 |3.14|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.14.0)|
 |3.13|[Download](https://github.com/nutti/Screencast-Keys/releases/tag/v3.13)|

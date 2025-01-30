@@ -2,7 +2,14 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.1.0...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.1.1...master)
+
+<!-- markdownlint-disable-next-line MD013 -->
+## [Version 4.1.1](https://github.com/nutti/Screencast-Keys/compare/v4.1.0...v4.1.1) - 2025.1.30
+
+### Other Updates
+
+* Fix bugs
 
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 4.1.0](https://github.com/nutti/Screencast-Keys/compare/v4.0.0...v4.1.0) - 2024.10.5
