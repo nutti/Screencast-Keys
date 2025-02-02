@@ -160,9 +160,9 @@ def draw_default_mouse(x, y, w, h, left_button_status,
 
 def draw_custom_mouse(x, y, w, h, left_button_status,
                       right_button_status, middle_button_status,
-                      image_name_base, image_name_overlay_lmouse,
-                      image_name_overlay_rmouse,
-                      image_name_overlay_mmouse):
+                      display_mode,
+                      image_name_base, image_name_lmouse,
+                      image_name_rmouse, image_name_mmouse):
     def draw_image(img, positions, tex_coords):
         gpu_img = gpu.texture.from_image(img)
         original_state = gpu.state.blend_get()
@@ -179,6 +179,9 @@ def draw_custom_mouse(x, y, w, h, left_button_status,
 
         gpu.state.blend_set(original_state)
 
+    def pressed(button_status):
+        return button_status in ('PRESS', 'CLICK_DRAG')
+
     positions = [
         [x, y],
         [x, y + h],
@@ -194,20 +197,36 @@ def draw_custom_mouse(x, y, w, h, left_button_status,
 
     common.ensure_custom_mouse_images()
 
-    if image_name_base in bpy.data.images:
-        draw_image(bpy.data.images[image_name_base], positions, tex_coords)
-    if left_button_status in ('PRESS', 'CLICK_DRAG') and \
-            (image_name_overlay_lmouse in bpy.data.images):
-        draw_image(bpy.data.images[image_name_overlay_lmouse], positions,
-                   tex_coords)
-    if right_button_status in ('PRESS', 'CLICK_DRAG') and \
-            (image_name_overlay_rmouse in bpy.data.images):
-        draw_image(bpy.data.images[image_name_overlay_rmouse], positions,
-                   tex_coords)
-    if middle_button_status in ('PRESS', 'CLICK_DRAG') and \
-            (image_name_overlay_mmouse in bpy.data.images):
-        draw_image(bpy.data.images[image_name_overlay_mmouse], positions,
-                   tex_coords)
+    if display_mode == 'OVERLAY':
+        if image_name_base in bpy.data.images:
+            draw_image(bpy.data.images[image_name_base], positions, tex_coords)
+        if pressed(left_button_status) and \
+                (image_name_lmouse in bpy.data.images):
+            draw_image(bpy.data.images[image_name_lmouse], positions,
+                       tex_coords)
+        if pressed(right_button_status) and \
+                (image_name_rmouse in bpy.data.images):
+            draw_image(bpy.data.images[image_name_rmouse], positions,
+                       tex_coords)
+        if pressed(middle_button_status) and \
+                (image_name_mmouse in bpy.data.images):
+            draw_image(bpy.data.images[image_name_mmouse], positions,
+                       tex_coords)
+    elif display_mode == 'NORMAL':
+        if pressed(left_button_status) and \
+                (image_name_lmouse in bpy.data.images):
+            draw_image(bpy.data.images[image_name_lmouse], positions,
+                       tex_coords)
+        elif pressed(right_button_status) and \
+                (image_name_rmouse in bpy.data.images):
+            draw_image(bpy.data.images[image_name_rmouse], positions,
+                       tex_coords)
+        elif pressed(middle_button_status) and \
+                (image_name_mmouse in bpy.data.images):
+            draw_image(bpy.data.images[image_name_mmouse], positions,
+                       tex_coords)
+        elif image_name_base in bpy.data.images:
+            draw_image(bpy.data.images[image_name_base], positions, tex_coords)
 
 
 def draw_rounded_box(x, y, w, h, round_radius, fill=False,
@@ -1316,6 +1335,7 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                                   cls.mouse_buttons_status['LEFTMOUSE'],
                                   cls.mouse_buttons_status['RIGHTMOUSE'],
                                   cls.mouse_buttons_status['MIDDLEMOUSE'],
+                                  prefs.custom_mouse_image_display_mode,
                                   common.CUSTOM_MOUSE_IMG_BASE_NAME,
                                   common.CUSTOM_MOUSE_IMG_LMOUSE_NAME,
                                   common.CUSTOM_MOUSE_IMG_RMOUSE_NAME,

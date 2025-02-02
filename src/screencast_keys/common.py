@@ -30,11 +30,11 @@ from .utils import compatibility as compat
 
 CUSTOM_MOUSE_IMG_BASE_NAME = "[Screencast Keys] Custom Mouse Image Base"
 CUSTOM_MOUSE_IMG_LMOUSE_NAME = \
-    "[Screencast Keys] Custom Mouse Image Overlay Left Mouse"
+    "[Screencast Keys] Custom Mouse Image Left Mouse"
 CUSTOM_MOUSE_IMG_RMOUSE_NAME = \
-    "[Screencast Keys] Custom Mouse Image Overlay Right Mouse"
+    "[Screencast Keys] Custom Mouse Image Right Mouse"
 CUSTOM_MOUSE_IMG_MMOUSE_NAME = \
-    "[Screencast Keys] Custom Mouse Image Overlay Middle Mouse"
+    "[Screencast Keys] Custom Mouse Image Middle Mouse"
 
 
 def is_console_mode():
@@ -96,14 +96,14 @@ def reload_custom_mouse_image(prefs, _):
     if "custom_mouse_image_base" in prefs:
         reload_image(prefs["custom_mouse_image_base"],
                      CUSTOM_MOUSE_IMG_BASE_NAME)
-    if "custom_mouse_image_overlay_left_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_left_mouse"],
+    if "custom_mouse_image_left_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_left_mouse"],
                      CUSTOM_MOUSE_IMG_LMOUSE_NAME)
-    if "custom_mouse_image_overlay_right_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_right_mouse"],
+    if "custom_mouse_image_right_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_right_mouse"],
                      CUSTOM_MOUSE_IMG_RMOUSE_NAME)
-    if "custom_mouse_image_overlay_middle_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_overlay_middle_mouse"],
+    if "custom_mouse_image_middle_mouse" in prefs:
+        reload_image(prefs["custom_mouse_image_middle_mouse"],
                      CUSTOM_MOUSE_IMG_MMOUSE_NAME)
 
     ensure_custom_mouse_images()

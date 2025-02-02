@@ -198,20 +198,20 @@ You can update this add-on from Preferences.
 
 ### Use Custom Mouse Image
 
-**Use Custom Mouse Image** option enables to show custom mouse image.
+**Use Custom Mouse Image** option enables to show custom mouse image.  
 You can choose the images following case.
 
 * Base
   * This image is always displayed.
-* Overlay (Left)
+* Left
   * This image is displayed when a left mouse button is clicked.
-  * This image is overlaid on the base image.
-* Overlay (Right)
+  * This image is overlaid on the base image when **Display Mode** option is **Overlay**.
+* Right
   * This image is displayed when a right mouse button is clicked.
-  * This image is overlaid on the base image.
-* Overlay (Middle)
+  * This image is overlaid on the base image when **Display Mode** option is **Overlay**.
+* Middle
   * This image is displayed when a middle mouse button is clicked.
-  * This image is overlaid on the base image.
+  * This image is overlaid on the base image when **Display Mode** option is **Overlay**.
 
 ![Preferences (Use Custom Mouse Image)](images/tutorial/preferences_use_custom_mouse_image.png)
 
