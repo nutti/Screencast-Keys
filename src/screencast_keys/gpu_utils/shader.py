@@ -19,7 +19,22 @@
 # <pep8 compliant>
 
 import os
+import bpy
 import gpu
+
+
+def check_version(major, minor, _):
+    """
+    Check blender version
+    """
+
+    if bpy.app.version[0] == major and bpy.app.version[1] == minor:
+        return 0
+    if bpy.app.version[0] > major:
+        return 1
+    if bpy.app.version[1] > minor:
+        return 1
+    return -1
 
 
 class ShaderManager:
@@ -50,6 +65,11 @@ class ShaderManager:
         if hasattr(gpu, "platform") and \
                 hasattr(gpu.platform, "backend_type_get") and \
                 gpu.platform.backend_type_get() != 'OPENGL':
+            return
+
+        # From Blender 4.5, creating a shader with calling gpu.types.GPUShader
+        # constructor is not supported. Use builtin shaders instead.
+        if check_version(4, 5, 0) >= 0:
             return
 
         for shader_name, shader_files in cls.SHADER_FILES.items():
@@ -92,4 +112,10 @@ class ShaderManager:
                 gpu.platform.backend_type_get() != 'OPENGL':
             return None
 
-        return cls.shader_instances[shader_name]
+        return cls.shader_instances.get(shader_name)
+
+    @classmethod
+    def is_supported(cls, shader_name):
+        shader = cls.get_shader(shader_name)
+
+        return shader is not None

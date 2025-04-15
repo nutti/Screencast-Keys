@@ -3,7 +3,7 @@ from threading import Lock
 import bpy
 import gpu
 from gpu_extras.batch import batch_for_shader
-from .shader import ShaderManager
+from .shader import ShaderManager, check_version
 
 GL_LINES = 0
 GL_LINE_STRIP = 1
@@ -11,20 +11,6 @@ GL_LINE_LOOP = 2
 GL_TRIANGLES = 5
 GL_TRIANGLE_FAN = 6
 GL_QUADS = 4
-
-
-def check_version(major, minor, _):
-    """
-    Check blender version
-    """
-
-    if bpy.app.version[0] == major and bpy.app.version[1] == minor:
-        return 0
-    if bpy.app.version[0] > major:
-        return 1
-    if bpy.app.version[1] > minor:
-        return 1
-    return -1
 
 
 def primitive_mode_is_line(mode):
@@ -39,6 +25,7 @@ def is_shader_supported(shader_name):
         return False
 
 
+# pylint: disable=R0904
 class InternalData:
     # pylint: disable=W0201
     __inst = None
@@ -53,6 +40,7 @@ class InternalData:
         inst.color = [1.0, 1.0, 1.0, 1.0]
         inst.line_width = 1.0
         inst.scissor = None
+        inst.original_scissor = None
 
         return inst
 
@@ -92,6 +80,9 @@ class InternalData:
     def set_scissor(self, scissor_box):
         self.scissor = scissor_box
 
+    def set_original_scissor(self, scissor_box):
+        self.original_scissor = scissor_box
+
     def clear(self):
         self.prim_mode = None
         self.verts = []
@@ -121,6 +112,9 @@ class InternalData:
 
     def get_scissor(self):
         return self.scissor
+
+    def get_original_scissor(self):
+        return self.original_scissor
 
 
 # pylint: disable=C0103
@@ -159,46 +153,54 @@ def immBegin(mode):
 
 
 def _get_shader(dims, prim_mode, has_texture, scissor_box):
-    # TODO: In future release, use built-in shader instead of custom shader.
     if prim_mode in [GL_LINES, GL_LINE_STRIP, GL_LINE_LOOP]:
         if dims == 2:
             if scissor_box is not None:
-                return ShaderManager.get_shader(
-                    'POLYLINE_UNIFORM_COLOR_SCISSOR')
-            return gpu.shader.from_builtin('POLYLINE_UNIFORM_COLOR')
+                if ShaderManager.is_supported(
+                        'POLYLINE_UNIFORM_COLOR_SCISSOR'):
+                    return ShaderManager.get_shader(
+                        'POLYLINE_UNIFORM_COLOR_SCISSOR'), True
+            return gpu.shader.from_builtin('POLYLINE_UNIFORM_COLOR'), False
         elif dims == 3:
             if scissor_box is not None:
-                return ShaderManager.get_shader(
-                    'POLYLINE_UNIFORM_COLOR_SCISSOR')
-            else:
-                if check_version(3, 4, 0) >= 0:
-                    if is_shader_supported('POLYLINE_UNIFORM_COLOR'):
-                        return gpu.shader.from_builtin(
-                            'POLYLINE_UNIFORM_COLOR')
-                else:
-                    if is_shader_supported('3D_POLYLINE_UNIFORM_COLOR'):
-                        return gpu.shader.from_builtin(
-                            '3D_POLYLINE_UNIFORM_COLOR')
-                raise NotImplementedError(
-                    "polyline is only supported for dims == 3")
-        raise NotImplementedError(f"dims == {dims} is not supported")
+                if ShaderManager.is_supported(
+                        'POLYLINE_UNIFORM_COLOR_SCISSOR'):
+                    return ShaderManager.get_shader(
+                        'POLYLINE_UNIFORM_COLOR_SCISSOR'), True
+            if check_version(3, 4, 0) >= 0:
+                if is_shader_supported('POLYLINE_UNIFORM_COLOR'):
+                    return gpu.shader.from_builtin(
+                        'POLYLINE_UNIFORM_COLOR'), False
+            if is_shader_supported('3D_POLYLINE_UNIFORM_COLOR'):
+                return gpu.shader.from_builtin(
+                    '3D_POLYLINE_UNIFORM_COLOR'), False
 
     if dims == 2:
         if has_texture:
             if scissor_box is not None:
-                return ShaderManager.get_shader('IMAGE_COLOR_SCISSOR')
+                if ShaderManager.is_supported('IMAGE_COLOR_SCISSOR'):
+                    return ShaderManager.get_shader(
+                        'IMAGE_COLOR_SCISSOR'), True
             if hasattr(gpu.platform, "backend_type_get") and \
                     gpu.platform.backend_type_get() != 'OPENGL':
-                return gpu.shader.from_builtin('IMAGE_COLOR')
-            return ShaderManager.get_shader('IMAGE_COLOR')
+                if is_shader_supported('IMAGE_COLOR'):
+                    return gpu.shader.from_builtin('IMAGE_COLOR'), False
+            if ShaderManager.is_supported('IMAGE_COLOR'):
+                return ShaderManager.get_shader('IMAGE_COLOR'), True
+            if is_shader_supported('IMAGE_COLOR'):
+                return gpu.shader.from_builtin('IMAGE_COLOR'), False
         if scissor_box is not None:
-            return ShaderManager.get_shader('UNIFORM_COLOR_SCISSOR')
-        else:
-            if check_version(3, 4, 0) >= 0:
-                return gpu.shader.from_builtin('UNIFORM_COLOR')
-            else:
-                return gpu.shader.from_builtin('2D_UNIFORM_COLOR')
-    raise NotImplementedError(f"dims == {dims} is not supported")
+            if ShaderManager.is_supported('UNIFORM_COLOR_SCISSOR'):
+                return ShaderManager.get_shader('UNIFORM_COLOR_SCISSOR'), True
+        if check_version(3, 4, 0) >= 0:
+            if is_shader_supported('UNIFORM_COLOR'):
+                return gpu.shader.from_builtin('UNIFORM_COLOR'), False
+        if is_shader_supported('2D_UNIFORM_COLOR'):
+            return gpu.shader.from_builtin('2D_UNIFORM_COLOR'), False
+
+    raise NotImplementedError(
+        f"Not supported shader (dims={dims}, prim_mode={prim_mode}, "
+        f"has_texture={has_texture}, scissor_box={scissor_box}")
 
 
 # pylint: disable=C0103
@@ -221,7 +223,8 @@ def immEnd():
     dims = inst.get_dims()
 
     # Get shader.
-    shader = _get_shader(dims, prim_mode, has_texture, scissor_box)
+    shader, use_custom_shader = _get_shader(
+        dims, prim_mode, has_texture, scissor_box)
 
     # Setup attributes.
     if len(tex_coords) == 0:
@@ -276,7 +279,12 @@ def immEnd():
         shader.uniform_float("lineWidth", inst.get_line_width())
         shader.uniform_float("color", color)
         if scissor_box is not None:
-            shader.uniform_float("scissor", scissor_box)
+            if use_custom_shader:
+                shader.uniform_float("scissor", scissor_box)
+            else:
+                gpu.state.scissor_set(scissor_box[0], scissor_box[1],
+                                      scissor_box[2] - scissor_box[0],
+                                      scissor_box[3] - scissor_box[1])
             shader.uniform_int("lineSmooth", 1)
     else:
         if dims == 2:
@@ -288,7 +296,12 @@ def immEnd():
             shader.uniform_float("ModelViewProjectionMatrix", mvp_matrix)
             shader.uniform_float("color", color)
             if scissor_box is not None:
-                shader.uniform_float("scissor", scissor_box)
+                if use_custom_shader:
+                    shader.uniform_float("scissor", scissor_box)
+                else:
+                    gpu.state.scissor_set(scissor_box[0], scissor_box[1],
+                                          scissor_box[2] - scissor_box[0],
+                                          scissor_box[3] - scissor_box[1])
 
     # Draw.
     batch.draw(shader)
@@ -327,3 +340,19 @@ def immSetTexture(texture):
 def immSetScissor(scissor_box):
     inst = InternalData.get_instance()
     inst.set_scissor(scissor_box)
+
+    if scissor_box is not None:
+        gpu.state.scissor_test_set(True)
+
+        # Store an original scissor box to restore when disabled.
+        if inst.get_original_scissor() is None:
+            inst.set_original_scissor(scissor_box)
+    else:
+        gpu.state.scissor_test_set(False)
+
+        # Revert to the original scissor box.
+        if inst.get_original_scissor() is not None:
+            orig_box = inst.get_original_scissor()
+            gpu.state.scissor_set(orig_box[0], orig_box[1],
+                                  orig_box[2] - orig_box[0],
+                                  orig_box[3] - orig_box[1])
