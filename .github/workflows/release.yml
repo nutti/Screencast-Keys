@@ -14,7 +14,7 @@ on:   # yamllint disable-line rule:truthy
 jobs:
   pack-github-release:
     name: Pack add-on's sources for GitHub Release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -35,7 +35,7 @@ jobs:
 
   pack-extensions-blender-org:
     name: Pack add-on's sources for extensions.blender.org
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -62,7 +62,7 @@ jobs:
     name: Publish for GitHub Release
     needs: pack-github-release
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Fetch Artifacts
         uses: actions/download-artifact@v4

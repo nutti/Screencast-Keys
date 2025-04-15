@@ -14,7 +14,7 @@ on:   # yamllint disable-line rule:truthy
 jobs:
   pycodestyle:
     name: pycodestyle
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.13"
 
       - name: Install required packages
         run: |
@@ -37,7 +37,7 @@ jobs:
 
   pylint:
     name: pylint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -45,7 +45,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.7"
+          python-version: "3.13"
 
       - name: Install required packages
         run: |
@@ -75,7 +75,7 @@ jobs:
 
   yamllint:
     name: yamllint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -93,7 +93,7 @@ jobs:
 
   shellcheck:
     name: shellcheck
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2

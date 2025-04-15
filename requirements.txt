@@ -1,3 +1,3 @@
-pycodestyle==2.9.1
+pycodestyle==2.13.0
 pylint==2.15.0
 yamllint==1.27.1

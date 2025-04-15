@@ -38,10 +38,10 @@ def check_addon_enabled(mod):
         result = bpy.ops.wm.addon_enable(module=mod)
     assert (result == {'FINISHED'}), "Failed to enable add-on {}".format(mod)
     if check_version(2, 80, 0) >= 0:
-        assert mod in bpy.context.preferences.addons.keys(),\
+        assert mod in bpy.context.preferences.addons.keys(), \
                "Failed to enable add-on {}".format(mod)
     else:
-        assert mod in bpy.context.user_preferences.addons.keys(),\
+        assert mod in bpy.context.user_preferences.addons.keys(), \
                "Failed to enable add-on {}".format(mod)
 
 
@@ -52,10 +52,10 @@ def check_addon_disabled(mod):
         result = bpy.ops.wm.addon_disable(module=mod)
     assert (result == {'FINISHED'}), "Failed to disable add-on {}".format(mod)
     if check_version(2, 80, 0) >= 0:
-        assert mod not in bpy.context.preferences.addons.keys(),\
+        assert mod not in bpy.context.preferences.addons.keys(), \
                "Failed to disable add-on {}".format(mod)
     else:
-        assert mod not in bpy.context.user_preferences.addons.keys(),\
+        assert mod not in bpy.context.user_preferences.addons.keys(), \
                "Failed to disable add-on {}".format(mod)
 
 
