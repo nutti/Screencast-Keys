@@ -2,7 +2,19 @@
 
 # Change Log
 
-## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.1.1...master)
+## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.2.0...master)
+
+<!-- markdownlint-disable-next-line MD013 -->
+## [Version 4.2.0](https://github.com/nutti/Screencast-Keys/compare/v4.1.0...v4.2.0) - 2025.X.XX
+
+### Updated Features
+
+* Added preferences
+  * Display mode of a custom mouse image
+
+### Other Updates
+
+* Fix bugs
 
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 4.1.1](https://github.com/nutti/Screencast-Keys/compare/v4.1.0...v4.1.1) - 2025.1.30
