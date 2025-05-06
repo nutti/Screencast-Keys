@@ -5,7 +5,7 @@
 ## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.2.0...master)
 
 <!-- markdownlint-disable-next-line MD013 -->
-## [Version 4.2.0](https://github.com/nutti/Screencast-Keys/compare/v4.1.0...v4.2.0) - 2025.X.XX
+## [Version 4.2.0](https://github.com/nutti/Screencast-Keys/compare/v4.1.0...v4.2.0) - 2025.5.6
 
 ### Updated Features
 
