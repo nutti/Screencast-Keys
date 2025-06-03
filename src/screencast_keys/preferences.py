@@ -20,6 +20,7 @@
 
 
 import bpy
+import platform
 from bpy.props import (
     StringProperty,
     EnumProperty,
@@ -32,6 +33,8 @@ from .utils.addon_updater import AddonUpdaterManager    # extensions.blender.org
 from .utils.bl_class_registry import BlClassRegistry
 from . import common
 from . import c_structure as cstruct    # extensions.blender.org: Delete line
+
+is_macos = platform.system() == 'Darwin'
 
 
 # extensions.blender.org: Delete block start
@@ -228,9 +231,10 @@ class SK_Preferences(bpy.types.AddonPreferences):
         max=100,
     )
 
+    # Increase default font size on macOS (Retina) for better visibility
     font_size: bpy.props.IntProperty(
         name="Font Size",
-        default=int(bpy.context.preferences.ui_styles[0].widget.points),
+        default=int(bpy.context.preferences.ui_styles[0].widget.points * (5 if is_macos else 1)),
         min=6,
         max=1000
     )
@@ -243,16 +247,18 @@ class SK_Preferences(bpy.types.AddonPreferences):
         max=1000
     )
 
+    # Increase default line thickness on macOS (Retina) for better visibility
     line_thickness: bpy.props.FloatProperty(
         name="Line Thickness",
-        default=1,
+        default=1 * (4 if is_macos else 1),
         min=1,
         max=100
     )
 
+    # Increase default mouse size on macOS (Retina) for better visibility
     mouse_size: bpy.props.IntProperty(
         name="Mouse Size",
-        default=int(bpy.context.preferences.ui_styles[0].widget.points * 3),
+        default=int(bpy.context.preferences.ui_styles[0].widget.points * 3 * (4 if is_macos else 1)),
         min=18,
         max=1000,
     )
@@ -766,3 +772,4 @@ class SK_Preferences(bpy.types.AddonPreferences):
                     box = layout.box()
                     box.label(text=updater.info(), icon='ERROR')
         # extensions.blender.org: Delete block end
+
