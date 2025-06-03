@@ -19,8 +19,8 @@
 # <pep8 compliant>
 
 
-import bpy
 import platform
+import bpy
 from bpy.props import (
     StringProperty,
     EnumProperty,
@@ -234,7 +234,9 @@ class SK_Preferences(bpy.types.AddonPreferences):
     # Increase default font size on macOS (Retina) for better visibility
     font_size: bpy.props.IntProperty(
         name="Font Size",
-        default=int(bpy.context.preferences.ui_styles[0].widget.points * (5 if is_macos else 1)),
+        default=int(
+            bpy.context.preferences.ui_styles[0].widget.points *
+            (5 if is_macos else 1)),
         min=6,
         max=1000
     )
@@ -258,7 +260,9 @@ class SK_Preferences(bpy.types.AddonPreferences):
     # Increase default mouse size on macOS (Retina) for better visibility
     mouse_size: bpy.props.IntProperty(
         name="Mouse Size",
-        default=int(bpy.context.preferences.ui_styles[0].widget.points * 3 * (4 if is_macos else 1)),
+        default=int(
+            bpy.context.preferences.ui_styles[0].widget.points * 3 *
+            (4 if is_macos else 1)),
         min=18,
         max=1000,
     )
@@ -772,4 +776,3 @@ class SK_Preferences(bpy.types.AddonPreferences):
                     box = layout.box()
                     box.label(text=updater.info(), icon='ERROR')
         # extensions.blender.org: Delete block end
-
