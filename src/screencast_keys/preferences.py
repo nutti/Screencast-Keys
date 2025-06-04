@@ -235,8 +235,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
     font_size: bpy.props.IntProperty(
         name="Font Size",
         default=int(
-            bpy.context.preferences.ui_styles[0].widget.points *
-            (5 if is_macos else 1)),
+            bpy.context.preferences.ui_styles[0].widget.points
+            * (5 if is_macos else 1)),
         min=6,
         max=1000
     )
@@ -261,8 +261,8 @@ class SK_Preferences(bpy.types.AddonPreferences):
     mouse_size: bpy.props.IntProperty(
         name="Mouse Size",
         default=int(
-            bpy.context.preferences.ui_styles[0].widget.points * 3 *
-            (4 if is_macos else 1)),
+            bpy.context.preferences.ui_styles[0].widget.points * 3
+            * (4 if is_macos else 1)),
         min=18,
         max=1000,
     )
