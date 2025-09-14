@@ -88,9 +88,9 @@ def reload_custom_mouse_image(prefs, _):
             image.preview_ensure()
             image.gl_load()
 
-    if "use_custom_mouse_image" not in prefs:
+    if not hasattr(prefs, "use_custom_mouse_image"):
         return
-    if not prefs["use_custom_mouse_image"]:
+    if not prefs.use_custom_mouse_image:
         return
 
     if "custom_mouse_image_base" in prefs:
