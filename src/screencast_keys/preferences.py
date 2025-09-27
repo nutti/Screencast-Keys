@@ -146,15 +146,28 @@ def remove_custom_mouse_image(self, _):
 
 
 def update_custom_mouse_image_size(self, _):
-    if "use_custom_mouse_image_size" not in self:
-        return
+    # From Blender 5.0, the specification of bpy.types.AddonPreferences
+    # is changed. This change does not allow dict based accesses.
+    if compat.check_version(5, 0, 0) >= 0:
+        if "use_custom_mouse_image_size" not in dir(self):
+            return
 
-    if not self["use_custom_mouse_image_size"]:
-        return
+        if not self.use_custom_mouse_image_size:
+            return
 
-    if common.CUSTOM_MOUSE_IMG_BASE_NAME in bpy.data.images:
-        image = bpy.data.images[common.CUSTOM_MOUSE_IMG_BASE_NAME]
-        self["custom_mouse_size"] = image.size
+        if common.CUSTOM_MOUSE_IMG_BASE_NAME in bpy.data.images:
+            image = bpy.data.images[common.CUSTOM_MOUSE_IMG_BASE_NAME]
+            self.custom_mouse_size = image.size
+    else:
+        if "use_custom_mouse_image_size" not in self:
+            return
+
+        if not self["use_custom_mouse_image_size"]:
+            return
+
+        if common.CUSTOM_MOUSE_IMG_BASE_NAME in bpy.data.images:
+            image = bpy.data.images[common.CUSTOM_MOUSE_IMG_BASE_NAME]
+            self["custom_mouse_size"] = image.size
 
 
 @BlClassRegistry()
