@@ -88,23 +88,44 @@ def reload_custom_mouse_image(prefs, _):
             image.preview_ensure()
             image.gl_load()
 
-    if "use_custom_mouse_image" not in prefs:
-        return
-    if not prefs["use_custom_mouse_image"]:
-        return
+    # From Blender 5.0, the specification of bpy.types.AddonPreferences
+    # is changed. This change does not allow dict based accesses.
+    if compat.check_version(5, 0, 0) >= 0:
+        if "use_custom_mouse_image" not in dir(prefs):
+            return
+        if not prefs.use_custom_mouse_image:
+            return
 
-    if "custom_mouse_image_base" in prefs:
-        reload_image(prefs["custom_mouse_image_base"],
-                     CUSTOM_MOUSE_IMG_BASE_NAME)
-    if "custom_mouse_image_left_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_left_mouse"],
-                     CUSTOM_MOUSE_IMG_LMOUSE_NAME)
-    if "custom_mouse_image_right_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_right_mouse"],
-                     CUSTOM_MOUSE_IMG_RMOUSE_NAME)
-    if "custom_mouse_image_middle_mouse" in prefs:
-        reload_image(prefs["custom_mouse_image_middle_mouse"],
-                     CUSTOM_MOUSE_IMG_MMOUSE_NAME)
+        if "custom_mouse_image_base" in dir(prefs):
+            reload_image(prefs.custom_mouse_image_base,
+                         CUSTOM_MOUSE_IMG_BASE_NAME)
+        if "custom_mouse_image_left_mouse" in dir(prefs):
+            reload_image(prefs.custom_mouse_image_left_mouse,
+                         CUSTOM_MOUSE_IMG_LMOUSE_NAME)
+        if "custom_mouse_image_right_mouse" in dir(prefs):
+            reload_image(prefs.custom_mouse_image_right_mouse,
+                         CUSTOM_MOUSE_IMG_RMOUSE_NAME)
+        if "custom_mouse_image_middle_mouse" in dir(prefs):
+            reload_image(prefs.custom_mouse_image_middle_mouse,
+                         CUSTOM_MOUSE_IMG_MMOUSE_NAME)
+    else:
+        if "use_custom_mouse_image" not in prefs:
+            return
+        if not prefs["use_custom_mouse_image"]:
+            return
+
+        if "custom_mouse_image_base" in prefs:
+            reload_image(prefs["custom_mouse_image_base"],
+                         CUSTOM_MOUSE_IMG_BASE_NAME)
+        if "custom_mouse_image_left_mouse" in prefs:
+            reload_image(prefs["custom_mouse_image_left_mouse"],
+                         CUSTOM_MOUSE_IMG_LMOUSE_NAME)
+        if "custom_mouse_image_right_mouse" in prefs:
+            reload_image(prefs["custom_mouse_image_right_mouse"],
+                         CUSTOM_MOUSE_IMG_RMOUSE_NAME)
+        if "custom_mouse_image_middle_mouse" in prefs:
+            reload_image(prefs["custom_mouse_image_middle_mouse"],
+                         CUSTOM_MOUSE_IMG_MMOUSE_NAME)
 
     ensure_custom_mouse_images()
 
