@@ -536,6 +536,13 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         'RIGHTMOUSE': 'RELEASE',
         'MIDDLEMOUSE': 'RELEASE',
     }
+    # Hold keys (Used for internal state management).
+    # This data is updated by using 'PRESS' and 'RELEASE' events.
+    keys_status_internal = {
+        'LEFT_ALT': 'RELEASE',
+        'RIGHT_ALT': 'RELEASE',
+    }
+
     # Event history.
     # Format: [time, event_type, modifiers, repeat_count]
     event_history = []
@@ -1807,11 +1814,37 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if EventType[event.type] == EventType.WINDOW_DEACTIVATE:
             self.hold_modifier_keys.clear()
 
-    def update_mouse_buttons_status(self, event):
+    def update_keys_status_internal(self, event):
+        """Update internal keys status."""
+
+        if event.type in ('LEFT_ALT', 'RIGHT_ALT'):
+            self.keys_status_internal[event.type] = event.value
+
+    def is_middle_mouse_emulated(self, user_prefs):
+        if user_prefs.inputs.use_mouse_emulate_3_button:
+            alt_pressed = self.keys_status_internal['LEFT_ALT'] == 'PRESS' or \
+                self.keys_status_internal['RIGHT_ALT'] == 'PRESS'
+            return alt_pressed
+        return False
+
+    def get_original_event_from_emulated(self, event, user_prefs):
+        # If "Emulate 3 Button Mouse" option is enabled, we handle the middle
+        # mouse event as the left mouse event.
+        event_type = event.type
+        if self.is_middle_mouse_emulated(user_prefs):
+            # From the observation, event.alt will be False when 'MIDDLEMOUSE'
+            # event will be issued.
+            if event.type == 'MIDDLEMOUSE' and not event.alt:
+                return 'LEFTMOUSE'
+        return event_type
+
+    def update_mouse_buttons_status(self, event, user_prefs):
         """Update hold mouse buttons."""
 
-        is_hold_mouse_event = event.type in self.mouse_buttons_status.keys()
-        if event.type != 'MOUSEMOVE' and not is_hold_mouse_event:
+        event_type = self.get_original_event_from_emulated(event, user_prefs)
+
+        is_hold_mouse_event = event_type in self.mouse_buttons_status.keys()
+        if event_type != 'MOUSEMOVE' and not is_hold_mouse_event:
             return
 
         # Note: This is not complete solution.
@@ -1819,9 +1852,9 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         # mouse drag, ...).
         # To solve this issue, use 'MOUSEMOVE' event which will not be fired
         # when some mouse key is not pressed.
-        if event.type == 'MOUSEMOVE':
+        if event_type == 'MOUSEMOVE':
             if compat.check_version(3, 2, 0) < 0:
-                if event.value == 'RELEASE':
+                if event_type == 'RELEASE':
                     for k in self.mouse_buttons_status.keys():
                         self.mouse_buttons_status[k] = 'RELEASE'
             elif compat.check_version(4, 2, 0) < 0:
@@ -1831,11 +1864,14 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                 for k, v in self.mouse_buttons_status.items():
                     if k == 'MIDDLEMOUSE':
                         continue
-                    if k == 'LEFTMOUSE' and v == 'CLICK_DRAG':
-                        continue
+                    if k == 'LEFTMOUSE':
+                        if v == 'CLICK_DRAG':
+                            continue
+                        if self.is_middle_mouse_emulated(user_prefs):
+                            continue
                     self.mouse_buttons_status[k] = 'RELEASE'
 
-        self.mouse_buttons_status[event.type] = event.value
+        self.mouse_buttons_status[event_type] = event.value
 
     def is_ignore_event(self, event, prefs=None):
         """Return True if event will not be shown."""
@@ -1872,7 +1908,8 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
         if event.type == 'MOUSEMOVE':
             self.__class__.current_mouse_co = [event.mouse_x, event.mouse_y]
 
-        event_type = EventType[event.type]
+        event_type = self.get_original_event_from_emulated(event, user_prefs)
+        event_type = EventType[event_type]
 
         current_time = time.time()
 
@@ -1888,8 +1925,11 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
             # Remove modifier key which is just pressed.
             current_mod_keys.remove(event_type)
 
+        # Update keys status internal.
+        self.update_keys_status_internal(event)
+
         # Update hold mouse buttons.
-        self.update_mouse_buttons_status(event)
+        self.update_mouse_buttons_status(event, user_prefs)
 
         # Update event history.
         if not self.is_ignore_event(event, prefs=prefs) and \
