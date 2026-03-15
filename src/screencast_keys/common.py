@@ -85,6 +85,8 @@ def reload_custom_mouse_image(prefs, _):
             image = bpy.data.images.load(filepath)
             image.name = image_name
             image.use_fake_user = True
+            if compat.check_version(5, 0, 0) >= 0:
+                image.colorspace_settings.name = 'Non-Color'
             image.preview_ensure()
             image.gl_load()
 
