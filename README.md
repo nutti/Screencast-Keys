@@ -84,6 +84,7 @@ Thanks for the contribution to this project.
 * [**@CheeryLee**](https://github.com/CheeryLee)
 * [**@Kureii**](https://github.com/Kureii)
 * [**@Andrej730**](https://github.com/Andrej730)
+* [**@JingRyu**](https://github.com/JingRyu)
 
 ### Sponsors
 
