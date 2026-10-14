@@ -4,6 +4,15 @@
 
 ## [Unreleased](https://github.com/nutti/Screencast-Keys/compare/v4.2.0...master)
 
+### Updated Features
+
+* Updated the figure of the hold mouse status (rounded body with a scroll
+  wheel)
+* Added options
+  * Mouse Style (Original / Updated)
+  * Active Color
+  * Mouse Background
+
 <!-- markdownlint-disable-next-line MD013 -->
 ## [Version 4.2.2](https://github.com/nutti/Screencast-Keys/compare/v4.2.1...v4.2.2) - 2026.3.22
 

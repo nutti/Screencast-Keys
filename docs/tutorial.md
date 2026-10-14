@@ -34,6 +34,37 @@ Screencast Keys add-on has lots of options to change its UI and operation.
 
 ![Option (Color)](images/tutorial/option_color.png)
 
+### Mouse Style
+
+**Mouse Style** option changes the figure style of the hold mouse status.  
+This option is only available when **Show Mouse Events** option's mode is
+**Hold Status** or **Event History + Hold Status**, and
+**Use Custom Mouse Image** option is disabled.
+
+|||
+|---|---|
+|**Original**|Three separate buttons on a body.|
+|**Updated**|Rounded body with a scroll wheel (default).|
+
+![Option (Mouse Style)](images/tutorial/option_mouse_style.png)
+
+### Active Color
+
+**Active Color** option changes the fill color of a pressed mouse button.  
+The outline keeps using **Color** option.  
+This option is available under the same condition as **Mouse Style** option.
+
+![Option (Active Color)](images/tutorial/option_mouse_active_color.png)
+
+### Mouse Background
+
+If **Mouse Background** option is enabled, the mouse body is filled with its
+own color regardless of **Background** option.  
+The color supports alpha, so the background can be semi-transparent.  
+This option is available under the same condition as **Mouse Style** option.
+
+![Option (Mouse Background)](images/tutorial/option_mouse_background.png)
+
 ### Shadow
 
 If **Shadow** option is enabled, shadow will be displayed behind texts.  

@@ -196,6 +196,41 @@ class SK_Preferences(bpy.types.AddonPreferences):
         size=4,
     )
 
+    mouse_style: bpy.props.EnumProperty(
+        name="Mouse Style",
+        description="Figure style of the hold mouse status",
+        items=[
+            ('ORIGINAL', "Original", "Three separate buttons on a body"),
+            ('UPDATED', "Updated", "Rounded body with a scroll wheel"),
+        ],
+        default='UPDATED',
+    )
+
+    mouse_active_color: bpy.props.FloatVectorProperty(
+        name="Active Color",
+        description="Fill color of a pressed mouse button",
+        default=(1.0, 1.0, 1.0, 1.0),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR_GAMMA',
+        size=4,
+    )
+
+    mouse_background: bpy.props.BoolProperty(
+        name="Mouse Background",
+        description="Fill the mouse body with its own background color",
+        default=False
+    )
+
+    mouse_background_color: bpy.props.FloatVectorProperty(
+        name="Mouse Background Color",
+        default=(0.0, 0.0, 0.0, 0.5),
+        min=0.0,
+        max=1.0,
+        subtype='COLOR',
+        size=4,
+    )
+
     shadow: bpy.props.BoolProperty(
         name="Shadow",
         default=False
@@ -552,6 +587,13 @@ class SK_Preferences(bpy.types.AddonPreferences):
             split = column.split()
             col = split.column()
             col.prop(self, "color")
+            if show_mouse_hold_status(self) and \
+                    not self.use_custom_mouse_image:
+                col.prop(self, "mouse_style")
+                col.prop(self, "mouse_active_color")
+                col.prop(self, "mouse_background")
+                if self.mouse_background:
+                    col.prop(self, "mouse_background_color", text="")
             col.separator()
             col.prop(self, "shadow")
             if self.shadow:
