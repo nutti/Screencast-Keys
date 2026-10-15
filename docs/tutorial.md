@@ -43,8 +43,8 @@ This option is only available when **Show Mouse Events** option's mode is
 
 |||
 |---|---|
-|**Original**|Three separate buttons on a body.|
-|**Updated**|Rounded body with a scroll wheel (default).|
+|**v1**|Three separate buttons on a body.|
+|**v2**|Rounded body with a scroll wheel (default).|
 
 ![Option (Mouse Style)](images/tutorial/option_mouse_style.png)
 
