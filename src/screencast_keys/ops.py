@@ -102,10 +102,10 @@ def draw_filled_band(outer, inner, color):
     gpu.state.blend_set(original_state)
 
 
-def draw_updated_mouse(x, y, w, h, left_button_status,
-                       right_button_status, middle_button_status,
-                       color, round_radius, fill=False, fill_color=None,
-                       line_thickness=1, pressed_color=None):
+def draw_mouse_v2(x, y, w, h, left_button_status,
+                  right_button_status, middle_button_status,
+                  color, round_radius, fill=False, fill_color=None,
+                  line_thickness=1, pressed_color=None):
     # Mouse is drawn as a single rounded body. The upper half holds the
     # left/right buttons separated by a vertical line, with the wheel
     # (middle button) in the center overlapping the horizontal divider.
@@ -182,10 +182,10 @@ def draw_updated_mouse(x, y, w, h, left_button_status,
               line_thickness=line_thickness)
 
 
-def draw_original_mouse(x, y, w, h, left_button_status,
-                        right_button_status, middle_button_status,
-                        color, round_radius, fill=False, fill_color=None,
-                        line_thickness=1, pressed_color=None):
+def draw_mouse_v1(x, y, w, h, left_button_status,
+                  right_button_status, middle_button_status,
+                  color, round_radius, fill=False, fill_color=None,
+                  line_thickness=1, pressed_color=None):
     if pressed_color is None:
         pressed_color = color
     mouse_body = [x, y, w, h / 2]
@@ -288,9 +288,13 @@ def draw_default_mouse(x, y, w, h, left_button_status,
                        right_button_status, middle_button_status,
                        color, round_radius, fill=False, fill_color=None,
                        line_thickness=1, pressed_color=None,
-                       style='UPDATED'):
-    draw_func = draw_original_mouse if style == 'ORIGINAL' \
-        else draw_updated_mouse
+                       style='V2'):
+    if style == 'V1':
+        draw_func = draw_mouse_v1
+    elif style == 'V2':
+        draw_func = draw_mouse_v2
+    else:
+        raise ValueError(f"Invalid style: {style}")
     draw_func(x, y, w, h, left_button_status,
               right_button_status, middle_button_status,
               color, round_radius, fill=fill, fill_color=fill_color,

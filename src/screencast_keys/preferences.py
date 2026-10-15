@@ -200,10 +200,10 @@ class SK_Preferences(bpy.types.AddonPreferences):
         name="Mouse Style",
         description="Figure style of the hold mouse status",
         items=[
-            ('ORIGINAL', "Original", "Three separate buttons on a body"),
-            ('UPDATED', "Updated", "Rounded body with a scroll wheel"),
+            ('V1', "v1", "Three separate buttons on a body"),
+            ('V2', "v2", "Rounded body with a scroll wheel"),
         ],
-        default='UPDATED',
+        default='V2',
     )
 
     mouse_active_color: bpy.props.FloatVectorProperty(
