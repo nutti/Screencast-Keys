@@ -43,6 +43,13 @@ class SK_PT_ScreencastKeys(bpy.types.Panel):
         column = layout.column()
 
         column.prop(prefs, "color")
+        if show_mouse_hold_status(prefs) and \
+                not prefs.use_custom_mouse_image:
+            column.prop(prefs, "mouse_style", text="Style")
+            column.prop(prefs, "mouse_active_color")
+            column.prop(prefs, "mouse_background")
+            if prefs.mouse_background:
+                column.prop(prefs, "mouse_background_color", text="")
 
         column.separator()
 

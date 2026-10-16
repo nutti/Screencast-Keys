@@ -58,10 +58,136 @@ EventType = enum.IntEnum(
 EventType.names = {e.identifier: e.name for e in event_type_enum_items}
 
 
-def draw_default_mouse(x, y, w, h, left_button_status,
-                       right_button_status, middle_button_status,
-                       color, round_radius, fill=False, fill_color=None,
-                       line_thickness=1):
+def _arc_points(cx, cy, r, angle_start, angle_end, num):
+    points = []
+    for i in range(num + 1):
+        angle = angle_start + (angle_end - angle_start) * i / num
+        points.append((cx + r * math.cos(angle), cy + r * math.sin(angle)))
+    return points
+
+
+def _resample_polyline(points, num):
+    """Resample polyline to 'num' points evenly spaced by arc length."""
+    lengths = [0.0]
+    for p0, p1 in zip(points[:-1], points[1:]):
+        lengths.append(lengths[-1] + math.hypot(p1[0] - p0[0], p1[1] - p0[1]))
+    total = lengths[-1]
+    result = []
+    seg = 0
+    for i in range(num):
+        target = total * i / (num - 1)
+        while seg < len(points) - 2 and lengths[seg + 1] < target:
+            seg += 1
+        seg_len = lengths[seg + 1] - lengths[seg]
+        t = (target - lengths[seg]) / seg_len if seg_len > 0 else 0.0
+        p0, p1 = points[seg], points[seg + 1]
+        result.append((p0[0] + (p1[0] - p0[0]) * t,
+                       p0[1] + (p1[1] - p0[1]) * t))
+    return result
+
+
+def draw_filled_band(outer, inner, color):
+    """Fill the area between two polylines with the same point count."""
+    original_state = gpu.state.blend_get()
+    gpu.state.blend_set('ALPHA')
+    imm.immColor4f(*color)
+    imm.immBegin(imm.GL_QUADS)
+    for o0, o1, i0, i1 in zip(outer[:-1], outer[1:], inner[:-1], inner[1:]):
+        imm.immVertex2f(*o0)
+        imm.immVertex2f(*o1)
+        imm.immVertex2f(*i1)
+        imm.immVertex2f(*i0)
+    imm.immEnd()
+    imm.immColor4f(1.0, 1.0, 1.0, 1.0)
+    gpu.state.blend_set(original_state)
+
+
+def draw_mouse_v2(x, y, w, h, left_button_status,
+                  right_button_status, middle_button_status,
+                  color, round_radius, fill=False, fill_color=None,
+                  line_thickness=1, pressed_color=None):
+    # Mouse is drawn as a single rounded body. The upper half holds the
+    # left/right buttons separated by a vertical line, with the wheel
+    # (middle button) in the center overlapping the horizontal divider.
+    body_radius = min(round_radius, w / 2, h / 4)
+    button_h = h / 2
+    button_y = y + h - button_h
+    top_y = y + h
+    wheel_w = w * 0.2
+    wheel_h = button_h * 0.74
+    wheel_x = x + (w - wheel_w) / 2
+    wheel_y = top_y - button_h * 0.39 - wheel_h
+    wheel_radius = wheel_w / 2
+    center_x = x + w / 2
+    if pressed_color is None:
+        pressed_color = color
+
+    def button_contours(side):
+        """Outer and inner contours of a button, from top to bottom.
+
+        The inner contour follows the center line and wraps around the
+        wheel so the wheel is cut out from the filled button.
+        """
+        r = body_radius
+        wr = wheel_radius
+        if side == 'LEFT':
+            edge_x = x
+            end_x = center_x - wr
+            corner = _arc_points(x + r, top_y - r, r,
+                                 math.pi * 0.5, math.pi, 8)
+            cap = _arc_points(center_x, wheel_y + wheel_h - wr, wr,
+                              math.pi * 0.5, math.pi, 8)
+        else:
+            edge_x = x + w
+            end_x = center_x + wr
+            corner = _arc_points(x + w - r, top_y - r, r,
+                                 math.pi * 0.5, 0.0, 8)
+            cap = _arc_points(center_x, wheel_y + wheel_h - wr, wr,
+                              math.pi * 0.5, 0.0, 8)
+        outer = [(center_x, top_y)] + corner + \
+                [(edge_x, button_y), (end_x, button_y)]
+        inner = [(center_x, top_y)] + cap + [(end_x, button_y)]
+        num = 48
+        return _resample_polyline(outer, num), \
+            _resample_polyline(inner, num)
+
+    # Mouse body.
+    if fill:
+        draw_rounded_box(x, y, w, h, body_radius,
+                         fill=True, color=fill_color,
+                         line_thickness=line_thickness)
+
+    # Pressed buttons.
+    for status, side in ((left_button_status, 'LEFT'),
+                         (right_button_status, 'RIGHT')):
+        if status in ('PRESS', 'CLICK_DRAG'):
+            draw_filled_band(*button_contours(side), pressed_color)
+    if middle_button_status in ('PRESS', 'CLICK_DRAG'):
+        draw_rounded_box(wheel_x, wheel_y, wheel_w, wheel_h, wheel_radius,
+                         fill=True, color=pressed_color,
+                         line_thickness=line_thickness)
+
+    # Outlines. Dividers are split so they don't cross the wheel.
+    draw_rounded_box(x, y, w, h, body_radius,
+                     fill=False, color=color,
+                     line_thickness=line_thickness)
+    draw_rounded_box(wheel_x, wheel_y, wheel_w, wheel_h, wheel_radius,
+                     fill=False, color=color,
+                     line_thickness=line_thickness)
+    draw_line([x, button_y], [wheel_x, button_y], color,
+              line_thickness=line_thickness)
+    draw_line([wheel_x + wheel_w, button_y], [x + w, button_y], color,
+              line_thickness=line_thickness)
+    draw_line([center_x, wheel_y + wheel_h], [center_x, top_y], color,
+              line_thickness=line_thickness)
+
+
+def draw_mouse_v1(x, y, w, h, left_button_status,
+                  right_button_status, middle_button_status,
+                  color, round_radius, fill=False, fill_color=None,
+                  line_thickness=1, pressed_color=None):
+    if pressed_color is None:
+        pressed_color = color
     mouse_body = [x, y, w, h / 2]
     left_mouse_button = [x, y + h / 2, w / 3, h / 2]
     middle_mouse_button = [x + w / 3, y + h / 2, w / 3, h / 2]
@@ -103,7 +229,7 @@ def draw_default_mouse(x, y, w, h, left_button_status,
             left_mouse_button[0], left_mouse_button[1],
             left_mouse_button[2], left_mouse_button[3],
             round_radius / 2,
-            fill=True, color=color,
+            fill=True, color=pressed_color,
             round_corner=[False, False, False, True],
             line_thickness=line_thickness)
 
@@ -128,7 +254,7 @@ def draw_default_mouse(x, y, w, h, left_button_status,
             middle_mouse_button[0], middle_mouse_button[1],
             middle_mouse_button[2], middle_mouse_button[3],
             round_radius / 2,
-            fill=True, color=color,
+            fill=True, color=pressed_color,
             round_corner=[False, False, False, False],
             line_thickness=line_thickness)
 
@@ -153,9 +279,26 @@ def draw_default_mouse(x, y, w, h, left_button_status,
             right_mouse_button[0], right_mouse_button[1],
             right_mouse_button[2], right_mouse_button[3],
             round_radius / 2,
-            fill=True, color=color,
+            fill=True, color=pressed_color,
             round_corner=[False, False, True, False],
             line_thickness=line_thickness)
+
+
+def draw_default_mouse(x, y, w, h, left_button_status,
+                       right_button_status, middle_button_status,
+                       color, round_radius, fill=False, fill_color=None,
+                       line_thickness=1, pressed_color=None,
+                       style='V2'):
+    if style == 'V1':
+        draw_func = draw_mouse_v1
+    elif style == 'V2':
+        draw_func = draw_mouse_v2
+    else:
+        raise ValueError(f"Invalid style: {style}")
+    draw_func(x, y, w, h, left_button_status,
+              right_button_status, middle_button_status,
+              color, round_radius, fill=fill, fill_color=fill_color,
+              line_thickness=line_thickness, pressed_color=pressed_color)
 
 
 def draw_custom_mouse(x, y, w, h, left_button_status,
@@ -1377,9 +1520,12 @@ class SK_OT_ScreencastKeys(bpy.types.Operator):
                     cls.mouse_buttons_status['MIDDLEMOUSE'],
                     prefs.color,
                     prefs.mouse_size * 0.5 * ui_scale,
-                    fill=prefs.background,
-                    fill_color=prefs.background_color,
-                    line_thickness=prefs.line_thickness * ui_line_width)
+                    fill=prefs.background or prefs.mouse_background,
+                    fill_color=prefs.mouse_background_color
+                    if prefs.mouse_background else prefs.background_color,
+                    line_thickness=prefs.line_thickness * ui_line_width,
+                    pressed_color=prefs.mouse_active_color,
+                    style=prefs.mouse_style)
 
         # Draw hold modifier keys.
         if cls.hold_modifier_keys or drawing:
